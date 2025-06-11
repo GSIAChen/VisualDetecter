@@ -6,7 +6,7 @@ using static MyWPF1.ViewModels.SelectableItem;
 
 public class ImageViewModel : INotifyPropertyChanged
 {
-    private HObject _image;
+    public HObject _image;
     private HWindowControl _hWindowControl;
     private ToolInstance _currentToolInstance;
     public ToolInstance CurrentToolInstance
@@ -41,15 +41,11 @@ public class ImageViewModel : INotifyPropertyChanged
     private void OnToolInstanceAdded(ToolInstance instance)
     {
         Debug.WriteLine($"ToolInstance added: {instance.ToolKey}");
-        // 判断类型，初始化参数或应用处理
-        if (instance.ViewModel is BinaryViewModel binaryVM)
+        _currentToolInstance = instance;
+        _currentTool = instance.ViewModel;
+        if (_hWindowControl != null && _image != null)
         {
-            _currentToolInstance = instance;
-            _currentTool = binaryVM;
-            if (_hWindowControl != null && _image != null)
-            {
-                binaryVM.Initialize(_hWindowControl, _image);
-            }
+            _currentTool.Initialize(_hWindowControl);
         }
     }
 

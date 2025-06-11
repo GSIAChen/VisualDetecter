@@ -81,44 +81,54 @@
             <TextBlock Grid.Column="0" Text="{Binding SelectedItem}" FontSize="14"
                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
             <Grid Grid.Column="1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="图源：" FontSize="14"
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="图源：" FontSize="14"
                            HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                <ComboBox Grid.Column="1" AlternationCount="1000" ItemsSource="{Binding ComboItems}"
+                    <ComboBox Grid.Column="1" AlternationCount="1000" ItemsSource="{Binding ComboItems}"
+                              SelectedItem="{Binding SelectedSource, Mode=TwoWay}"
                           Width="90" Height="30" HorizontalAlignment="Left" VerticalAlignment="Center"
                           VerticalContentAlignment="Center" IsEditable="True" IsReadOnly="True"
                           Text="{Binding SelectedItem, RelativeSource={RelativeSource Self}}">
-                    <ComboBox.ItemContainerStyle>
-                        <Style TargetType="ComboBoxItem">
-                            <Setter Property="VerticalContentAlignment" Value="Center"/>
-                        </Style>
-                    </ComboBox.ItemContainerStyle>
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate>
-                            <ContentControl>
-                                <ContentControl.Resources>
-                                    <DataTemplate DataType="{x:Type sys:String}">
-                                        <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
-                                    </DataTemplate>
-                                    <DataTemplate DataType="{x:Type viewModels:SelectableItem}">
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding 
+                        <ComboBox.ItemContainerStyle>
+                            <Style TargetType="ComboBoxItem">
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                            </Style>
+                        </ComboBox.ItemContainerStyle>
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <ContentControl>
+                                    <ContentControl.Resources>
+                                        <DataTemplate DataType="{x:Type sys:String}">
+                                            <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                        </DataTemplate>
+                                        <DataTemplate DataType="{x:Type viewModels:SelectableItem}">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding 
                                                         RelativeSource={RelativeSource AncestorType=ComboBoxItem},
                                                         Path=(ItemsControl.AlternationIndex),
                                                         Converter={StaticResource ComboBoxIndexConverter}}"
                                                         VerticalAlignment="Center"/>
-                                            <TextBlock Text="{Binding Text}" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ContentControl.Resources>
-                                <ContentPresenter Content="{Binding}"/>
-                            </ContentControl>
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
+                                                <TextBlock Text="{Binding Text}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ContentControl.Resources>
+                                    <ContentPresenter Content="{Binding}"/>
+                                </ContentControl>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </Grid>
+                <Button Grid.Row="1" x:Name="SaveButton" Content="保存"
+                        Width="90" Height="30" Command="{Binding SaveCommand}"
+                        VerticalAlignment="Center" HorizontalAlignment="Center"/>
             </Grid>
             <Grid Grid.Column="2">
                 <Grid.RowDefinitions>

@@ -10,10 +10,6 @@
       xmlns:winforms="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
       xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
       d:DesignHeight="450" d:DesignWidth="800" Background="AntiqueWhite">
-    <UserControl.Resources>
-        <local:IndexConverter x:Key="IndexConverter"/>
-        <local:ComboBoxIndexConverter x:Key="ComboBoxIndexConverter"/>
-    </UserControl.Resources>
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -86,23 +82,23 @@
             <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center">
             <TextBlock Text="R通道" Grid.Column="0" FontWeight="Bold" FontSize="14"
                        Margin="5,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            <CheckBox x:Name="RedChannelCheckBox" Grid.Column="0" IsChecked="True"
+                <CheckBox IsChecked="{Binding RedChannel}" Grid.Column="0"
                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
                 <TextBlock Text="G通道" Grid.Column="0" FontWeight="Bold" FontSize="14"
                        Margin="5,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <CheckBox x:Name="GreenChannelCheckBox" Grid.Column="0" IsChecked="True"
+                <CheckBox IsChecked="{Binding GreenChannel}" Grid.Column="0"
                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </StackPanel>
             <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center">
                 <TextBlock Text="B通道" Grid.Column="0" FontWeight="Bold" FontSize="14"
                        Margin="5,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <CheckBox x:Name="BlueChannelCheckBox" Grid.Column="0" IsChecked="True"
+                <CheckBox IsChecked="{Binding BlueChannel}" Grid.Column="0"
                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </StackPanel>
         </Grid>
-        <Border Background="Beige" Grid.Row="1"></Border>
+        <Border Background="Beige" Grid.Row="1" Margin="0,5"></Border>
         <TextBlock Grid.Row="1" Text="HSV通道" FontWeight="Bold" FontSize="16"
                        Margin="0,0" Height="20" Width="90"
                        HorizontalAlignment="Left" VerticalAlignment="Top">
@@ -145,19 +141,19 @@
             <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center">
                 <TextBlock Text="H通道" Grid.Column="0" FontWeight="Bold" FontSize="14"
                        Margin="5,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <CheckBox x:Name="HueChannelCheckBox" Grid.Column="0" IsChecked="false"
+                <CheckBox IsChecked="{Binding HueChannel}" Grid.Column="0"
                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
                 <TextBlock Text="S通道" Grid.Column="0" FontWeight="Bold" FontSize="14"
                        Margin="5,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <CheckBox x:Name="SaturationChannelCheckBox" Grid.Column="0" IsChecked="false"
+                <CheckBox IsChecked="{Binding SaturationChannel}" Grid.Column="0"
                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </StackPanel>
             <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center">
                 <TextBlock Text="V通道" Grid.Column="0" FontWeight="Bold" FontSize="14"
                        Margin="5,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <CheckBox x:Name="ValueChannelCheckBox" Grid.Column="0" IsChecked="false"
+                <CheckBox IsChecked="{Binding ValueChannel}" Grid.Column="0"
                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </StackPanel>
         </Grid>

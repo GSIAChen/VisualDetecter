@@ -3,9 +3,9 @@
     /// <summary>
     /// BinarySettingPage.xaml 的交互逻辑
     /// </summary>
-    public partial class BinarySettingPage : System.Windows.Controls.UserControl
+    public partial class AreaDetectionPage : System.Windows.Controls.UserControl
     {
-        public BinarySettingPage()
+        public AreaDetectionPage()
         {
             InitializeComponent();
         }

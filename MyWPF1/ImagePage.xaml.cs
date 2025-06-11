@@ -1,6 +1,4 @@
-﻿using HalconDotNet;
-using System.Windows;
-using System.Windows.Forms.Integration;
+﻿using System.Windows;
 
 namespace MyWPF1
 {
@@ -24,8 +22,8 @@ namespace MyWPF1
                 if (hWindowControl != null && DataContext is ImageViewModel vm)
                 {
                     // 使用有效的图像路径 - 这里应该是实际图像路径
-                    //string imagePath = @"C:\Users\gsia\AppData\Local\Programs\MVTec\HALCON-24.11-Progress-Steady\doc_en_US\html\manuals\surface_based_matching\images\bin_threshold_6.png"
-                    string imagePath = @"fabrik";
+                    string imagePath = @"C:\Users\gsia\AppData\Local\Programs\MVTec\HALCON-24.11-Progress-Steady\doc_en_US\html\manuals\surface_based_matching\images\background_tilt_1.png";
+                    //string imagePath = @"fabrik";
                     // 初始化视图模型
                     vm.Initialize(hWindowControl, imagePath);
                 }

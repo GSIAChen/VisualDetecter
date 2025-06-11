@@ -1,11 +1,11 @@
-﻿using MyWPF1.ViewModels;
+﻿using HalconDotNet;
+using MyWPF1.ViewModels;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
-using static MyWPF1.ViewModels.SelectableItem;
 
 namespace MyWPF1
 {
@@ -239,6 +239,9 @@ namespace MyWPF1
                 {
                     "二值化" => new BinaryViewModel(),
                     "色彩变换" => new ColorTransformViewModel(),
+                    "图像增强" => new ImageEnhancementViewModel(),
+                    "边缘提取" => new EdgeExtractionViewModel(),
+                    "面积检测" => new AreaDetectionViewModel(),
                     _ => throw new NotImplementedException(),
                 };
             });
@@ -247,7 +250,7 @@ namespace MyWPF1
 
             // 加载顶部面板
             if (toolInstance.TopPanelPage == null)
-                toolInstance.TopPanelPage = new AlgorithmTopPage(selectedTool, vm);
+                toolInstance.TopPanelPage = new AlgorithmTopPage(selectedTool, vm, imageVM);
             TopFrame.Content = toolInstance.TopPanelPage;
             AlgorithmTopContainer.Content = toolInstance.TopPanelPage;
 
@@ -258,11 +261,31 @@ namespace MyWPF1
                 {
                     "二值化" => new BinarySettingPage(),
                     "色彩变换" => new ColorTransformPage(),
+                    "图像增强" => new ImageEnhancementPage(),
+                    "边缘提取" => new EdgeExtractionPage(),
+                    "面积检测" => new AreaDetectionPage(),
                     _ => new DefaultSettings()
                 };
                 toolInstance.SettingsPage.DataContext = toolInstance.ViewModel;
             }
             SettingsContainer.Content = toolInstance.SettingsPage;
+            var index = vm.SelectedItems.IndexOf(selectedTool);
+            if (index == 0) 
+            {
+                HObject _image;
+                HOperatorSet.ReadImage(out _image, @"C:\Users\gsia\AppData\Local\Programs\MVTec\HALCON-24.11-Progress-Steady\doc_en_US\html\manuals\surface_based_matching\images\background_tilt_1.png");
+                vm.CurrentToolInstance.ViewModel.SetInputImage(_image); 
+            }
+            else
+            {
+                var prevItem = vm.SelectedItems[index - 1];
+                string prevPath = $"images/{prevItem.Index} {prevItem.Text}.png";
+                var inputImage = vm.CurrentToolInstance.ViewModel.LoadInputImage(prevPath);
+                if (inputImage != null)
+                {
+                    vm.CurrentToolInstance.ViewModel.SetInputImage(inputImage);
+                }
+            }
             toolInstance.ViewModel.Apply();
         }
 
@@ -272,6 +295,9 @@ namespace MyWPF1
             {
                 "二值化" => new BinaryViewModel(),
                 "色彩变换" => new ColorTransformViewModel(),
+                "图像增强" => new ImageEnhancementViewModel(),
+                "边缘提取" => new EdgeExtractionViewModel(),
+                "面积检测" => new AreaDetectionViewModel(),
                 _ => throw new NotImplementedException(),
                 /**
                 "Enhancement" => new EnhancementViewModel(),

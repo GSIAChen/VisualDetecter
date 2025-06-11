@@ -1,7 +1,10 @@
-﻿using MyWPF1.ViewModels;
+﻿using CommunityToolkit.Mvvm.Input;
+using HalconDotNet;
+using MyWPF1.ViewModels;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows.Input;
 using UserControl = System.Windows.Controls.UserControl;
 
 namespace MyWPF1
@@ -9,11 +12,51 @@ namespace MyWPF1
     /// <summary>
     /// AlgorithmTopPage.xaml 的交互逻辑
     /// </summary>
-    public partial class AlgorithmTopPage : UserControl
+    public partial class AlgorithmTopPage : UserControl, INotifyPropertyChanged
     {
-        public ObservableCollection<object> ComboItems { get; }
+        public ObservableCollection<ImageSourceItem> ComboItems { get; } = new ObservableCollection<ImageSourceItem>();
         public SelectableItem CurrentTool { get; }
         private SelectableItem _selectedItem;
+        private ArrowViewModel ViewModel { get; set; }
+        public ImageViewModel ImageVM { get; }
+        private ImageSourceItem _selectedSource;
+        public ImageSourceItem SelectedSource
+        {
+            get => _selectedSource;
+            set
+            {
+                if (_selectedSource == value) return;
+                _selectedSource = value;
+                OnPropertyChanged();
+                // 切换图源：把选中的 HObject 传给当前工具
+                if (_selectedSource?.Image != null && ViewModel.CurrentToolInstance != null)
+                {
+                    ViewModel.CurrentToolInstance.ViewModel.SetInputImage(_selectedSource.Image);
+                }
+            }
+        }
+
+        public ICommand SaveCommand => new RelayCommand(SaveImage);
+
+        private void SaveImage()
+        {
+            if (ViewModel?.CurrentToolInstance?.ViewModel is ToolBaseViewModel tool)
+            {
+                var selectedTool = ViewModel.SelectedItems.FirstOrDefault(i => i.InstanceId == ViewModel.CurrentToolInstance.InstanceId);
+                if (selectedTool != null)
+                {
+                    string dir = "images";
+                    if (!System.IO.Directory.Exists(dir))
+                        System.IO.Directory.CreateDirectory(dir);
+
+                    string fileName = $"{selectedTool.Index} {selectedTool.Text}";
+                    string fullPath = System.IO.Path.Combine(dir, fileName);
+
+                    tool.SaveResultImage(fullPath);
+                }
+            }
+        }
+        
         public SelectableItem SelectedItem
         {
             get => _selectedItem;
@@ -25,22 +68,31 @@ namespace MyWPF1
             }
         }
 
-        public AlgorithmTopPage(object item, ArrowViewModel parentViewModel)
+        public AlgorithmTopPage(SelectableItem item, ArrowViewModel parentViewModel, ImageViewModel imageVM)
         {
             InitializeComponent();
-            ComboItems = ["原图"];
 
-            // 获取当前工具在父集合中的真实索引
-            SelectableItem selectedItem = (SelectableItem)item;
-            SelectedItem = selectedItem;
-            int currentIndex = parentViewModel.SelectedItems.IndexOf(selectedItem);
+            ViewModel = parentViewModel;
+            ImageVM = imageVM;
 
-            // 筛选前置项并添加序号
-            foreach (var tool in parentViewModel.SelectedItems)
+            // 1. “原图” 
+            ComboItems.Add(new ImageSourceItem("原图", ImageVM._image));
+
+            // 2. 已执行的工具：将它们的输出图像加入列表
+            var idx = parentViewModel.SelectedItems.IndexOf(item);
+            foreach (var tool in parentViewModel.SelectedItems.Take(idx))
             {
-                if (tool.Index <= currentIndex) ComboItems.Add(tool);
+                var inst = parentViewModel.ToolInstances
+                            .FirstOrDefault(ti => ti.InstanceId == tool.InstanceId);
+                if (inst != null)
+                    ComboItems.Add(new ImageSourceItem(
+                    tool.DisplayText,
+                    inst.ViewModel.CurrentResultImage));
             }
-            // 设置数据上下文
+
+            // 3. 默认选中最后一项（即“原图”或最新工具）
+            SelectedSource = ComboItems.Last();
+
             DataContext = this;
         }
 
@@ -52,5 +104,19 @@ namespace MyWPF1
         {
             InitializeComponent();
         }
+    }
+
+    public class ImageSourceItem
+    {
+        public string Name { get; }
+        public HObject Image { get; }
+
+        public ImageSourceItem(string name, HObject image)
+        {
+            Name = name;
+            Image = image;
+        }
+
+        public override string ToString() => Name; // 让 ComboBox 自动显示 Name
     }
 }

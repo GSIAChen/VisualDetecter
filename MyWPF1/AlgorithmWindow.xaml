@@ -276,7 +276,7 @@
                 </ContentControl>
                     <!-- 测量工具组 -->
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="测量" 
+                        <TextBlock Text="测量/检测" 
                             Margin="5,0,0,0"
                             FontSize="20"
                             VerticalAlignment="Top"/>
