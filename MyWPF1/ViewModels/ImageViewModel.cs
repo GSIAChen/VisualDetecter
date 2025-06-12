@@ -6,8 +6,9 @@ using static MyWPF1.ViewModels.SelectableItem;
 
 public class ImageViewModel : INotifyPropertyChanged
 {
+    private readonly ArrowViewModel _arrowVM;
     public HObject _image;
-    private HWindowControl _hWindowControl;
+    public HWindowControl _hWindowControl;
     private ToolInstance _currentToolInstance;
     public ToolInstance CurrentToolInstance
     {
@@ -17,7 +18,7 @@ public class ImageViewModel : INotifyPropertyChanged
             if (_currentToolInstance == value) return;
             _currentToolInstance = value;
             OnPropertyChanged(nameof(CurrentToolInstance));
-            CurrentTool = _currentToolInstance?.ViewModel;
+            CurrentTool = _currentToolInstance.ViewModel;
             CurrentTool?.Apply();
         }
     }
@@ -35,6 +36,7 @@ public class ImageViewModel : INotifyPropertyChanged
 
     public ImageViewModel(ArrowViewModel arrowVM)
     {
+        _arrowVM = arrowVM;
         arrowVM.ToolInstanceAdded += OnToolInstanceAdded;
     }
 
@@ -54,6 +56,7 @@ public class ImageViewModel : INotifyPropertyChanged
         Debug.WriteLine("ImageViewModel Initialized");
         _hWindowControl = hwin;
         HOperatorSet.ReadImage(out _image, imagePath);
+        _arrowVM.SetOriginalImage(_image, _hWindowControl);
         HOperatorSet.GetImageSize(_image, out HTuple width, out HTuple height);
         HTuple row = 0;
         HTuple col = 0;
@@ -64,4 +67,9 @@ public class ImageViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
     protected void OnPropertyChanged(string propName)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
+
+    internal HWindowControl InitializeAndGetWindowControl()
+    {
+        throw new NotImplementedException();
+    }
 }

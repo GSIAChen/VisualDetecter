@@ -1,0 +1,18 @@
+{
+  "Tools": [
+    {
+      "ToolKey": "\u56FE\u50CF\u589E\u5F3A",
+      "Params": {
+        "EnableGamma": true,
+        "Gamma": 1.4090825688073392,
+        "Offset": 0.055,
+        "Threshold": 0.0031,
+        "Encode": true,
+        "EnableEmphasize": true,
+        "MaskSize": 7,
+        "Factor": 1,
+        "SelectedSourceIndex": 0
+      }
+    }
+  ]
+}

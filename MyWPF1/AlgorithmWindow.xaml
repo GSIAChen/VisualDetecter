@@ -366,19 +366,22 @@
                             VerticalAlignment="Center"
                             Margin="20"
                             Padding="10,10"
-                            Content="移除"/>
-                    <Button x:Name="SaveButton"
+                            Content="移除"
+                            Click="OnRemoveSelectedItem"/>
+                    <Button x:Name="LoadAllButton"
                             Grid.Row="1"
                             VerticalAlignment="Center"
                             Margin="20"
                             Padding="10,10"
-                            Content="保存"/>
+                            Content="加载配置"
+                            Command="{Binding LoadConfigCommand}"/>
                     <Button x:Name="SaveAllButton"
                             Grid.Row="2"
                             VerticalAlignment="Center"
                             Margin="20"
                             Padding="10,10"
-                            Content="全部保存"/>
+                            Content="全部保存"
+                            Command="{Binding SaveConfigCommand}"/>
                 </Grid>
             </Border>
             <ScrollViewer Background='AntiqueWhite' 

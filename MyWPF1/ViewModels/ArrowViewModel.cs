@@ -1,21 +1,23 @@
-﻿using HalconDotNet;
+﻿using CommunityToolkit.Mvvm.Input;
+using HalconDotNet;
 using MyWPF1.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using static MyWPF1.ViewModels.SelectableItem;
-using System.Text.Json;
-using System.Reflection;
-using System.IO;
+using System.Windows;
+using System.Windows.Input;
 
 namespace MyWPF1.ViewModels;
 
 public class ArrowViewModel : INotifyPropertyChanged
 {
     public event Action<ToolInstance> ToolInstanceAdded;
+    private HWindowControl _hwindowControl;
+    public event Action OnToolPageShouldBeCleared;
     public ObservableCollection<ExpandableItem> EItems { get; } = [];
     public ObservableCollection<SelectableItem> PreprocessingItems { get; } = [];
     public ObservableCollection<SelectableItem> PositioningItems { get; } = [];
@@ -24,6 +26,7 @@ public class ArrowViewModel : INotifyPropertyChanged
     public ObservableCollection<SelectableItem> PredictItems { get; } = [];
     private ObservableCollection<SelectableItem> _selectedItems = [];
     public ObservableCollection<BinarySettingPage> OpenedPanels { get; } = [];
+    public ObservableCollection<ImageSourceItem> ImageSources { get; } = new ObservableCollection<ImageSourceItem>();
     public ObservableCollection<ToolInstance> ToolInstances { get; } = new ObservableCollection<ToolInstance>();
     private ToolInstance _currentToolInstance;
     public ToolInstance CurrentToolInstance
@@ -36,15 +39,17 @@ public class ArrowViewModel : INotifyPropertyChanged
         get => _selectedItems;
         set { _selectedItems = value; OnPropertyChanged(); }
     }
-
-    public IEnumerable<object> ComboItems
+    private SelectableItem _selectedItem;
+    public SelectableItem SelectedItem
     {
-        get
+        get => _selectedItem;
+        set
         {
-            // 先一个固定的“原图”字符串，然后再是用户拖入的那些 SelectableItem
-            yield return "原图";
-            foreach (var item in SelectedItems)
-                yield return item;
+            if (_selectedItem != value)
+            {
+                _selectedItem = value;
+                OnPropertyChanged(nameof(SelectedItem));
+            }
         }
     }
 
@@ -72,7 +77,7 @@ public class ArrowViewModel : INotifyPropertyChanged
                 item.IsSelected = false;
             for (int i = 0; i < SelectedItems.Count; i++)
                 SelectedItems[i].Index = i + 1;
-            OnPropertyChanged(nameof(ComboItems));
+            OnPropertyChanged(nameof(ImageSources));
         };
     }
 
@@ -80,6 +85,12 @@ public class ArrowViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler PropertyChanged;
     protected void OnPropertyChanged([CallerMemberName] string p = null)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(p));
+
+    public void SetOriginalImage(HObject originalImage, HWindowControl hWindowControl)
+    {
+        _hwindowControl = hWindowControl;
+        ImageSources.Add(new ImageSourceItem("原图", originalImage));
+    }
 
     public void AddToolInstance(SelectableItem item, Func<ToolBaseViewModel> factory)
     {
@@ -91,18 +102,67 @@ public class ArrowViewModel : INotifyPropertyChanged
             return;
         }
 
-        int count = ToolInstances.Count(x => x.ToolKey == item.ToolKey);
+        int count = ToolInstances.Count;
         var toolInstance = new ToolInstance
         {
             InstanceId = item.InstanceId,
             ToolKey = item.Text,
-            DisplayName = $"{item.ToolKey} {count + 1}",
+            DisplayName = $"{count + 1} {item.Text}",
             ViewModel = factory()
         };
         Debug.WriteLine("New Tool Name: " + toolInstance.ToolKey);
         ToolInstances.Add(toolInstance);
         CurrentToolInstance = toolInstance;
         ToolInstanceAdded?.Invoke(toolInstance);
+
+        // 添加这次工具的输出
+        toolInstance.ViewModel.Apply();
+        ImageSources.Add(new ImageSourceItem(
+            toolInstance.DisplayName,
+            toolInstance.ViewModel.CurrentResultImage));
+    }
+
+    public void RemoveToolInstance(SelectableItem item)
+    {
+        if (item == null) return;
+
+        var inst = ToolInstances.FirstOrDefault(t => t.InstanceId == item.InstanceId);
+        if (inst != null)
+        {
+            ToolInstances.Remove(inst);
+        }
+        SelectedItems.Remove(item);
+
+        // ✅ 只有删除的是当前工具时才清空视图
+        if (SelectedItem?.InstanceId == item.InstanceId)
+        {
+            SelectedItem = null;
+            CurrentToolInstance = null;
+
+            // ❗ 通知主界面移除 TopPage
+            OnToolPageShouldBeCleared?.Invoke();
+        }
+    }
+
+    public ICommand SaveConfigCommand => new RelayCommand(SaveAllWithDialog);
+    public ICommand LoadConfigCommand => new RelayCommand(() => LoadAllWithDialog(_hwindowControl, ImageSources[0].Image));
+
+    public void SaveAllWithDialog()
+    {
+        var dlg = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = "保存图像处理配置",
+            Filter = "配置文件 (*.json)|*.json",
+            DefaultExt = ".json",
+            FileName = "ToolConfig.json"
+        };
+
+        if (dlg.ShowDialog() == true)
+        {
+            SaveAll(dlg.FileName);
+
+            System.Windows.MessageBox.Show("配置已保存到：" + dlg.FileName, "保存成功", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
     }
 
     public void SaveAll(string path)
@@ -140,16 +200,35 @@ public class ArrowViewModel : INotifyPropertyChanged
         File.WriteAllText(path, json);
     }
 
+    public void LoadAllWithDialog(HWindowControl hwin, HObject originalImage)
+    {
+        var dlg = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "加载图像处理配置",
+            Filter = "配置文件 (*.json)|*.json",
+            DefaultExt = ".json"
+        };
+
+        if (dlg.ShowDialog() == true)
+        {
+            LoadAll(dlg.FileName, hwin, originalImage);
+            System.Windows.MessageBox.Show("配置加载成功：" + dlg.FileName, "加载成功", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+    }
+
     public void LoadAll(string path, HWindowControl hwin, HObject originalImage)
     {
         if (!File.Exists(path)) return;
 
         var json = File.ReadAllText(path);
         var pipeline = JsonSerializer.Deserialize<PipelineConfig>(json);
+        if (pipeline == null || pipeline.Tools.Count == 0)
+            return;  // nothing to load
 
         // 清空已存在的工具
         SelectedItems.Clear();
         ToolInstances.Clear();
+        HObject prevImage = originalImage;
 
         // 依次重建
         foreach (var cfg in pipeline.Tools)
@@ -159,20 +238,10 @@ public class ArrowViewModel : INotifyPropertyChanged
             SelectedItems.Add(item);
 
             // 创建工具实例并设置参数
-            AddToolInstance(item, () =>
-            {
-                // 根据 ToolKey 生成正确 ViewModel
-                return cfg.ToolKey switch
-                {
-                    "二值化" => new BinaryViewModel(),
-                    "色彩变换" => new ColorTransformViewModel(),
-                    "图像增强" => new ImageEnhancementViewModel(),
-                    "边缘提取" => new EdgeExtractionViewModel(),
-                    "面积检测" => new AreaDetectionViewModel(),
-                    _ => throw new InvalidOperationException($"Unknown tool {cfg.ToolKey}")
-                };
-            });
+            AddToolInstance(item, () => AlgorithmWindow.CreateViewModelByKey(cfg.ToolKey));
 
+            CurrentToolInstance.ViewModel.Initialize(hwin);
+            CurrentToolInstance.ViewModel.SetInputImage(prevImage);
             var inst = CurrentToolInstance;
             var vm = inst.ViewModel;
 
@@ -193,14 +262,36 @@ public class ArrowViewModel : INotifyPropertyChanged
                 foreach (var kv in cfg.Params)
                 {
                     var prop = vm.GetType().GetProperty(kv.Key);
-                    if (prop != null && prop.CanWrite)
+                    if (prop == null || !prop.CanWrite)
+                        continue;
+
+                    object raw = kv.Value;
+                    object converted = null;
+
+                    // 如果是 JsonElement，需要从中提取具体类型
+                    if (raw is JsonElement je)
                     {
-                        // 需要类型匹配，简单 Convert.ChangeType
-                        var val = Convert.ChangeType(kv.Value, prop.PropertyType);
-                        prop.SetValue(vm, val);
+                        if (prop.PropertyType == typeof(int))
+                            converted = je.GetInt32();
+                        else if (prop.PropertyType == typeof(double))
+                            converted = je.GetDouble();
+                        else if (prop.PropertyType == typeof(bool))
+                            converted = je.GetBoolean();
+                        else if (prop.PropertyType == typeof(string))
+                            converted = je.GetString();
+                        else
+                            continue;  // 不支持的类型
                     }
+                    else
+                    {
+                        converted = Convert.ChangeType(raw, prop.PropertyType);
+                    }
+                    // 最终设置属性
+                    prop.SetValue(vm, converted);
                 }
             }
+            prevImage = CurrentToolInstance.ViewModel.CurrentResultImage;
+            CurrentToolInstance = ToolInstances.First();
         }
     }
 }
@@ -241,15 +332,5 @@ public class SelectableItem : INotifyPropertyChanged
     protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-
-    public class ToolInstance
-    {
-        public Guid InstanceId { get; set; }
-        public string ToolKey { get; set; }
-        public string DisplayName { get; set; }
-        public ToolBaseViewModel ViewModel { get; set; }
-        public System.Windows.Controls.UserControl SettingsPage { get; set; }
-        public System.Windows.Controls.UserControl TopPanelPage { get; set; }
     }
 }

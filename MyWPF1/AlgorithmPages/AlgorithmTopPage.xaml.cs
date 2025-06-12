@@ -3,8 +3,10 @@ using HalconDotNet;
 using MyWPF1.ViewModels;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using Xceed.Wpf.Toolkit.Primitives;
 using UserControl = System.Windows.Controls.UserControl;
 
 namespace MyWPF1
@@ -14,9 +16,21 @@ namespace MyWPF1
     /// </summary>
     public partial class AlgorithmTopPage : UserControl, INotifyPropertyChanged
     {
-        public ObservableCollection<ImageSourceItem> ComboItems { get; } = new ObservableCollection<ImageSourceItem>();
+        public ObservableCollection<ImageSourceItem> FilteredSources { get; } = new();
         public SelectableItem CurrentTool { get; }
         private SelectableItem _selectedItem;
+        public SelectableItem SelectedItem
+        {
+            get => _selectedItem;
+            set
+            {
+                if (_selectedItem != value)
+                {
+                    _selectedItem = value;
+                    OnPropertyChanged(nameof(SelectedItem));
+                }
+            }
+        }
         private ArrowViewModel ViewModel { get; set; }
         public ImageViewModel ImageVM { get; }
         private ImageSourceItem _selectedSource;
@@ -28,15 +42,56 @@ namespace MyWPF1
                 if (_selectedSource == value) return;
                 _selectedSource = value;
                 OnPropertyChanged();
-                // 切换图源：把选中的 HObject 传给当前工具
-                if (_selectedSource?.Image != null && ViewModel.CurrentToolInstance != null)
+
+                var inst = ViewModel?.CurrentToolInstance;
+                if (inst != null && _selectedSource?.Image != null)
                 {
-                    ViewModel.CurrentToolInstance.ViewModel.SetInputImage(_selectedSource.Image);
+                    // ✅ 设置图像
+                    inst.ViewModel.SetInputImage(_selectedSource.Image);
+
+                    // ✅ 记录图源索引
+                    var idx = FilteredSources.IndexOf(_selectedSource);
+                    if (idx >= 0)
+                        inst.ViewModel.SelectedSourceIndex = idx;
                 }
             }
         }
 
+        public AlgorithmTopPage(ArrowViewModel arrowVM)
+        {
+            InitializeComponent();
+            ViewModel = arrowVM;
+            DataContext = this;
+        }
+
         public ICommand SaveCommand => new RelayCommand(SaveImage);
+        public void RefreshFor(SelectableItem selectedTool)
+        {
+            _selectedItem = selectedTool;
+            FilteredSources.Clear();
+
+            if (ViewModel.ImageSources.Count > 0)
+                FilteredSources.Add(ViewModel.ImageSources[0]);
+
+            int pos = ViewModel.SelectedItems.IndexOf(_selectedItem);
+            for (int i = 1; i <= pos && i < ViewModel.ImageSources.Count; i++)
+                FilteredSources.Add(ViewModel.ImageSources[i]);
+
+            var toolInstance = ViewModel.CurrentToolInstance;
+            if (FilteredSources.Count > 0)
+            {
+                int savedIndex = toolInstance.ViewModel.SelectedSourceIndex;
+                var targetSource = (savedIndex >= 0 && savedIndex < FilteredSources.Count)
+                    ? FilteredSources[savedIndex]
+                    : FilteredSources.Last();
+
+                Debug.WriteLine($"Setting SelectedSource to: {targetSource.Name} (Index: {savedIndex})");
+
+                // ✅ 触发 setter：不要直接改 _selectedSource
+                SelectedSource = targetSource;
+            }
+            OnPropertyChanged(nameof(SelectedSource));
+        }
 
         private void SaveImage()
         {
@@ -56,54 +111,19 @@ namespace MyWPF1
                 }
             }
         }
-        
-        public SelectableItem SelectedItem
+
+        /**
+        public void ClearDisplay()
         {
-            get => _selectedItem;
-            set
-            {
-                _selectedItem = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(SelectedItem.Text)); // 触发关联属性更新
-            }
+            this.DataContext = null;
+            // 或者清空图像窗口内容：
+            if (_hWindowControl != null)
+                _hWindowControl.HalconWindow.ClearWindow();
         }
-
-        public AlgorithmTopPage(SelectableItem item, ArrowViewModel parentViewModel, ImageViewModel imageVM)
-        {
-            InitializeComponent();
-
-            ViewModel = parentViewModel;
-            ImageVM = imageVM;
-
-            // 1. “原图” 
-            ComboItems.Add(new ImageSourceItem("原图", ImageVM._image));
-
-            // 2. 已执行的工具：将它们的输出图像加入列表
-            var idx = parentViewModel.SelectedItems.IndexOf(item);
-            foreach (var tool in parentViewModel.SelectedItems.Take(idx))
-            {
-                var inst = parentViewModel.ToolInstances
-                            .FirstOrDefault(ti => ti.InstanceId == tool.InstanceId);
-                if (inst != null)
-                    ComboItems.Add(new ImageSourceItem(
-                    tool.DisplayText,
-                    inst.ViewModel.CurrentResultImage));
-            }
-
-            // 3. 默认选中最后一项（即“原图”或最新工具）
-            SelectedSource = ComboItems.Last();
-
-            DataContext = this;
-        }
-
+        **/
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string p = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(p));
-
-        public AlgorithmTopPage()
-        {
-            InitializeComponent();
-        }
     }
 
     public class ImageSourceItem
@@ -116,7 +136,6 @@ namespace MyWPF1
             Name = name;
             Image = image;
         }
-
         public override string ToString() => Name; // 让 ComboBox 自动显示 Name
     }
 }

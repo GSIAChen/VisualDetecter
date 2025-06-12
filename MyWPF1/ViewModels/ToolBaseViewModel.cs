@@ -5,20 +5,31 @@ using System.Runtime.CompilerServices;
 
 public abstract class ToolBaseViewModel : INotifyPropertyChanged
 {
-    public abstract HObject CurrentResultImage { get; }  // 工具执行完毕后的图像结果
+    public abstract HObject CurrentResultImage { get; }
     public abstract void Apply();
     protected HObject _inputImage;
     public HObject _resultImage;
-    protected HWindowControl _hWindowControl;
+    public HWindowControl _hWindowControl;
+    private int _selectedSourceIndex = -1;
+    public int SelectedSourceIndex
+    {
+        get => _selectedSourceIndex;
+        set
+        {
+            Debug.WriteLine($"SelectedSourceIndex changed to: {value}");
+            _selectedSourceIndex = value;
+            OnPropertyChanged();
+        }
+    }
 
     public virtual void Initialize(HWindowControl hwin)
     {
-        Debug.WriteLine("A New ViewModel Initialize");
         _hWindowControl = hwin;
     }
 
     public virtual void SetInputImage(HObject image)
     {
+        if (_inputImage == image) return;
         _inputImage = image;
         Apply();
     }
@@ -46,4 +57,13 @@ public abstract class ToolBaseViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
     protected void OnPropertyChanged([CallerMemberName] string name = null)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+}
+
+public class ToolInstance
+{
+    public Guid InstanceId { get; set; }
+    public string ToolKey { get; set; }
+    public string DisplayName { get; set; }
+    public ToolBaseViewModel ViewModel { get; set; }
+    public System.Windows.Controls.UserControl SettingsPage { get; set; }
 }

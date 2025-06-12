@@ -92,11 +92,10 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="图源：" FontSize="14"
                            HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                    <ComboBox Grid.Column="1" AlternationCount="1000" ItemsSource="{Binding ComboItems}"
+                    <ComboBox Grid.Column="1" AlternationCount="1000" ItemsSource="{Binding FilteredSources}"
                               SelectedItem="{Binding SelectedSource, Mode=TwoWay}"
-                          Width="90" Height="30" HorizontalAlignment="Left" VerticalAlignment="Center"
-                          VerticalContentAlignment="Center" IsEditable="True" IsReadOnly="True"
-                          Text="{Binding SelectedItem, RelativeSource={RelativeSource Self}}">
+                              Width="90" Height="30" HorizontalAlignment="Left" VerticalAlignment="Center"
+                              VerticalContentAlignment="Center" IsReadOnly="True">
                         <ComboBox.ItemContainerStyle>
                             <Style TargetType="ComboBoxItem">
                                 <Setter Property="VerticalContentAlignment" Value="Center"/>

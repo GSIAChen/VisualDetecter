@@ -1,11 +1,13 @@
 ﻿using HalconDotNet;
 using MyWPF1.ViewModels;
 using System.Globalization;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using Xceed.Wpf.Toolkit.Primitives;
 
 namespace MyWPF1
 {
@@ -14,15 +16,23 @@ namespace MyWPF1
     /// </summary>
     public partial class AlgorithmWindow : Window
     {
+        private AlgorithmTopPage _topPage;
         static ArrowViewModel arrowVM = new ArrowViewModel();
         static ImageViewModel imageVM = new ImageViewModel(arrowVM);
         ImagePage imgPage = new ImagePage { DataContext = imageVM };
+
 
         public AlgorithmWindow()
         {
             InitializeComponent();
             ImageFrame.Content = imgPage;
             this.DataContext = arrowVM;
+            arrowVM.OnToolPageShouldBeCleared += () =>
+            {
+                _topPage = null;
+                AlgorithmTopContainer.Content = null;
+                TopFrame.Content = null;
+            };
         }
         // 文本点击选择
         private void TextBlock_MouseDown(object sender, MouseButtonEventArgs e)
@@ -230,29 +240,37 @@ namespace MyWPF1
             if (TargetListBox.SelectedItem is not SelectableItem selectedTool) return;
 
             var vm = (ArrowViewModel)DataContext;
-
+            vm.SelectedItem = selectedTool;
             // 查找或添加 ToolInstance
-            vm.AddToolInstance(selectedTool, () =>
-            {
-                // 根据 ToolKey 创建对应的 ViewModel（略去此处的实际工厂逻辑）
-                return selectedTool.ToolKey switch
-                {
-                    "二值化" => new BinaryViewModel(),
-                    "色彩变换" => new ColorTransformViewModel(),
-                    "图像增强" => new ImageEnhancementViewModel(),
-                    "边缘提取" => new EdgeExtractionViewModel(),
-                    "面积检测" => new AreaDetectionViewModel(),
-                    _ => throw new NotImplementedException(),
-                };
-            });
-
+            vm.AddToolInstance(selectedTool, () => CreateViewModelByKey(selectedTool.ToolKey));
             var toolInstance = vm.CurrentToolInstance;
 
-            // 加载顶部面板
-            if (toolInstance.TopPanelPage == null)
-                toolInstance.TopPanelPage = new AlgorithmTopPage(selectedTool, vm, imageVM);
-            TopFrame.Content = toolInstance.TopPanelPage;
-            AlgorithmTopContainer.Content = toolInstance.TopPanelPage;
+            // 2. 选择输入图：上一步工具输出或原图
+            HObject input;
+            int idx = vm.ToolInstances.IndexOf(toolInstance);
+            if (idx > 0)
+            {
+                input = vm.ToolInstances[idx - 1].ViewModel.CurrentResultImage;
+            }
+            else
+            {
+                input = vm.ImageSources[0].Image;  // 原图
+            }
+
+            // 3. 初始化并真正设置输入
+            toolInstance.ViewModel.Initialize(imageVM._hWindowControl);
+            toolInstance.ViewModel.SetInputImage(input);
+
+            // 用单例 TopPage
+            if (_topPage == null)
+            {
+                _topPage = new AlgorithmTopPage(arrowVM);
+                AlgorithmTopContainer.Content = _topPage;
+                TopFrame.Content = _topPage;
+            }
+            _topPage.SelectedItem = selectedTool;
+            // **关键：手动刷新图源下拉列表**，传入当前选中的 SelectableItem
+            _topPage.RefreshFor(selectedTool);
 
             // 加载设置面板
             if (toolInstance.SettingsPage == null)
@@ -264,32 +282,17 @@ namespace MyWPF1
                     "图像增强" => new ImageEnhancementPage(),
                     "边缘提取" => new EdgeExtractionPage(),
                     "面积检测" => new AreaDetectionPage(),
+                    "线拟合" => new LineFittingPage(),
                     _ => new DefaultSettings()
                 };
                 toolInstance.SettingsPage.DataContext = toolInstance.ViewModel;
             }
+
             SettingsContainer.Content = toolInstance.SettingsPage;
-            var index = vm.SelectedItems.IndexOf(selectedTool);
-            if (index == 0) 
-            {
-                HObject _image;
-                HOperatorSet.ReadImage(out _image, @"C:\Users\gsia\AppData\Local\Programs\MVTec\HALCON-24.11-Progress-Steady\doc_en_US\html\manuals\surface_based_matching\images\background_tilt_1.png");
-                vm.CurrentToolInstance.ViewModel.SetInputImage(_image); 
-            }
-            else
-            {
-                var prevItem = vm.SelectedItems[index - 1];
-                string prevPath = $"images/{prevItem.Index} {prevItem.Text}.png";
-                var inputImage = vm.CurrentToolInstance.ViewModel.LoadInputImage(prevPath);
-                if (inputImage != null)
-                {
-                    vm.CurrentToolInstance.ViewModel.SetInputImage(inputImage);
-                }
-            }
             toolInstance.ViewModel.Apply();
         }
 
-        private ToolBaseViewModel CreateViewModelByKey(string toolKey)
+        public static ToolBaseViewModel CreateViewModelByKey(string toolKey)
         {
             return toolKey switch
             {
@@ -298,18 +301,9 @@ namespace MyWPF1
                 "图像增强" => new ImageEnhancementViewModel(),
                 "边缘提取" => new EdgeExtractionViewModel(),
                 "面积检测" => new AreaDetectionViewModel(),
+                "线拟合" => new LineFittingViewModel(),
+
                 _ => throw new NotImplementedException(),
-                /**
-                "Enhancement" => new EnhancementViewModel(),
-                "GrayMatch" => new GrayMatchViewModel(),
-                "ContourMatch" => new ContourMatchViewModel(),
-                "EdgeMeasure" => new EdgeMeasureViewModel(),
-                "AreaMeasure" => new AreaMeasureViewModel(),
-                "LineFit" => new LineFitViewModel(),
-                "LineIntersect" => new LineIntersectViewModel(),
-                "FitMeasure" => new FitMeasureViewModel(),
-                "Output" => new OutputViewModel(),
-                **/
             };
         }
 
@@ -330,7 +324,16 @@ namespace MyWPF1
             arrowVM.CurrentToolInstance.ViewModel.SaveResultImage(imagePath);
         }
 
+        private void OnRemoveSelectedItem(object sender, RoutedEventArgs e)
+        {
+            var selected = (SelectableItem)TargetListBox.SelectedItem;
+            if (selected != null)
+            {
+                arrowVM.RemoveToolInstance(selected);
+            }
+        }
     }
+
     public class IndexConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

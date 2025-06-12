@@ -9,8 +9,8 @@ namespace MyWPF1.ViewModels
         // 可选项
         public ObservableCollection<string> FilterOptions { get; } =
         [
-            "deriche1","deriche1_int4","deriche2","deriche2_int4",
-            "lanser1","lanser2","shen","mshen","canny","sobel_fast"
+            "deriche1","deriche2","lanser1",
+            "lanser2","shen","mshen","canny","sobel_fast"
         ];
         public ObservableCollection<string> NMSOptions { get; } =
         [
@@ -66,6 +66,8 @@ namespace MyWPF1.ViewModels
                 HOperatorSet.Rgb1ToGray(_inputImage, out gray);
             }
 
+            if (LowThreshold > HighThreshold)
+                LowThreshold = HighThreshold - 1;
             // 调用 EdgesImage：输出幅值和方向
             HOperatorSet.EdgesImage(
                 gray,
@@ -87,7 +89,7 @@ namespace MyWPF1.ViewModels
 
             // 清理
             if (gray != _inputImage) gray.Dispose();
-            imaDir.Dispose();
+            //imaDir.Dispose();
         }
     }
 }

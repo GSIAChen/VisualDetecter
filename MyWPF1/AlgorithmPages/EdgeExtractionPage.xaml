@@ -102,7 +102,7 @@
         </StackPanel>
         <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="15,5">
             <TextBlock Text="低频阈：" Width="80" VerticalAlignment="Center" FontSize="14"/>
-            <Slider Minimum="0" Maximum="40" VerticalAlignment="Center"
+            <Slider Minimum="10" Maximum="40" VerticalAlignment="Center"
                         Width="120" Value="{Binding LowThreshold, 
                         Mode=TwoWay, 
                         UpdateSourceTrigger=PropertyChanged}"/>
@@ -111,7 +111,7 @@
         </StackPanel>
         <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="15,5">
             <TextBlock Text="高频阈：" Width="80" VerticalAlignment="Center" FontSize="14"/>
-            <Slider Minimum="0" Maximum="100" VerticalAlignment="Center"
+            <Slider Minimum="20" Maximum="80" VerticalAlignment="Center"
                         Width="120" Value="{Binding HighThreshold, 
                         Mode=TwoWay, 
                         UpdateSourceTrigger=PropertyChanged}"/>
