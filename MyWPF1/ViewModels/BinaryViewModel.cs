@@ -5,18 +5,18 @@ namespace MyWPF1.ViewModels
 {
     public class BinaryViewModel : ToolBaseViewModel
     {
-        private int _threshold = 128;
         private HObject _region;
         public override HObject CurrentResultImage => _resultImage;
 
-        public int Threshold
+        private int global_threshold = 128;
+        public int GlobalThreshold
         {
-            get => _threshold;
+            get => global_threshold;
             set
             {
-                if (_threshold == value) return;
-                _threshold = value;
-                OnPropertyChanged(nameof(Threshold));
+                if (global_threshold == value) return;
+                global_threshold = value;
+                OnPropertyChanged(nameof(GlobalThreshold));
                 Apply();
             }
         }
@@ -24,6 +24,8 @@ namespace MyWPF1.ViewModels
         public override void Apply()
         {
             // 全局阈值分割
+            if (_inputImage == null || !_inputImage.IsInitialized()) return;
+
             HOperatorSet.CountChannels(_inputImage, out HTuple channels);
             bool isGray = (channels.I == 1);
             if (!isGray)
@@ -33,7 +35,7 @@ namespace MyWPF1.ViewModels
                 _inputImage = grayImage;
                 r.Dispose(); g.Dispose(); b.Dispose();
             }
-            HOperatorSet.Threshold(_inputImage, out _region, _threshold, 255);
+            HOperatorSet.Threshold(_inputImage, out _region, global_threshold, 255);
             HOperatorSet.PaintRegion(_region,
                          _inputImage,
                          out _resultImage,

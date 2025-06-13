@@ -93,9 +93,6 @@ namespace MyWPF1.ViewModels
             if (_inputImage == null || !_inputImage.IsInitialized())
                 return;
 
-            _hWindowControl.HalconWindow.ClearWindow();
-            _hWindowControl.HalconWindow.DispObj(_inputImage);
-
             // 2. 确保输入图像是灰度图像，如果是彩色图像则转换为灰度图像
             HOperatorSet.CountChannels(_inputImage, out HTuple channels);
             bool isGray = (channels.I == 1);

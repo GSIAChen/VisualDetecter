@@ -14,11 +14,8 @@
         <local:IndexConverter x:Key="IndexConverter"/>
         <local:ComboBoxIndexConverter x:Key="ComboBoxIndexConverter"/>
     </UserControl.Resources>
-    <Grid Margin="10">
+    <Grid Margin="10" Background="Beige">
         <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
@@ -47,12 +44,43 @@
                 </DataTemplate>
             </ContentControl.ContentTemplate>
         </ContentControl>
-        <!-- 基本属性 -->
-        <Border Background="Beige"></Border>
         <!-- 二值阈 -->
+        <TextBlock Grid.Row="0" Text="全局阈值" FontWeight="Bold" FontSize="16"
+                       Margin="0,0" Height="20" Width="90"
+                       HorizontalAlignment="Left" VerticalAlignment="Top">
+            <TextBlock.Background>
+                <DrawingBrush>
+                    <DrawingBrush.Drawing>
+                        <GeometryDrawing>
+                            <GeometryDrawing.Geometry>
+                                <PathGeometry>
+                                    <PathFigure StartPoint="0,0" IsClosed="True">
+                                        <!-- 左侧直线 -->
+                                        <LineSegment Point="80,0"/>
+                                        <!-- 右侧弧线 -->
+                                        <ArcSegment Point="80,20"
+                                            Size="10,10"
+                                            SweepDirection="Clockwise"
+                                            RotationAngle="90"/>
+                                        <!-- 底部直线 -->
+                                        <LineSegment Point="0,20"/>
+                                    </PathFigure>
+                                </PathGeometry>
+                            </GeometryDrawing.Geometry>
+                            <GeometryDrawing.Brush>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#4DACFF" Offset="0"/>
+                                    <GradientStop Color="#0080FF" Offset="1"/>
+                                </LinearGradientBrush>
+                            </GeometryDrawing.Brush>
+                        </GeometryDrawing>
+                    </DrawingBrush.Drawing>
+                </DrawingBrush>
+            </TextBlock.Background>
+        </TextBlock>
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="15,5">
             <TextBlock Text="阈值范围：" Width="80" VerticalAlignment="Center"/>
-            <Slider Minimum="0" Maximum="255" x:Name="sliderThreshold" VerticalAlignment="Center"
+            <Slider Minimum="0" Maximum="255" VerticalAlignment="Center"
                         Width="200" Value="{Binding Threshold, 
                         Mode=TwoWay, 
                         UpdateSourceTrigger=PropertyChanged}"/>
@@ -61,44 +89,49 @@
                        Margin="10,0"
                        VerticalAlignment="Center"/>
         </StackPanel>
-
-            <!-- 粒子筛选 -->
-            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="15,5">
-                <TextBlock Text="粒子大小：" Width="80"/>
-                <Slider Minimum="0" Maximum="255" Width="200" Value="200"/>
-                <TextBox Width="60" Margin="10,0" Text="200"/>
-            </StackPanel>
-
-            <!-- 查找参数 -->
-            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="15,5">
-                <TextBlock Text="最小距离：" Width="80"/>
-                <TextBox Width="60" Text="10"/>
-                <TextBlock Text="最大距离：" Width="80" Margin="20,0,0,0"/>
-                <TextBox Width="60" Text="20"/>
-            </StackPanel>
-
-            <!-- 边缘处理 -->
-            <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="15,5">
-                <CheckBox IsChecked="True"/>
-                <TextBlock Text="平滑处理" Margin="5,0"/>
-                <CheckBox IsChecked="False" Margin="20,0,0,0"/>
-                <TextBlock Text="锐化处理" Margin="5,0"/>
-            </StackPanel>
-
-            <!-- 填充 -->
-            <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="15,5">
-                <CheckBox IsChecked="False"/>
-                <TextBlock Text="自动填充" Margin="5,0"/>
-                <CheckBox IsChecked="True" Margin="20,0,0,0"/>
-                <TextBlock Text="手动填充" Margin="5,0"/>
-            </StackPanel>
-
-            <!-- 辅助功能 -->
-            <StackPanel Grid.Row="5" Orientation="Horizontal" Margin="15,5">
-                <CheckBox IsChecked="True"/>
-                <TextBlock Text="日志记录" Margin="5,0"/>
-                <CheckBox IsChecked="True" Margin="20,0,0,0"/>
-                <TextBlock Text="自动保存" Margin="5,0"/>
-            </StackPanel>
-        </Grid>
+        <TextBlock Grid.Row="1" Text="自适应阈值" FontWeight="Bold" FontSize="16"
+                       Margin="0,0" Height="20" Width="90"
+                       HorizontalAlignment="Left" VerticalAlignment="Top">
+            <TextBlock.Background>
+                <DrawingBrush>
+                    <DrawingBrush.Drawing>
+                        <GeometryDrawing>
+                            <GeometryDrawing.Geometry>
+                                <PathGeometry>
+                                    <PathFigure StartPoint="0,0" IsClosed="True">
+                                        <!-- 左侧直线 -->
+                                        <LineSegment Point="80,0"/>
+                                        <!-- 右侧弧线 -->
+                                        <ArcSegment Point="80,20"
+                                            Size="10,10"
+                                            SweepDirection="Clockwise"
+                                            RotationAngle="90"/>
+                                        <!-- 底部直线 -->
+                                        <LineSegment Point="0,20"/>
+                                    </PathFigure>
+                                </PathGeometry>
+                            </GeometryDrawing.Geometry>
+                            <GeometryDrawing.Brush>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#4DACFF" Offset="0"/>
+                                    <GradientStop Color="#0080FF" Offset="1"/>
+                                </LinearGradientBrush>
+                            </GeometryDrawing.Brush>
+                        </GeometryDrawing>
+                    </DrawingBrush.Drawing>
+                </DrawingBrush>
+            </TextBlock.Background>
+        </TextBlock>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="15,5">
+            <TextBlock Text="阈值范围：" Width="80" VerticalAlignment="Center"/>
+            <Slider Minimum="0" Maximum="255" VerticalAlignment="Center"
+                        Width="200" Value="{Binding Threshold, 
+                        Mode=TwoWay, 
+                        UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBlock Text="{Binding Threshold}" 
+                       Width="40" 
+                       Margin="10,0"
+                       VerticalAlignment="Center"/>
+        </StackPanel>
+    </Grid>
 </UserControl>
