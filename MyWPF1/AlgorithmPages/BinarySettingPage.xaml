@@ -11,10 +11,6 @@
       xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
       xmlns:ctrl="clr-namespace:MyWPF1.Controls"
              d:DesignHeight="450" d:DesignWidth="800" Background="AntiqueWhite">
-    <UserControl.Resources>
-        <local:IndexConverter x:Key="IndexConverter"/>
-        <local:ComboBoxIndexConverter x:Key="ComboBoxIndexConverter"/>
-    </UserControl.Resources>
     <Grid Margin="10" Background="Beige">
         <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
@@ -166,13 +162,13 @@
                 </StackPanel>
                 <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="15,5">
                     <TextBlock Text="比例因子：" Width="80" VerticalAlignment="Center"/>
-                    <Slider Minimum="0.1" Maximum="1.0" TickFrequency="2" IsSnapToTickEnabled="True"
+                    <Slider Minimum="0.1" Maximum="2.0" TickFrequency="0.02" IsSnapToTickEnabled="True"
                         VerticalAlignment="Center" Width="120"
                         Value="{Binding Scale, 
                         Mode=TwoWay, 
                         UpdateSourceTrigger=PropertyChanged}"/>
                     <ctrl:NumericUpDown Value="{Binding Scale, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                        Minimum="0.1" Maximum="1.0" Increment="0.1" Width="55" Height="25"/>
+                                        Minimum="0.1" Maximum="2.0" Increment="0.02" Width="55" Height="25"/>
                 </StackPanel>
             </Grid>
         </Grid>

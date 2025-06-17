@@ -206,6 +206,21 @@
                  </StackPanel>
             </Button>
 
+            <Button Name="加载配置"
+                    DockPanel.Dock="Left"
+                    Style="{StaticResource IconButtonStyle}"
+                    Margin="10,0">
+                <StackPanel Orientation="Vertical">
+                    <Image Source="Images/停止.png" 
+                        Width="40"
+                        Height="40"
+                        RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <TextBlock Text="加载配置"
+                        Margin="5,5,0,0"
+                        FontSize="14"/>
+                </StackPanel>
+            </Button>
+
             <!-- 参数设置按钮 -->
             <Button Name="算法"
                     Click="AlgorithmButton_Click"
@@ -218,6 +233,22 @@
                         Height="40"
                         RenderOptions.BitmapScalingMode="HighQuality"/>
                     <TextBlock Text="算法"
+                        Margin="5,5,0,0"
+                        FontSize="14"/>
+                </StackPanel>
+            </Button>
+
+            <Button Name="深度学习"
+                    Click="LaunchLabelingTool_Click"
+                    DockPanel.Dock="Left"
+                    Style="{StaticResource IconButtonStyle}"
+                    Margin="10,0">
+                <StackPanel Orientation="Vertical">
+                    <Image Source="Images/停止.png" 
+                        Width="40"
+                        Height="40"
+                        RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <TextBlock Text="深度学习"
                         Margin="5,5,0,0"
                         FontSize="14"/>
                 </StackPanel>

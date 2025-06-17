@@ -98,7 +98,7 @@
                         Mode=TwoWay, 
                         UpdateSourceTrigger=PropertyChanged}"/>
             <ctrl:NumericUpDown Value="{Binding Alpha, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                    Increment="0.02" Width="55" Height="25"/>
+                                Minimum="0.1" Maximum="2" Increment="0.02" Width="55" Height="25"/>
         </StackPanel>
         <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="15,5">
             <TextBlock Text="低频阈：" Width="80" VerticalAlignment="Center" FontSize="14"/>

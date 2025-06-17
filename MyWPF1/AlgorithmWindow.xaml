@@ -8,7 +8,7 @@
         xmlns:viewModels="clr-namespace:MyWPF1.ViewModels"
         mc:Ignorable="d"        
         xmlns:winforms="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
-        xmlns:halcon="clr-namespace:HalconDotNet;assembly=HalconDotNet" d:DataContext="{d:DesignInstance Type=viewModels:ArrowViewModel}"
+        xmlns:halcon="clr-namespace:HalconDotNet;assembly=HalconDotNet"
         Title="AlgorithmWindow" Height="800" Width="1200">
     <Window.Resources>
         <local:IndexConverter x:Key="IndexConverter"/>
@@ -159,18 +159,15 @@
 
     </Window.Resources>
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="7*"/>
-            <RowDefinition Height="3*"/>
-        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="5*"/>
             <ColumnDefinition Width="5*"/>
         </Grid.ColumnDefinitions>
-        <Grid>
+        <Grid Grid.Column="0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="1*"/>
-                <RowDefinition Height="9*"/>
+                <RowDefinition Height="6*"/>
+                <RowDefinition Height="3*"/>
             </Grid.RowDefinitions>
             <Border Background="#81D8D0">
                 <StackPanel Grid.Row="0"
@@ -196,194 +193,192 @@
                 </StackPanel>
             </Border>
             <Frame x:Name="ImageFrame" Grid.Row="1"/>
-        </Grid>
-        <ItemsControl Grid.Row="1" Grid.ColumnSpan="2" ItemsSource="{Binding EItems}"/>
-        <!-- 可选中文本列表 -->
-        <ItemsControl Grid.Row="1">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <TextBlock Text="{Binding Text}" 
+            <ItemsControl Grid.Row="2" Grid.ColumnSpan="2" ItemsSource="{Binding EItems}"/>
+            <!-- 可选中文本列表 -->
+            <ItemsControl Grid.Row="2">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Text}" 
                           MouseDown="TextBlock_MouseDown"
                           Tag="{Binding}"/>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-        <Grid Grid.Row="1"
-              Grid.Column="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="4*"/>
-                <ColumnDefinition Width="2*"/>
-                <ColumnDefinition Width="4*"/>
-            </Grid.ColumnDefinitions>
-            <ScrollViewer Background='AntiqueWhite' VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="10" Orientation="Vertical">
-                    <!-- 预处理工具组 -->
-                    <StackPanel Orientation="Horizontal" >
-                        <TextBlock Text="预处理" 
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="4*"/>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="4*"/>
+                </Grid.ColumnDefinitions>
+                <ScrollViewer Background='AntiqueWhite' VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="10" Orientation="Vertical">
+                        <!-- 预处理工具组 -->
+                        <StackPanel Orientation="Horizontal" >
+                            <TextBlock Text="预处理" 
                                Margin="5,0,0,0"
                                FontSize="20"
                                VerticalAlignment="Top"/>
-                        <ToggleButton x:Name="PreprocessingToggle"
+                            <ToggleButton x:Name="PreprocessingToggle"
                                       Style="{StaticResource ExpandArrowStyle}"
                                       VerticalAlignment="Bottom"
                                       IsChecked="False"  
                                       Margin="0,0,0,5"/>
-                    </StackPanel>
-                    <ContentControl Visibility="{Binding IsChecked, ElementName=PreprocessingToggle,
+                        </StackPanel>
+                        <ContentControl Visibility="{Binding IsChecked, ElementName=PreprocessingToggle,
                             Converter={StaticResource BoolToVisibility}}">
-                        <ListBox Grid.Row="0" Background="Beige"
+                            <ListBox Grid.Row="0" Background="Beige"
                                  ItemsSource="{Binding PreprocessingItems}"
                                  PreviewMouseLeftButtonDown="ListBox_PreviewMouseLeftButtonDown"
                                  PreviewMouseMove="ListBox_PreviewMouseMove"
                                  SelectionMode="Single">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding Text}" FontSize="16" Padding="30,0"/>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </ContentControl>
-                    <!-- 定位工具组 -->
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="定位" 
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Text}" FontSize="16" Padding="30,0"/>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </ContentControl>
+                        <!-- 定位工具组 -->
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="定位" 
                             Margin="5,0,0,0"
                             FontSize="20"
                             VerticalAlignment="Top"/>
-                        <ToggleButton x:Name="PositioningToggle"
+                            <ToggleButton x:Name="PositioningToggle"
                                     Style="{StaticResource ExpandArrowStyle}"
                                     VerticalAlignment="Bottom"
                                     IsChecked="False"  
                                     Margin="0,0,0,5"/>
-                    </StackPanel>
-                    <ContentControl Visibility="{Binding IsChecked, ElementName=PositioningToggle,
+                        </StackPanel>
+                        <ContentControl Visibility="{Binding IsChecked, ElementName=PositioningToggle,
                         Converter={StaticResource BoolToVisibility}}">
-                        <ListBox Grid.Row="0" Background="Beige"
+                            <ListBox Grid.Row="0" Background="Beige"
                                  ItemsSource="{Binding PositioningItems}"
                                  SelectionMode="Single"
                                  PreviewMouseLeftButtonDown="ListBox_PreviewMouseLeftButtonDown"
                                  PreviewMouseMove="ListBox_PreviewMouseMove">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding Text}" FontSize="16" Padding="30,0"/>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                </ContentControl>
-                    <!-- 测量工具组 -->
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="测量/检测" 
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Text}" FontSize="16" Padding="30,0"/>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </ContentControl>
+                        <!-- 测量工具组 -->
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="测量/检测" 
                             Margin="5,0,0,0"
                             FontSize="20"
                             VerticalAlignment="Top"/>
-                        <ToggleButton x:Name="MeasureToggle"
+                            <ToggleButton x:Name="MeasureToggle"
                                     Style="{StaticResource ExpandArrowStyle}"
                                     VerticalAlignment="Bottom"
                                     IsChecked="False"  
                                     Margin="0,0,0,5"/>
-                    </StackPanel>
-                    <ContentControl Visibility="{Binding IsChecked, ElementName=MeasureToggle,
+                        </StackPanel>
+                        <ContentControl Visibility="{Binding IsChecked, ElementName=MeasureToggle,
                         Converter={StaticResource BoolToVisibility}}">
-                        <ListBox Grid.Row="0" Background="Beige"
+                            <ListBox Grid.Row="0" Background="Beige"
                                  ItemsSource="{Binding MeasureItems}"
                                  SelectionMode="Single"
                                  PreviewMouseLeftButtonDown="ListBox_PreviewMouseLeftButtonDown"
                                  PreviewMouseMove="ListBox_PreviewMouseMove">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding Text}" FontSize="16" Padding="30,0"/>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </ContentControl>
-                    <!-- 拟合工具组 -->
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="拟合" 
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Text}" FontSize="16" Padding="30,0"/>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </ContentControl>
+                        <!-- 拟合工具组 -->
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="拟合" 
                             Margin="5,0,0,0"
                             FontSize="20"
                             VerticalAlignment="Top"/>
-                        <ToggleButton x:Name="FittingToggle"
+                            <ToggleButton x:Name="FittingToggle"
                                     Style="{StaticResource ExpandArrowStyle}"
                                     VerticalAlignment="Bottom"
                                     IsChecked="False"  
                                     Margin="0,0,0,5"/>
-                    </StackPanel>
-                    <ContentControl Visibility="{Binding IsChecked, ElementName=FittingToggle,
+                        </StackPanel>
+                        <ContentControl Visibility="{Binding IsChecked, ElementName=FittingToggle,
                         Converter={StaticResource BoolToVisibility}}">
-                        <ListBox Grid.Row="0" Background="Beige"
+                            <ListBox Grid.Row="0" Background="Beige"
                                  ItemsSource="{Binding FittingItems}"
                                  SelectionMode="Single"
                                  PreviewMouseLeftButtonDown="ListBox_PreviewMouseLeftButtonDown"
                                  PreviewMouseMove="ListBox_PreviewMouseMove">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding Text}" FontSize="16" Padding="30,0"/>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </ContentControl>
-                    <!-- 输出工具组 -->
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="输出" 
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Text}" FontSize="16" Padding="30,0"/>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </ContentControl>
+                        <!-- 输出工具组 -->
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="输出" 
                             Margin="5,0,0,0"
                             FontSize="20"
                             VerticalAlignment="Top"/>
-                        <ToggleButton x:Name="PredictToggle"
+                            <ToggleButton x:Name="PredictToggle"
                                     Style="{StaticResource ExpandArrowStyle}"
                                     VerticalAlignment="Bottom"
                                     IsChecked="False"  
                                     Margin="0,0,0,5"/>
-                    </StackPanel>
-                    <ContentControl Visibility="{Binding IsChecked, ElementName=PredictToggle,
+                        </StackPanel>
+                        <ContentControl Visibility="{Binding IsChecked, ElementName=PredictToggle,
                         Converter={StaticResource BoolToVisibility}}">
-                        <ListBox Grid.Row="0" Background="Beige"
+                            <ListBox Grid.Row="0" Background="Beige"
                                  ItemsSource="{Binding PredictItems}"
                                  SelectionMode="Single"
                                  PreviewMouseLeftButtonDown="ListBox_PreviewMouseLeftButtonDown"
                                  PreviewMouseMove="ListBox_PreviewMouseMove">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding Text}" FontSize="16" Padding="30,0"/>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </ContentControl>
-                </StackPanel>
-            </ScrollViewer>
-            <Border Grid.Column="1" Background="Beige">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    <Button x:Name="DeleteButton"
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Text}" FontSize="16" Padding="30,0"/>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </ContentControl>
+                    </StackPanel>
+                </ScrollViewer>
+                <Border Grid.Column="1" Background="Beige">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Button x:Name="DeleteButton"
                             Grid.Row="0"
                             VerticalAlignment="Center"
                             Margin="20"
                             Padding="10,10"
                             Content="移除"
                             Click="OnRemoveSelectedItem"/>
-                    <Button x:Name="LoadAllButton"
+                        <Button x:Name="LoadAllButton"
                             Grid.Row="1"
                             VerticalAlignment="Center"
                             Margin="20"
                             Padding="10,10"
                             Content="加载配置"
                             Command="{Binding LoadConfigCommand}"/>
-                    <Button x:Name="SaveAllButton"
+                        <Button x:Name="SaveAllButton"
                             Grid.Row="2"
                             VerticalAlignment="Center"
                             Margin="20"
                             Padding="10,10"
                             Content="全部保存"
                             Command="{Binding SaveConfigCommand}"/>
-                </Grid>
-            </Border>
-            <ScrollViewer Background='AntiqueWhite' 
+                    </Grid>
+                </Border>
+                <ScrollViewer Background='AntiqueWhite' 
                           Grid.Column="2"
                           x:Name="RightScrollViewer" 
                           VerticalScrollBarVisibility="Auto">
-                <ListBox Grid.Row="0" Background="AntiqueWhite"
+                    <ListBox Background="AntiqueWhite"
                          x:Name="TargetListBox"
                          SelectionMode="Single" AlternationCount="1000"
                          AllowDrop="True" ItemsSource="{Binding SelectedCCD.SelectedItems}"
@@ -391,28 +386,30 @@
                          PreviewMouseMove="TargetListBox_PreviewMouseMove"
                          MouseDoubleClick="TargetListBox_MouseDoubleClick"
                          Drop="TargetListBox_Drop" DragOver="TargetListBox_DragOver">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal" Margin="2">
-                                <TextBlock Text="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, 
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Margin="2">
+                                    <TextBlock Text="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, 
                                            Path=(ItemsControl.AlternationIndex),
                                            Converter={StaticResource IndexConverter}}"
                                            Width="30"
                                            Padding="10,0"
                                            VerticalAlignment="Center"
                                            Foreground="Gray"/>
-                                <TextBlock Text="{Binding Text}" FontSize="16" Padding="30,0"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-            </ScrollViewer>
+                                    <TextBlock Text="{Binding Text}" FontSize="16" Padding="30,0"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </ScrollViewer>
+            </Grid>
         </Grid>
+
         <!-- 右侧设置容器 -->
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
-                <RowDefinition Height="2*"/>
-                <RowDefinition Height="8*"/>
+                <RowDefinition Height="1.5*"/>
+                <RowDefinition Height="8.5*"/>
             </Grid.RowDefinitions>
             <ContentControl x:Name="AlgorithmTopContainer" Grid.Row="0">
                 <Frame x:Name="TopFrame" Grid.Column="1" Grid.Row="0"/>

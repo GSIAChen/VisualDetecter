@@ -90,7 +90,7 @@
                         Mode=TwoWay, 
                         UpdateSourceTrigger=PropertyChanged}"/>
                 <ctrl:NumericUpDown Value="{Binding Gamma, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                    Increment="0.05" Width="55" Height="25"/>
+                                    Minimum="0.1" Maximum="10" Increment="0.05" Width="55" Height="25"/>
             </StackPanel>
             <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Margin="15,5">
                 <TextBlock Text="偏移量：" Width="80" VerticalAlignment="Center"/>
@@ -99,7 +99,7 @@
                         Mode=TwoWay, 
                         UpdateSourceTrigger=PropertyChanged}"/>
                 <ctrl:NumericUpDown Value="{Binding Offset, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                    Increment="0.05" Width="55" Height="25"/>
+                                    Minimum="0" Maximum="5" Increment="0.05" Width="55" Height="25"/>
             </StackPanel>
             <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="15,5">
                 <TextBlock Text="阈值：" Width="80" VerticalAlignment="Center"/>
@@ -108,7 +108,7 @@
                         Mode=TwoWay, 
                         UpdateSourceTrigger=PropertyChanged}"/>
                 <ctrl:NumericUpDown Value="{Binding Threshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                    Increment="0.05" Width="55" Height="25"/>
+                                    Minimum="0" Maximum="5" Increment="0.05" Width="55" Height="25"/>
             </StackPanel>
             <Grid Grid.Row="1" Grid.Column="1" Margin="15,5">
                 <Grid.RowDefinitions>
@@ -199,7 +199,7 @@
             <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="15,5">
                 <TextBlock Text="Mask大小：" Width="80" VerticalAlignment="Center"/>
                 <ctrl:NumericUpDown Value="{Binding MaskSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                    Increment="2" Width="55" Height="25"/>
+                                     Minimum="3" Maximum="31" Increment="2" Width="55" Height="25"/>
             </StackPanel>
             <Grid Grid.Column="1">
                 <Grid.RowDefinitions>
@@ -213,7 +213,7 @@
                         Mode=TwoWay, 
                         UpdateSourceTrigger=PropertyChanged}"/>
                     <ctrl:NumericUpDown Value="{Binding Factor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                    Increment="0.05" Width="55" Height="25"/>
+                                        Minimum="0.5" Maximum="3" Increment="0.05" Width="55" Height="25"/>
                 </StackPanel>
                 <CheckBox Content="启用反锐化Mask" Grid.Row="1"
                       IsChecked="{Binding EnableEmphasize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"

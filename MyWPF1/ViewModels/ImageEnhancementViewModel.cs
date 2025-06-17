@@ -93,10 +93,9 @@ namespace MyWPF1.ViewModels
             // 2. 再 Emphasize
             if (EnableEmphasize)
             {
-                int m = (int)MaskSize;
                 HOperatorSet.Emphasize(
                     img, out HObject tmp2,
-                    new HTuple(m), new HTuple(m), new HTuple(Factor));
+                    new HTuple(MaskSize), new HTuple(MaskSize), new HTuple(Factor));
                 img = tmp2;
             }
 

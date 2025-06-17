@@ -65,6 +65,7 @@ public class ArrowViewModel : INotifyPropertyChanged
     {
         PreprocessingItems.Add(new SelectableItem { Text = "二值化" });
         PreprocessingItems.Add(new SelectableItem { Text = "色彩变换" });
+        PreprocessingItems.Add(new SelectableItem { Text = "图像降噪" });
         PreprocessingItems.Add(new SelectableItem { Text = "图像增强" });
         PreprocessingItems.Add(new SelectableItem { Text = "边缘提取" });
         PositioningItems.Add(new SelectableItem { Text = "灰度匹配" });
@@ -79,16 +80,6 @@ public class ArrowViewModel : INotifyPropertyChanged
         for (int i = 1; i <= 7; i++)
             CCDs.Add(new CCDViewModel($"CCD{i}"));
         SelectedCCD = CCDs.First(); // 默认选中CCD1
-        SelectedItems.CollectionChanged += (s, e) =>
-        {
-            foreach (SelectableItem item in e.NewItems?.OfType<SelectableItem>() ?? [])
-                item.IsSelected = true;
-            foreach (SelectableItem item in e.OldItems?.OfType<SelectableItem>() ?? [])
-                item.IsSelected = false;
-            for (int i = 0; i < SelectedItems.Count; i++)
-                SelectedItems[i].Index = i + 1;
-            OnPropertyChanged(nameof(ImageSources));
-        };
     }
 
     // INotifyPropertyChanged 实现
@@ -99,7 +90,6 @@ public class ArrowViewModel : INotifyPropertyChanged
     public void SetOriginalImage(HObject originalImage, HWindowControl hWindowControl)
     {
         _hwindowControl = hWindowControl;
-        ImageSources.Add(new ImageSourceItem("原图", originalImage));
     }
 
     public void AddToolInstance(SelectableItem item, Func<ToolBaseViewModel> factory)
@@ -128,6 +118,7 @@ public class ArrowViewModel : INotifyPropertyChanged
         // 添加这次工具的输出
         toolInstance.ViewModel.Apply();
         ImageSources.Add(new ImageSourceItem(
+            toolInstance.InstanceId,
             toolInstance.DisplayName,
             toolInstance.ViewModel.CurrentResultImage));
     }
@@ -349,4 +340,20 @@ public class SelectableItem : INotifyPropertyChanged
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
+}
+
+public class ImageSourceItem
+{
+    public Guid InstanceId { get; }
+    public string Name { get; set; }
+    public HObject Image { get; }
+
+    public ImageSourceItem(Guid instanceId, string name, HObject image)
+    {
+        InstanceId = instanceId;
+        Name = name;
+        Image = image;
+    }
+
+    public override string ToString() => Name; // 让 ComboBox 自动显示 Name
 }

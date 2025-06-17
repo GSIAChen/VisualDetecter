@@ -10,10 +10,6 @@
       xmlns:winforms="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
       xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms" xmlns:halcon="http://schemas.mvtec.com/halcondotnet"
              d:DesignHeight="450" d:DesignWidth="800">
-    <UserControl.Resources>
-        <local:IndexConverter x:Key="IndexConverter"/>
-        <local:ComboBoxIndexConverter x:Key="ComboBoxIndexConverter"/>
-    </UserControl.Resources>
     <Grid>
         <winforms:WindowsFormsHost x:Name="winFormsHost"
                                    HorizontalAlignment="Stretch"

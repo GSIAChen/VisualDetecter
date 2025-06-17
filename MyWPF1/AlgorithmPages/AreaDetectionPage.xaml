@@ -56,7 +56,7 @@
                         Mode=TwoWay, 
                         UpdateSourceTrigger=PropertyChanged}"/>
             <ctrl:NumericUpDown Value="{Binding Threshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                    Increment="1" Width="55" Height="25"/>
+                                Minimum="0" Maximum="255" Increment="1" Width="55" Height="25"/>
         </StackPanel>
         <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="15,5">
             <TextBlock Text="面积大小：" Width="80" VerticalAlignment="Center" FontSize="14"/>

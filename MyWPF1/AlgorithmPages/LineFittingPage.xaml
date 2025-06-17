@@ -29,19 +29,22 @@
                 <TextBlock Text="裁剪因子：" VerticalAlignment="Center"/>
                 <Slider Minimum="1.0" Maximum="3.0" Width="120" Value="{Binding ClippingFactor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         VerticalAlignment="Center" Margin="10"/>
-                <ctrl:NumericUpDown Width="55" Height="25" Increment="0.05" Margin="5" Value="{Binding ClippingFactor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                <ctrl:NumericUpDown Width="55" Height="25" Increment="0.05" Margin="5" Minimum="1.0" Maximum="3.0"
+                                    Value="{Binding ClippingFactor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
             <StackPanel Margin="15" Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
                 <TextBlock Text="迭代次数：" VerticalAlignment="Center"/>
                 <Slider Minimum="3" Maximum="20" Width="120" Value="{Binding Iterations, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         Margin="10" VerticalAlignment="Center"/>
-                <ctrl:NumericUpDown Width="55" Height="25" Increment="1" Margin="5" Value="{Binding Iterations, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <ctrl:NumericUpDown Width="55" Height="25" Increment="1" Margin="5" Minimum="3" Maximum="20"
+                                    Value="{Binding Iterations, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
             </StackPanel>
             <StackPanel Margin="15" Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
                 <TextBlock Text="端点裁剪：" VerticalAlignment="Center"/>
                 <Slider Minimum="1" Maximum="10" Width="120" Value="{Binding ClippingEndPoints, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         VerticalAlignment="Center" Margin="10"/>
-                <ctrl:NumericUpDown Width="55" Height="25" Increment="1" Margin="5" Value="{Binding ClippingEndPoints, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <ctrl:NumericUpDown Width="55" Height="25" Increment="1" Margin="5" Minimum="1" Maximum="10"
+                                    Value="{Binding ClippingEndPoints, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
             </StackPanel>
             <StackPanel Margin="10" Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
                 <TextBlock Text="拟合算法：" VerticalAlignment="Center"/>

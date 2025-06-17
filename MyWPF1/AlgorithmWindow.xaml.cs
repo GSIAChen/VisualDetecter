@@ -18,26 +18,37 @@ namespace MyWPF1
     public partial class AlgorithmWindow : Window
     {
         private AlgorithmTopPage _topPage;
-        static ArrowViewModel arrowVM = new ArrowViewModel();
-        static ImageViewModel imageVM = new ImageViewModel(arrowVM);
-        ImagePage imgPage = new ImagePage { DataContext = imageVM };
+        private readonly ArrowViewModel _arrowVM;
+        private readonly ImageViewModel _imageVM;
 
         public AlgorithmWindow()
         {
             InitializeComponent();
+            //Loaded += AlgorithmWindow_Loaded;
+            
+            _arrowVM = new ArrowViewModel();
+            _imageVM = new ImageViewModel(_arrowVM);
+
+            this.DataContext = _arrowVM;
+            var imgPage = new ImagePage();
             ImageFrame.Content = imgPage;
-            this.DataContext = arrowVM;
-            imageVM.Initialized += (hwin, img) =>
+
+            // 当窗口真正完成首次渲染后，再初始化 VM
+            this.ContentRendered += (s, e) =>
             {
-                foreach (var ccd in arrowVM.CCDs)
-                    ccd.Initialize(hwin, img);
+                // Dispatcher 再次延后一个“空闲时机”，确保 HWindowControl 真正拿到尺寸
+                Dispatcher.BeginInvoke(() =>
+                {
+                    // ① 初始化主图
+                    string imagePath = @"F:\钽电容\新缺陷例图\1分类\Image_20250616112443126.bmp";
+                    _imageVM.Initialize(imgPage.hWindowControl, imagePath);
+
+                    // ② 初始化每个 CCDVM
+                    foreach (var ccd in _arrowVM.CCDs)
+                        ccd.Initialize(imgPage.hWindowControl, _imageVM._image);
+                }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
             };
-            arrowVM.OnToolPageShouldBeCleared += () =>
-            {
-                _topPage = null;
-                AlgorithmTopContainer.Content = null;
-                TopFrame.Content = null;
-            };
+            
         }
 
         // 文本点击选择
@@ -261,28 +272,15 @@ namespace MyWPF1
             ccd.AddToolInstance(selectedTool,
                 () => CreateViewModelByKey(selectedTool.Text));
             var inst = ccd.CurrentToolInstance;
-            arrowVM.CurrentToolInstance = inst;
-            // 5. 选定输入图：如果不是第一个，就用上一次工具的输出，否则用原图
-            HObject input;
-            int idx = ccd.ToolInstances.IndexOf(inst);
-            if (idx > 0)
-            {
-                input = ccd.ToolInstances[idx - 1]
-                         .ViewModel.CurrentResultImage;
-            }
-            else
-            {
-                // 原图也是 CCDVM.ImageSources[0]
-                input = ccd.ImageSources[0].Image;
-            }
 
             // 7. 弹出（或复用）AlgorithmTopPage，并让它刷新：
             if (_topPage == null)
             {
-                _topPage = new AlgorithmTopPage(arrowVM, arrowVM.SelectedCCD);
+                _topPage = new AlgorithmTopPage(_arrowVM, _arrowVM.SelectedCCD);
                 AlgorithmTopContainer.Content = _topPage;
                 TopFrame.Content = _topPage;
             }
+            _topPage.CurrentToolInstance = inst;
             _topPage.SelectedItem = selectedTool;
             _topPage.RefreshFor(selectedTool);
 
@@ -293,6 +291,7 @@ namespace MyWPF1
                 {
                     "二值化" => new BinarySettingPage(),
                     "色彩变换" => new ColorTransformPage(),
+                    "图像降噪" => new ImageDenoisePage(),
                     "图像增强" => new ImageEnhancementPage(),
                     "边缘提取" => new EdgeExtractionPage(),
                     "面积检测" => new AreaDetectionPage(),
@@ -312,6 +311,7 @@ namespace MyWPF1
             {
                 "二值化" => new BinaryViewModel(),
                 "色彩变换" => new ColorTransformViewModel(),
+                "图像降噪" => new ImageDenoiseViewModel(),
                 "图像增强" => new ImageEnhancementViewModel(),
                 "边缘提取" => new EdgeExtractionViewModel(),
                 "面积检测" => new AreaDetectionViewModel(),
@@ -325,17 +325,17 @@ namespace MyWPF1
         {
             int index = 0;
             string text = "";
-            foreach (SelectableItem item in arrowVM.SelectedItems)
+            foreach (SelectableItem item in _arrowVM.SelectedItems)
             {
                 if (item.IsSelected)
                 {
-                    index = arrowVM.SelectedItems.IndexOf(item) + 1;
+                    index = _arrowVM.SelectedItems.IndexOf(item) + 1;
                     text = item.Text;
                     break;
                 }
             }
             string imagePath = $"images/{index} {text}.png";
-            arrowVM.CurrentToolInstance.ViewModel.SaveResultImage(imagePath);
+            _arrowVM.CurrentToolInstance.ViewModel.SaveResultImage(imagePath);
         }
 
         private void OnRemoveSelectedItem(object sender, RoutedEventArgs e)
@@ -343,7 +343,7 @@ namespace MyWPF1
             var selected = (SelectableItem)TargetListBox.SelectedItem;
             if (selected != null)
             {
-                arrowVM.RemoveToolInstance(selected);
+                _arrowVM.RemoveToolInstance(selected);
             }
         }
     }

@@ -1,4 +1,7 @@
-﻿using System.Text;
+﻿using MyWPF1;
+using System.Diagnostics;
+using System.IO;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -8,7 +11,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using MyWPF1;
 
 namespace MyWPF1
 {
@@ -52,6 +54,37 @@ namespace MyWPF1
                 Owner = this // 设置父窗口
             };
             settingsWindow.ShowDialog();
+        }
+
+        private void LaunchLabelingTool_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // 1. 获取当前程序所在目录
+                string exeDir = AppDomain.CurrentDomain.BaseDirectory;
+
+                // 2. 拼出目标程序的完整路径
+                string labelerExe = System.IO.Path.Combine(exeDir, "X-AnyLabeling-CPU.exe");
+
+                if (!File.Exists(labelerExe))
+                {
+                    System.Windows.MessageBox.Show($"找不到：{labelerExe}", "启动失败", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // 3. 启动外部程序
+                var psi = new ProcessStartInfo
+                {
+                    FileName = labelerExe,
+                    WorkingDirectory = exeDir,
+                    UseShellExecute = true
+                };
+                Process.Start(psi);
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"启动失败：\n{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void CameraButton_Click(object sender, RoutedEventArgs e)

@@ -19,6 +19,15 @@ namespace MyWPF1
         private readonly CCDViewModel _ccd;    // 目前所使用的相机
         public ObservableCollection<ImageSourceItem> FilteredSources { get; } = new();
         public SelectableItem CurrentTool { get; }
+        private ToolInstance _currentToolInstance;
+        public ToolInstance CurrentToolInstance { get => _currentToolInstance;
+            set
+            {
+                if (_currentToolInstance == value) return;
+                _currentToolInstance = value;
+                OnPropertyChanged(nameof(CurrentToolInstance));
+            }
+        }
         private SelectableItem _selectedItem;
         public SelectableItem SelectedItem
         {
@@ -72,28 +81,33 @@ namespace MyWPF1
             _selectedItem = selectedTool;
             FilteredSources.Clear();
 
-            // “原图”保持在第一张
-            if (_ccd.ImageSources.Count > 0)
-                FilteredSources.Add(_ccd.ImageSources[0]);
+            // 1) **永远**在第 0 位加原图
+            FilteredSources.Add(_ccd.OriginalSource);
 
-            // 工具执行顺序决定可选源
+            // 2) 找到当前工具在 SelectedItems 里的位置
             int pos = _ccd.SelectedItems.IndexOf(_selectedItem);
-            for (int i = 1; i <= pos && i < _ccd.ImageSources.Count; i++)
+
+            // 3) 对应前面工具的输出，依次加入
+            //    注意：ImageSources 中只存 toolOutputs，且 index 对齐 SelectedItems
+            for (int i = 0; i < pos && i < _ccd.ImageSources.Count; i++)
                 FilteredSources.Add(_ccd.ImageSources[i]);
 
-            // —— 关键：取 CCDVM.CurrentToolInstance ——  
-            var toolInstance = _ccd.CurrentToolInstance;
-            if (toolInstance != null && FilteredSources.Count > 0)
+            // 4) 还原上次用户手动选过的那张（或者默认最后一张）
+            var inst = _ccd.CurrentToolInstance;
+            if (inst != null && FilteredSources.Count > 0)
             {
-                int savedIndex = toolInstance.ViewModel.SelectedSourceIndex;
-                var targetSource = (savedIndex >= 0 && savedIndex < FilteredSources.Count)
-                    ? FilteredSources[savedIndex]
-                    : FilteredSources.Last();
-
-                Debug.WriteLine($"Setting SelectedSource to: {targetSource.Name} (Index: {savedIndex})");
-
-                SelectedSource = targetSource;
+                int saved = inst.ViewModel.SelectedSourceIndex;
+                var pick = (saved >= 0 && saved < FilteredSources.Count)
+                           ? FilteredSources[saved]
+                           : FilteredSources.Last();
+                SelectedSource = pick;
             }
+            else if (FilteredSources.Count > 0)
+            {
+                SelectedSource = FilteredSources.Last();
+            }
+
+            OnPropertyChanged(nameof(SelectedSource));
         }
 
         private void SaveImage()
@@ -115,30 +129,8 @@ namespace MyWPF1
             }
         }
 
-        /**
-        public void ClearDisplay()
-        {
-            this.DataContext = null;
-            // 或者清空图像窗口内容：
-            if (_hWindowControl != null)
-                _hWindowControl.HalconWindow.ClearWindow();
-        }
-        **/
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string p = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(p));
-    }
-
-    public class ImageSourceItem
-    {
-        public string Name { get; }
-        public HObject Image { get; }
-
-        public ImageSourceItem(string name, HObject image)
-        {
-            Name = name;
-            Image = image;
-        }
-        public override string ToString() => Name; // 让 ComboBox 自动显示 Name
     }
 }

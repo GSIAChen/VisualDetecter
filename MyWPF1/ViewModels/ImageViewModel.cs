@@ -57,7 +57,6 @@ public class ImageViewModel : INotifyPropertyChanged
         Debug.WriteLine("ImageViewModel Initialized");
         _hWindowControl = hwin;
         HOperatorSet.ReadImage(out _image, imagePath);
-        _arrowVM.SetOriginalImage(_image, _hWindowControl);
         HOperatorSet.GetImageSize(_image, out HTuple width, out HTuple height);
         HTuple row = 0;
         HTuple col = 0;
