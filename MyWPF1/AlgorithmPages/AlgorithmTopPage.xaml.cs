@@ -16,6 +16,7 @@ namespace MyWPF1
     /// </summary>
     public partial class AlgorithmTopPage : UserControl, INotifyPropertyChanged
     {
+        private readonly CCDViewModel _ccd;    // 目前所使用的相机
         public ObservableCollection<ImageSourceItem> FilteredSources { get; } = new();
         public SelectableItem CurrentTool { get; }
         private SelectableItem _selectedItem;
@@ -57,10 +58,11 @@ namespace MyWPF1
             }
         }
 
-        public AlgorithmTopPage(ArrowViewModel arrowVM)
+        public AlgorithmTopPage(ArrowViewModel arrowVM, CCDViewModel ccd)
         {
             InitializeComponent();
             ViewModel = arrowVM;
+            _ccd = ccd;                        // 保存当前 CCDVM
             DataContext = this;
         }
 
@@ -70,15 +72,18 @@ namespace MyWPF1
             _selectedItem = selectedTool;
             FilteredSources.Clear();
 
-            if (ViewModel.ImageSources.Count > 0)
-                FilteredSources.Add(ViewModel.ImageSources[0]);
+            // “原图”保持在第一张
+            if (_ccd.ImageSources.Count > 0)
+                FilteredSources.Add(_ccd.ImageSources[0]);
 
-            int pos = ViewModel.SelectedItems.IndexOf(_selectedItem);
-            for (int i = 1; i <= pos && i < ViewModel.ImageSources.Count; i++)
-                FilteredSources.Add(ViewModel.ImageSources[i]);
+            // 工具执行顺序决定可选源
+            int pos = _ccd.SelectedItems.IndexOf(_selectedItem);
+            for (int i = 1; i <= pos && i < _ccd.ImageSources.Count; i++)
+                FilteredSources.Add(_ccd.ImageSources[i]);
 
-            var toolInstance = ViewModel.CurrentToolInstance;
-            if (FilteredSources.Count > 0)
+            // —— 关键：取 CCDVM.CurrentToolInstance ——  
+            var toolInstance = _ccd.CurrentToolInstance;
+            if (toolInstance != null && FilteredSources.Count > 0)
             {
                 int savedIndex = toolInstance.ViewModel.SelectedSourceIndex;
                 var targetSource = (savedIndex >= 0 && savedIndex < FilteredSources.Count)
@@ -87,10 +92,8 @@ namespace MyWPF1
 
                 Debug.WriteLine($"Setting SelectedSource to: {targetSource.Name} (Index: {savedIndex})");
 
-                // ✅ 触发 setter：不要直接改 _selectedSource
                 SelectedSource = targetSource;
             }
-            OnPropertyChanged(nameof(SelectedSource));
         }
 
         private void SaveImage()

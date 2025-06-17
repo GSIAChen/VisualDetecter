@@ -12,9 +12,10 @@
         </Grid.ColumnDefinitions>
 
         <!-- 可编辑文本框 -->
-        <TextBox x:Name="PART_TextBox"
+        <TextBox x:Name="InputTextBox"
                  Text="{Binding Value, Mode=TwoWay,
-                 RelativeSource={RelativeSource AncestorType=UserControl}, UpdateSourceTrigger=PropertyChanged}"
+                 RelativeSource={RelativeSource AncestorType=UserControl}, UpdateSourceTrigger=LostFocus}"
+                 LostFocus="InputBox_LostFocus"
                  VerticalContentAlignment="Center"
                  HorizontalContentAlignment="Right"
                  Padding="2" Background="#66C9DF"/>

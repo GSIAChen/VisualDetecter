@@ -1,18 +1,78 @@
 {
-  "Tools": [
-    {
-      "ToolKey": "\u56FE\u50CF\u589E\u5F3A",
-      "Params": {
-        "EnableGamma": true,
-        "Gamma": 1.4090825688073392,
-        "Offset": 0.055,
-        "Threshold": 0.0031,
-        "Encode": true,
-        "EnableEmphasize": true,
-        "MaskSize": 7,
-        "Factor": 1,
-        "SelectedSourceIndex": 0
-      }
+  "CCDPipelines": {
+    "CCD1": {
+      "Tools": [
+        {
+          "ToolKey": "\u4E8C\u503C\u5316",
+          "Params": {
+            "GlobalThreshold": 128,
+            "EnableGlobalThreshold": false,
+            "LightDark": "dark",
+            "MaskSize": 23,
+            "Scale": 0.2,
+            "EnableLocalThreshold": true,
+            "SelectedSourceIndex": 0
+          }
+        }
+      ]
+    },
+    "CCD2": {
+      "Tools": [
+        {
+          "ToolKey": "\u8272\u5F69\u53D8\u6362",
+          "Params": {
+            "RedChannel": false,
+            "GreenChannel": false,
+            "BlueChannel": false,
+            "HueChannel": true,
+            "SaturationChannel": true,
+            "ValueChannel": false,
+            "SelectedSourceIndex": 0
+          }
+        }
+      ]
+    },
+    "CCD3": {
+      "Tools": [
+        {
+          "ToolKey": "\u56FE\u50CF\u589E\u5F3A",
+          "Params": {
+            "EnableGamma": true,
+            "Gamma": 0.41,
+            "Offset": 0.055,
+            "Threshold": 0.0031,
+            "Encode": true,
+            "EnableEmphasize": true,
+            "MaskSize": 17,
+            "Factor": 1.504587155963301,
+            "SelectedSourceIndex": 0
+          }
+        }
+      ]
+    },
+    "CCD4": {
+      "Tools": [
+        {
+          "ToolKey": "\u8FB9\u7F18\u63D0\u53D6",
+          "Params": {
+            "Filter": "canny",
+            "NMS": "nms",
+            "Alpha": 1.453211009174311,
+            "LowThreshold": 20,
+            "HighThreshold": 40,
+            "SelectedSourceIndex": 0
+          }
+        }
+      ]
+    },
+    "CCD5": {
+      "Tools": []
+    },
+    "CCD6": {
+      "Tools": []
+    },
+    "CCD7": {
+      "Tools": []
     }
-  ]
+  }
 }

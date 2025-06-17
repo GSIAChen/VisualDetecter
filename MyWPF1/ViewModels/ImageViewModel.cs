@@ -9,6 +9,7 @@ public class ImageViewModel : INotifyPropertyChanged
     private readonly ArrowViewModel _arrowVM;
     public HObject _image;
     public HWindowControl _hWindowControl;
+    public event Action<HWindowControl, HObject>? Initialized;
     private ToolInstance _currentToolInstance;
     public ToolInstance CurrentToolInstance
     {
@@ -51,7 +52,7 @@ public class ImageViewModel : INotifyPropertyChanged
         }
     }
 
-    public void Initialize(HWindowControl hwin, string imagePath)
+    public void Initialize(HWindowControl hwin, HTuple imagePath)
     {
         Debug.WriteLine("ImageViewModel Initialized");
         _hWindowControl = hwin;
@@ -62,6 +63,7 @@ public class ImageViewModel : INotifyPropertyChanged
         HTuple col = 0;
         _hWindowControl.HalconWindow.SetPart(row, col, height - 1, width - 1);
         _hWindowControl.HalconWindow.DispObj(_image);
+        Initialized?.Invoke(hwin, _image);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

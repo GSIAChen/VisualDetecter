@@ -1,5 +1,6 @@
 ﻿using HalconDotNet;
 using MyWPF1.ViewModels;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Windows;
@@ -21,12 +22,16 @@ namespace MyWPF1
         static ImageViewModel imageVM = new ImageViewModel(arrowVM);
         ImagePage imgPage = new ImagePage { DataContext = imageVM };
 
-
         public AlgorithmWindow()
         {
             InitializeComponent();
             ImageFrame.Content = imgPage;
             this.DataContext = arrowVM;
+            imageVM.Initialized += (hwin, img) =>
+            {
+                foreach (var ccd in arrowVM.CCDs)
+                    ccd.Initialize(hwin, img);
+            };
             arrowVM.OnToolPageShouldBeCleared += () =>
             {
                 _topPage = null;
@@ -34,6 +39,7 @@ namespace MyWPF1
                 TopFrame.Content = null;
             };
         }
+
         // 文本点击选择
         private void TextBlock_MouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -109,7 +115,9 @@ namespace MyWPF1
         // 处理放置操作
         private void TargetListBox_Drop(object sender, System.Windows.DragEventArgs e)
         {
-            var vm = (ArrowViewModel)DataContext;
+            var arrow = (ArrowViewModel)DataContext;
+            var ccd = arrow.SelectedCCD;
+            var selectedTool = ccd.SelectedItem;
             var listBox = (System.Windows.Controls.ListBox)sender;
 
             // 1) 内部重排
@@ -122,9 +130,9 @@ namespace MyWPF1
                 var targetContainer = GetItemContainerUnderMouse(listBox, pos);
                 if (dragged != null && target != null && dragged != target)
                 {
-                    int oldIdx = vm.SelectedItems.IndexOf(dragged);
-                    int newIdx = vm.SelectedItems.IndexOf(target);
-                    vm.SelectedItems.Move(oldIdx, newIdx);
+                    int oldIdx = ccd.SelectedItems.IndexOf(dragged);
+                    int newIdx = ccd.SelectedItems.IndexOf(target);
+                    ccd.SelectedItems.Move(oldIdx, newIdx);
                     ItemsControl itemsControl = ItemsControl.ItemsControlFromItemContainer(targetContainer);
                     itemsControl.Items.Refresh();
                 }
@@ -142,9 +150,10 @@ namespace MyWPF1
                     InstanceId = Guid.NewGuid()  // 确保是新工具
                 };
 
-                vm.SelectedItems.Add(copy);
+                ccd.SelectedItems.Add(copy);
+                ccd.SelectedItem = copy;
                 // 创建并绑定对应工具 ViewModel
-                vm.AddToolInstance(copy, () => CreateViewModelByKey(copy.Text));
+                ccd.AddToolInstance(copy, () => CreateViewModelByKey(copy.Text));
             }
         }
 
@@ -237,45 +246,50 @@ namespace MyWPF1
 
         private void TargetListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (TargetListBox.SelectedItem is not SelectableItem selectedTool) return;
+            // 1. 拿到你刚刚点中的那个 SelectableItem
+            if (TargetListBox.SelectedItem is not SelectableItem selectedTool)
+                return;
 
-            var vm = (ArrowViewModel)DataContext;
-            vm.SelectedItem = selectedTool;
-            // 查找或添加 ToolInstance
-            vm.AddToolInstance(selectedTool, () => CreateViewModelByKey(selectedTool.ToolKey));
-            var toolInstance = vm.CurrentToolInstance;
+            // 2. 拿到 ArrowVM 与 当前 CCDVM
+            var arrow = (ArrowViewModel)DataContext;
+            var ccd = arrow.SelectedCCD;
 
-            // 2. 选择输入图：上一步工具输出或原图
+            // 3. 标记被选中
+            ccd.SelectedItem = selectedTool;
+
+            // 4. 调用 AddToolInstance —— 用 selectedTool，而不是以前的 vm.SelectedItem
+            ccd.AddToolInstance(selectedTool,
+                () => CreateViewModelByKey(selectedTool.Text));
+            var inst = ccd.CurrentToolInstance;
+            arrowVM.CurrentToolInstance = inst;
+            // 5. 选定输入图：如果不是第一个，就用上一次工具的输出，否则用原图
             HObject input;
-            int idx = vm.ToolInstances.IndexOf(toolInstance);
+            int idx = ccd.ToolInstances.IndexOf(inst);
             if (idx > 0)
             {
-                input = vm.ToolInstances[idx - 1].ViewModel.CurrentResultImage;
+                input = ccd.ToolInstances[idx - 1]
+                         .ViewModel.CurrentResultImage;
             }
             else
             {
-                input = vm.ImageSources[0].Image;  // 原图
+                // 原图也是 CCDVM.ImageSources[0]
+                input = ccd.ImageSources[0].Image;
             }
 
-            // 3. 初始化并真正设置输入
-            toolInstance.ViewModel.Initialize(imageVM._hWindowControl);
-            toolInstance.ViewModel.SetInputImage(input);
-
-            // 用单例 TopPage
+            // 7. 弹出（或复用）AlgorithmTopPage，并让它刷新：
             if (_topPage == null)
             {
-                _topPage = new AlgorithmTopPage(arrowVM);
+                _topPage = new AlgorithmTopPage(arrowVM, arrowVM.SelectedCCD);
                 AlgorithmTopContainer.Content = _topPage;
                 TopFrame.Content = _topPage;
             }
             _topPage.SelectedItem = selectedTool;
-            // **关键：手动刷新图源下拉列表**，传入当前选中的 SelectableItem
             _topPage.RefreshFor(selectedTool);
 
-            // 加载设置面板
-            if (toolInstance.SettingsPage == null)
+            // 8. 最后把 SettingsPage 塞进去
+            if (inst.SettingsPage == null)
             {
-                toolInstance.SettingsPage = toolInstance.ToolKey switch
+                inst.SettingsPage = inst.ToolKey switch
                 {
                     "二值化" => new BinarySettingPage(),
                     "色彩变换" => new ColorTransformPage(),
@@ -285,11 +299,11 @@ namespace MyWPF1
                     "线拟合" => new LineFittingPage(),
                     _ => new DefaultSettings()
                 };
-                toolInstance.SettingsPage.DataContext = toolInstance.ViewModel;
+                inst.SettingsPage.DataContext = inst.ViewModel;
             }
-
-            SettingsContainer.Content = toolInstance.SettingsPage;
-            toolInstance.ViewModel.Apply();
+            SettingsContainer.Content = inst.SettingsPage;
+            // 9. 最后再 `Apply()` 一次，确保界面更新
+            inst.ViewModel.Apply();
         }
 
         public static ToolBaseViewModel CreateViewModelByKey(string toolKey)

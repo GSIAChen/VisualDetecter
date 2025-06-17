@@ -53,6 +53,14 @@ public class ArrowViewModel : INotifyPropertyChanged
         }
     }
 
+    public ObservableCollection<CCDViewModel> CCDs { get; } = new();
+    private CCDViewModel _selectedCCD;
+    public CCDViewModel SelectedCCD
+    {
+        get => _selectedCCD;
+        set { _selectedCCD = value; OnPropertyChanged(); }
+    }
+
     public ArrowViewModel()
     {
         PreprocessingItems.Add(new SelectableItem { Text = "二值化" });
@@ -68,7 +76,9 @@ public class ArrowViewModel : INotifyPropertyChanged
         FittingItems.Add(new SelectableItem { Text = "双直线交点" });
         FittingItems.Add(new SelectableItem { Text = "拟合测量" });
         PredictItems.Add(new SelectableItem { Text = "结果输出" });
-
+        for (int i = 1; i <= 7; i++)
+            CCDs.Add(new CCDViewModel($"CCD{i}"));
+        SelectedCCD = CCDs.First(); // 默认选中CCD1
         SelectedItems.CollectionChanged += (s, e) =>
         {
             foreach (SelectableItem item in e.NewItems?.OfType<SelectableItem>() ?? [])
@@ -144,6 +154,22 @@ public class ArrowViewModel : INotifyPropertyChanged
         }
     }
 
+    public class ProjectConfig
+    {
+        // key 是 CCD 的名称，比如 "CCD1"，value 是这一路 CCD 上的工具流水线
+        public Dictionary<string, PipelineConfig> CCDPipelines { get; set; } = new();
+    }
+
+    public class PipelineConfig
+    {
+        public List<ToolConfig> Tools { get; set; } = new();
+    }
+    public class ToolConfig
+    {
+        public string ToolKey { get; set; }
+        public Dictionary<string, object> Params { get; set; }
+    }
+
     public ICommand SaveConfigCommand => new RelayCommand(SaveAllWithDialog);
     public ICommand LoadConfigCommand => new RelayCommand(() => LoadAllWithDialog(_hwindowControl, ImageSources[0].Image));
 
@@ -167,36 +193,40 @@ public class ArrowViewModel : INotifyPropertyChanged
 
     public void SaveAll(string path)
     {
-        var pipeline = new PipelineConfig();
+        var project = new ProjectConfig();
 
-        // 按 SelectedItems 的顺序遍历工具
-        foreach (var item in SelectedItems)
+        // 假设 ArrowVM 里有一个 ObservableCollection<CCDViewModel> CCDs
+        foreach (var ccd in CCDs)
         {
-            var inst = ToolInstances.First(t => t.InstanceId == item.InstanceId);
-            var vm = inst.ViewModel;
-
-            var cfg = new ToolConfig
+            var pipeline = new PipelineConfig();
+            // 对每个 CCD，遍历它的 SelectedItems/ToolInstances
+            foreach (var item in ccd.SelectedItems)
             {
-                ToolKey = inst.ToolKey,
-                Params = new Dictionary<string, object>()
-            };
+                var inst = ccd.ToolInstances.First(t => t.InstanceId == item.InstanceId);
+                var vm = inst.ViewModel;
 
-            // 用反射遍历 ViewModel 的 public 属性（你需要可调参数都公开为属性）
-            foreach (var prop in vm.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
-            {
-                if (!prop.CanRead || !prop.CanWrite) continue;
-                var val = prop.GetValue(vm);
-                // 只保存基础类型
-                if (val is string || val is ValueType)
-                    cfg.Params[prop.Name] = val;
+                var cfg = new ToolConfig
+                {
+                    ToolKey = inst.ToolKey,
+                    Params = new Dictionary<string, object>()
+                };
+
+                foreach (var prop in vm.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                {
+                    if (!prop.CanRead || !prop.CanWrite) continue;
+                    var val = prop.GetValue(vm);
+                    if (val is string || val is ValueType)
+                        cfg.Params[prop.Name] = val;
+                }
+
+                pipeline.Tools.Add(cfg);
             }
 
-            pipeline.Tools.Add(cfg);
+            project.CCDPipelines[ccd.CCDName] = pipeline;
         }
 
-        // 序列化到 JSON，格式美观
         var options = new JsonSerializerOptions { WriteIndented = true };
-        var json = JsonSerializer.Serialize(pipeline, options);
+        var json = JsonSerializer.Serialize(project, options);
         File.WriteAllText(path, json);
     }
 
@@ -215,83 +245,69 @@ public class ArrowViewModel : INotifyPropertyChanged
             System.Windows.MessageBox.Show("配置加载成功：" + dlg.FileName, "加载成功", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
-
     public void LoadAll(string path, HWindowControl hwin, HObject originalImage)
     {
         if (!File.Exists(path)) return;
-
         var json = File.ReadAllText(path);
-        var pipeline = JsonSerializer.Deserialize<PipelineConfig>(json);
-        if (pipeline == null || pipeline.Tools.Count == 0)
-            return;  // nothing to load
+        var project = JsonSerializer.Deserialize<ProjectConfig>(json);
+        if (project == null) return;
 
-        // 清空已存在的工具
-        SelectedItems.Clear();
-        ToolInstances.Clear();
-        HObject prevImage = originalImage;
-
-        // 依次重建
-        foreach (var cfg in pipeline.Tools)
+        // 对每一路 CCD 分别加载
+        foreach (var ccd in CCDs)
         {
-            // 新增一个 SelectableItem 占位（Text 与 ToolKey 相同）
-            var item = new SelectableItem { Text = cfg.ToolKey, ToolKey = cfg.ToolKey };
-            SelectedItems.Add(item);
+            ccd.SelectedItems.Clear();
+            ccd.ToolInstances.Clear();
 
-            // 创建工具实例并设置参数
-            AddToolInstance(item, () => AlgorithmWindow.CreateViewModelByKey(cfg.ToolKey));
+            if (!project.CCDPipelines.TryGetValue(ccd.CCDName, out var pipeline))
+                continue; // 这个 CCD 在配置里没有流水线，就跳过
 
-            CurrentToolInstance.ViewModel.Initialize(hwin);
-            CurrentToolInstance.ViewModel.SetInputImage(prevImage);
-            var inst = CurrentToolInstance;
-            var vm = inst.ViewModel;
-
-            // 给 VM 注入原图或前一个输出
-            // 这里假设每个工具在 SetInputImage 里自己 Apply
-            if (inst != null)
+            HObject prev = originalImage;
+            foreach (var cfg in pipeline.Tools)
             {
-                HObject input = originalImage;
-                // 如果不是第一个，用前一个工具的输出
-                if (pipeline.Tools.IndexOf(cfg) > 0)
+                // 1) 造一个 SelectableItem
+                var item = new SelectableItem
                 {
-                    var prevInst = ToolInstances[pipeline.Tools.IndexOf(cfg) - 1];
-                    input = prevInst.ViewModel.CurrentResultImage;
-                }
-                vm.SetInputImage(input);
+                    Text = cfg.ToolKey,
+                    ToolKey = cfg.ToolKey
+                };
+                ccd.SelectedItems.Add(item);
 
-                // 还原参数
+                // 2) 新建一个 ToolInstance
+                ccd.AddToolInstance(item, () => AlgorithmWindow.CreateViewModelByKey(cfg.ToolKey));
+                var inst = ccd.CurrentToolInstance;
+                var vm = inst.ViewModel;
+
+                // 3) 初始化并注入输入图
+                vm.Initialize(hwin);
+                vm.SetInputImage(prev);
+
+                // 4) 还原参数
                 foreach (var kv in cfg.Params)
                 {
                     var prop = vm.GetType().GetProperty(kv.Key);
                     if (prop == null || !prop.CanWrite)
                         continue;
 
-                    object raw = kv.Value;
-                    object converted = null;
+                    object raw = kv.Value!;
+                    object value;
 
-                    // 如果是 JsonElement，需要从中提取具体类型
                     if (raw is JsonElement je)
                     {
-                        if (prop.PropertyType == typeof(int))
-                            converted = je.GetInt32();
-                        else if (prop.PropertyType == typeof(double))
-                            converted = je.GetDouble();
-                        else if (prop.PropertyType == typeof(bool))
-                            converted = je.GetBoolean();
-                        else if (prop.PropertyType == typeof(string))
-                            converted = je.GetString();
-                        else
-                            continue;  // 不支持的类型
+                        // 直接用 JsonElement 反序列化到目标属性类型
+                        value = je.Deserialize(prop.PropertyType)!;
                     }
                     else
                     {
-                        converted = Convert.ChangeType(raw, prop.PropertyType);
+                        // 其它基础类型，保持兼容
+                        value = Convert.ChangeType(raw, prop.PropertyType)!;
                     }
+
                     // 最终设置属性
-                    prop.SetValue(vm, converted);
+                    prop.SetValue(vm, value);
                 }
+
+                prev = inst.ViewModel.CurrentResultImage;
             }
-            prevImage = CurrentToolInstance.ViewModel.CurrentResultImage;
-            CurrentToolInstance = ToolInstances.First();
         }
     }
 }

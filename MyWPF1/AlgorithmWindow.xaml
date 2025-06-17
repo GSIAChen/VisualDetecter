@@ -188,15 +188,10 @@
                               Height="30"
                               SelectedIndex="0"
                               VerticalContentAlignment="Center"
-                              VerticalAlignment="Center">
-                        <ComboBoxItem Content="CCD1"/>
-                        <ComboBoxItem Content="CCD2"/>
-                        <ComboBoxItem Content="CCD3"/>
-                        <ComboBoxItem Content="CCD4"/>
-                        <ComboBoxItem Content="CCD5"/>
-                        <ComboBoxItem Content="CCD6"/>
-                        <ComboBoxItem Content="CCD7"/>
-                        <ComboBoxItem Content="CCD8"/>
+                              VerticalAlignment="Center"
+                              ItemsSource="{Binding CCDs}"
+                              SelectedItem="{Binding SelectedCCD}"
+                              DisplayMemberPath="CCDName">
                     </ComboBox>
                 </StackPanel>
             </Border>
@@ -391,7 +386,7 @@
                 <ListBox Grid.Row="0" Background="AntiqueWhite"
                          x:Name="TargetListBox"
                          SelectionMode="Single" AlternationCount="1000"
-                         AllowDrop="True" ItemsSource="{Binding SelectedItems}"
+                         AllowDrop="True" ItemsSource="{Binding SelectedCCD.SelectedItems}"
                          PreviewMouseLeftButtonDown="TargetListBox_PreviewMouseLeftButtonDown"
                          PreviewMouseMove="TargetListBox_PreviewMouseMove"
                          MouseDoubleClick="TargetListBox_MouseDoubleClick"

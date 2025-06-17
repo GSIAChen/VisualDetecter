@@ -27,6 +27,7 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.7.25104.5739" />
     <PackageReference Include="Microsoft.Windows.Compatibility" Version="9.0.6" />
+    <PackageReference Include="MvvmLight" Version="5.4.1.1" />
   </ItemGroup>
 
   <ItemGroup>

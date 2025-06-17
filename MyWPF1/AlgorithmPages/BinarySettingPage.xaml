@@ -9,6 +9,7 @@
              mc:Ignorable="d" 
       xmlns:winforms="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
       xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
+      xmlns:ctrl="clr-namespace:MyWPF1.Controls"
              d:DesignHeight="450" d:DesignWidth="800" Background="AntiqueWhite">
     <UserControl.Resources>
         <local:IndexConverter x:Key="IndexConverter"/>
@@ -78,17 +79,23 @@
                 </DrawingBrush>
             </TextBlock.Background>
         </TextBlock>
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="15,5">
-            <TextBlock Text="阈值范围：" Width="80" VerticalAlignment="Center"/>
-            <Slider Minimum="0" Maximum="255" VerticalAlignment="Center"
-                        Width="200" Value="{Binding Threshold, 
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <CheckBox Grid.Column="0" Content="启用全局阈值" IsChecked="{Binding EnableGlobalThreshold}"
+                      VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="15,5">
+                <TextBlock Text="阈值范围：" Width="80" VerticalAlignment="Center"/>
+                <Slider Minimum="0" Maximum="255" VerticalAlignment="Center"
+                        Width="120" Value="{Binding GlobalThreshold, 
                         Mode=TwoWay, 
                         UpdateSourceTrigger=PropertyChanged}"/>
-            <TextBlock Text="{Binding Threshold}" 
-                       Width="40" 
-                       Margin="10,0"
-                       VerticalAlignment="Center"/>
-        </StackPanel>
+                <ctrl:NumericUpDown Value="{Binding GlobalThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    Increment="1" Width="55" Height="25"/>
+            </StackPanel>
+        </Grid>
         <TextBlock Grid.Row="1" Text="自适应阈值" FontWeight="Bold" FontSize="16"
                        Margin="0,0" Height="20" Width="90"
                        HorizontalAlignment="Left" VerticalAlignment="Top">
@@ -122,16 +129,52 @@
                 </DrawingBrush>
             </TextBlock.Background>
         </TextBlock>
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="15,5">
-            <TextBlock Text="阈值范围：" Width="80" VerticalAlignment="Center"/>
-            <Slider Minimum="0" Maximum="255" VerticalAlignment="Center"
-                        Width="200" Value="{Binding Threshold, 
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <CheckBox Grid.Row="0" Content="启用自适应阈值" IsChecked="{Binding EnableLocalThreshold}"
+                      VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="15,5">
+                    <TextBlock Text="阈值类型：" Width="80" VerticalAlignment="Center" Margin="50,0"/>
+                    <ComboBox Width="120" Height="30" VerticalContentAlignment="Center"
+                              Margin="-50,0"
+                              ItemsSource="{Binding ColorOptions}"
+                              SelectedItem="{Binding LightDark}"/>
+                </StackPanel>
+            </Grid>
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="15,5">
+                    <TextBlock Text="局部核大小：" Width="80" VerticalAlignment="Center"/>
+                    <Slider Minimum="3" Maximum="51" TickFrequency="2" IsSnapToTickEnabled="True"
+                        VerticalAlignment="Center" Width="120"
+                        Value="{Binding MaskSize, 
                         Mode=TwoWay, 
                         UpdateSourceTrigger=PropertyChanged}"/>
-            <TextBlock Text="{Binding Threshold}" 
-                       Width="40" 
-                       Margin="10,0"
-                       VerticalAlignment="Center"/>
-        </StackPanel>
+                    <ctrl:NumericUpDown Value="{Binding MaskSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Minimum="3" Maximum="51" Increment="1" Width="55" Height="25"/>
+                </StackPanel>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="15,5">
+                    <TextBlock Text="比例因子：" Width="80" VerticalAlignment="Center"/>
+                    <Slider Minimum="0.1" Maximum="1.0" TickFrequency="2" IsSnapToTickEnabled="True"
+                        VerticalAlignment="Center" Width="120"
+                        Value="{Binding Scale, 
+                        Mode=TwoWay, 
+                        UpdateSourceTrigger=PropertyChanged}"/>
+                    <ctrl:NumericUpDown Value="{Binding Scale, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Minimum="0.1" Maximum="1.0" Increment="0.1" Width="55" Height="25"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
     </Grid>
 </UserControl>
