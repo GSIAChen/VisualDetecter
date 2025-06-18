@@ -68,7 +68,7 @@ public class ArrowViewModel : INotifyPropertyChanged
         PreprocessingItems.Add(new SelectableItem { Text = "图像降噪" });
         PreprocessingItems.Add(new SelectableItem { Text = "图像增强" });
         PreprocessingItems.Add(new SelectableItem { Text = "边缘提取" });
-        PositioningItems.Add(new SelectableItem { Text = "灰度匹配" });
+        PositioningItems.Add(new SelectableItem { Text = "连通域分离" });
         PositioningItems.Add(new SelectableItem { Text = "轮廓模板匹配" });
         MeasureItems.Add(new SelectableItem { Text = "尺寸检测-边到边" });
         MeasureItems.Add(new SelectableItem { Text = "边缘/梯度检测" });

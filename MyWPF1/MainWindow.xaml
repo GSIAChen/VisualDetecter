@@ -206,6 +206,22 @@
                  </StackPanel>
             </Button>
 
+            <Button Name="脚本"
+                    DockPanel.Dock="Left"
+                    Click="ScriptButton_Click"
+                    Style="{StaticResource IconButtonStyle}"
+                    Margin="10,0">
+                <StackPanel Orientation="Vertical">
+                    <Image Source="Images/停止.png" 
+                        Width="40"
+                        Height="40"
+                        RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <TextBlock Text="脚本"
+                        Margin="5,5,0,0"
+                        FontSize="14"/>
+                </StackPanel>
+            </Button>
+
             <Button Name="加载配置"
                     DockPanel.Dock="Left"
                     Style="{StaticResource IconButtonStyle}"
@@ -271,22 +287,6 @@
                 </StackPanel>
             </Button>
 
-            <!-- 参数设置按钮 -->
-            <Button Name="相机"
-                    Click="CameraButton_Click"
-                    DockPanel.Dock="Left"
-                    Style="{StaticResource IconButtonStyle}"
-                    Margin="10,0">
-                <StackPanel Orientation="Vertical">
-                    <Image Source="Images/停止.png" 
-                        Width="40"
-                        Height="40"
-                        RenderOptions.BitmapScalingMode="HighQuality"/>
-                    <TextBlock Text="相机"
-                        Margin="5,5,0,0"
-                        FontSize="14"/>
-                </StackPanel>
-            </Button>
         </DockPanel>
 
         <!-- 内容区域 -->

@@ -294,6 +294,7 @@ namespace MyWPF1
                     "图像降噪" => new ImageDenoisePage(),
                     "图像增强" => new ImageEnhancementPage(),
                     "边缘提取" => new EdgeExtractionPage(),
+                    "连通域分离" => new ConnectionPage(),
                     "面积检测" => new AreaDetectionPage(),
                     "线拟合" => new LineFittingPage(),
                     _ => new DefaultSettings()
@@ -314,6 +315,7 @@ namespace MyWPF1
                 "图像降噪" => new ImageDenoiseViewModel(),
                 "图像增强" => new ImageEnhancementViewModel(),
                 "边缘提取" => new EdgeExtractionViewModel(),
+                "连通域分离" => new ConnectionViewModel(),
                 "面积检测" => new AreaDetectionViewModel(),
                 "线拟合" => new LineFittingViewModel(),
 

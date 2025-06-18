@@ -38,6 +38,15 @@ namespace MyWPF1
             // 停止按钮逻辑
         }
 
+        private void ScriptButton_Click(object sender, RoutedEventArgs e)
+        {
+            var scriptWindow = new ScriptWindow
+            {
+                Owner = this // 设置父窗口
+            };
+            scriptWindow.ShowDialog();
+        }
+
         private void AlgorithmButton_Click(object sender, RoutedEventArgs e)
         {
             var algorithmWindow = new AlgorithmWindow
