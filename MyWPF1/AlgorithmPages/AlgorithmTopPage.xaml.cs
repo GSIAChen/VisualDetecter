@@ -53,10 +53,11 @@ namespace MyWPF1
                 _selectedSource = value;
                 OnPropertyChanged();
 
-                var inst = ViewModel?.CurrentToolInstance;
+                var inst = _ccd?.CurrentToolInstance;
                 if (inst != null && _selectedSource?.Image != null)
                 {
                     // ✅ 设置图像
+                    Debug.WriteLine($"Setting input image to: {_selectedSource.Name}");
                     inst.ViewModel.SetInputImage(_selectedSource.Image);
 
                     // ✅ 记录图源索引

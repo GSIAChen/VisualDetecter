@@ -15,6 +15,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <ContentControl x:Name="SettingsContainer">
             <ContentControl.ContentTemplate>
@@ -41,7 +42,7 @@
             </ContentControl.ContentTemplate>
         </ContentControl>
         <Border Background="Beige" Grid.Row="0"></Border>
-        <TextBlock Grid.Row="0" Text="Gamma校正" FontWeight="Bold" FontSize="16"
+        <TextBlock Grid.Row="0" Text="线性增强" FontWeight="Bold" FontSize="16"
                        Margin="0,0" Height="20" Width="120"
                        HorizontalAlignment="Left" VerticalAlignment="Top">
             <TextBlock.Background>
@@ -75,6 +76,73 @@
             </TextBlock.Background>
         </TextBlock>
         <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <CheckBox Content="启用线性增强" Grid.Column="0"
+                      IsChecked="{Binding EnableScale, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                      Margin="5,5" VerticalAlignment="Center"/>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="15,5">
+                <TextBlock Text="乘法因子：" Width="80" VerticalAlignment="Center"/>
+                <Slider Minimum="0.001" Maximum="3.0" VerticalAlignment="Center"
+                        Width="120" Value="{Binding ScaleMult, 
+                        Mode=TwoWay, 
+                        UpdateSourceTrigger=PropertyChanged}"/>
+                <ctrl:NumericUpDown Value="{Binding ScaleMult, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    Minimum="0.001" Maximum="3.0" Increment="0.05" Width="55" Height="25"/>
+            </StackPanel>
+            </Grid>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="15,5">
+                <TextBlock Text="加法因子：" Width="80" VerticalAlignment="Center"/>
+                <Slider Minimum="-255" Maximum="255" VerticalAlignment="Center"
+                        Width="120" Value="{Binding ScaleAdd, 
+                        Mode=TwoWay, 
+                        UpdateSourceTrigger=PropertyChanged}"/>
+                <ctrl:NumericUpDown Value="{Binding ScaleAdd, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    Minimum="-255" Maximum="255" Increment="5" Width="55" Height="25"/>
+            </StackPanel>
+        </Grid>
+        <Border Background="Beige" Grid.Row="1"></Border>
+        <TextBlock Grid.Row="1" Text="Gamma校正" FontWeight="Bold" FontSize="16"
+                       Margin="0,0" Height="20" Width="120"
+                       HorizontalAlignment="Left" VerticalAlignment="Top">
+            <TextBlock.Background>
+                <DrawingBrush>
+                    <DrawingBrush.Drawing>
+                        <GeometryDrawing>
+                            <GeometryDrawing.Geometry>
+                                <PathGeometry>
+                                    <PathFigure StartPoint="0,0" IsClosed="True">
+                                        <!-- 左侧直线 -->
+                                        <LineSegment Point="80,0"/>
+                                        <!-- 右侧弧线 -->
+                                        <ArcSegment Point="80,20"
+                                            Size="10,10"
+                                            SweepDirection="Clockwise"
+                                            RotationAngle="90"/>
+                                        <!-- 底部直线 -->
+                                        <LineSegment Point="0,20"/>
+                                    </PathFigure>
+                                </PathGeometry>
+                            </GeometryDrawing.Geometry>
+                            <GeometryDrawing.Brush>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#4DACFF" Offset="0"/>
+                                    <GradientStop Color="#0080FF" Offset="1"/>
+                                </LinearGradientBrush>
+                            </GeometryDrawing.Brush>
+                        </GeometryDrawing>
+                    </DrawingBrush.Drawing>
+                </DrawingBrush>
+            </TextBlock.Background>
+        </TextBlock>
+        <Grid Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
@@ -123,75 +191,41 @@
                       Margin="5,5" VerticalAlignment="Center"/>
             </Grid>
         </Grid>
-        <Grid Grid.Row="1" Background="Beige" Margin="0,5">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <ContentControl>
-                <ContentControl.ContentTemplate>
-                    <DataTemplate>
-                        <ContentPresenter Content="{TemplateBinding Content}">
-                            <ContentPresenter.RenderTransform>
-                                <TranslateTransform X="300"/>
-                            </ContentPresenter.RenderTransform>
-                            <ContentPresenter.Triggers>
-                                <EventTrigger RoutedEvent="ContentPresenter.Loaded">
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation 
-                                    Storyboard.TargetProperty="RenderTransform.X"
-                                    From="300" To="0" 
-                                    Duration="0:0:0.3"
-                                    DecelerationRatio="0.6"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </EventTrigger>
-                            </ContentPresenter.Triggers>
-                        </ContentPresenter>
-                    </DataTemplate>
-                </ContentControl.ContentTemplate>
-            </ContentControl>
-            <Border Grid.Row="0"></Border>
-            <TextBlock Grid.Row="0" Text="反锐化Mask" FontWeight="Bold" FontSize="16"
+        <Border Background="Beige" Grid.Row="2"></Border>
+        <TextBlock Grid.Row="2" Text="图像锐化" FontWeight="Bold" FontSize="16"
                        Margin="0,0" Height="20" Width="120"
                        HorizontalAlignment="Left" VerticalAlignment="Top">
-                <TextBlock.Background>
-                    <DrawingBrush>
-                        <DrawingBrush.Drawing>
-                            <GeometryDrawing>
-                                <GeometryDrawing.Geometry>
-                                    <PathGeometry>
-                                        <PathFigure StartPoint="0,0" IsClosed="True">
-                                            <!-- 左侧直线 -->
-                                            <LineSegment Point="80,0"/>
-                                            <!-- 右侧弧线 -->
-                                            <ArcSegment Point="80,20"
+            <TextBlock.Background>
+                <DrawingBrush>
+                    <DrawingBrush.Drawing>
+                        <GeometryDrawing>
+                            <GeometryDrawing.Geometry>
+                                <PathGeometry>
+                                    <PathFigure StartPoint="0,0" IsClosed="True">
+                                        <!-- 左侧直线 -->
+                                        <LineSegment Point="80,0"/>
+                                        <!-- 右侧弧线 -->
+                                        <ArcSegment Point="80,20"
                                             Size="10,10"
                                             SweepDirection="Clockwise"
                                             RotationAngle="90"/>
-                                            <!-- 底部直线 -->
-                                            <LineSegment Point="0,20"/>
-                                        </PathFigure>
-                                    </PathGeometry>
-                                </GeometryDrawing.Geometry>
-                                <GeometryDrawing.Brush>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Color="#4DACFF" Offset="0"/>
-                                        <GradientStop Color="#0080FF" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </GeometryDrawing.Brush>
-                            </GeometryDrawing>
-                        </DrawingBrush.Drawing>
-                    </DrawingBrush>
-                </TextBlock.Background>
-            </TextBlock>
-        </Grid>
-        <Grid Grid.Row="1">
+                                        <!-- 底部直线 -->
+                                        <LineSegment Point="0,20"/>
+                                    </PathFigure>
+                                </PathGeometry>
+                            </GeometryDrawing.Geometry>
+                            <GeometryDrawing.Brush>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#4DACFF" Offset="0"/>
+                                    <GradientStop Color="#0080FF" Offset="1"/>
+                                </LinearGradientBrush>
+                            </GeometryDrawing.Brush>
+                        </GeometryDrawing>
+                    </DrawingBrush.Drawing>
+                </DrawingBrush>
+            </TextBlock.Background>
+        </TextBlock>
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
@@ -215,11 +249,10 @@
                     <ctrl:NumericUpDown Value="{Binding Factor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                         Minimum="0.5" Maximum="3" Increment="0.05" Width="55" Height="25"/>
                 </StackPanel>
-                <CheckBox Content="启用反锐化Mask" Grid.Row="1"
+                <CheckBox Content="启用图像锐化" Grid.Row="1"
                       IsChecked="{Binding EnableEmphasize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                       Margin="15,5" VerticalAlignment="Center"/>
             </Grid>
-
         </Grid>
     </Grid>
 </UserControl>

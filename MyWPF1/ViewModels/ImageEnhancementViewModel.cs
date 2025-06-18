@@ -6,7 +6,41 @@ namespace MyWPF1.ViewModels
     public class ImageEnhancementViewModel : ToolBaseViewModel
     {
         public override HObject CurrentResultImage => _resultImage;
-        private bool _enableGamma = true;
+
+        private bool _enableScale = true;
+        public bool EnableScale
+        {
+            get => _enableScale;
+            set { if (_enableScale != value) { _enableScale = value; OnPropertyChanged(); Apply(); } }
+        }
+
+        private double _scaleMult = 0.01;
+        public double ScaleMult
+        {
+            get => _scaleMult;
+            set
+            {
+                if (_scaleMult == value) return;
+                _scaleMult = value;
+                OnPropertyChanged(nameof(ScaleMult));
+                Apply();
+            }
+        }
+
+        private double _scaleAdd = 0.0;
+        public double ScaleAdd
+        {
+            get => _scaleAdd;
+            set
+            {
+                if (_scaleAdd == value) return;
+                _scaleAdd = value;
+                OnPropertyChanged(nameof(ScaleAdd));
+                Apply();
+            }
+        }
+
+        private bool _enableGamma = false;
         public bool EnableGamma
         {
             get => _enableGamma;
@@ -42,7 +76,7 @@ namespace MyWPF1.ViewModels
         }
 
         // —— Emphasize 参数 —— 
-        private bool _enableEmphasize = true;
+        private bool _enableEmphasize = false;
         public bool EnableEmphasize
         {
             get => _enableEmphasize;
@@ -67,17 +101,16 @@ namespace MyWPF1.ViewModels
         {
             if (_inputImage == null || !_inputImage.IsInitialized())
                 return;
-            if (!EnableGamma && !EnableEmphasize)
+
+            HObject img = _inputImage;
+            if (EnableScale)
             {
-                _resultImage = _inputImage;
-                _hWindowControl.HalconWindow.ClearWindow();
-                _hWindowControl.HalconWindow.DispObj(_resultImage);
-                OnPropertyChanged(nameof(CurrentResultImage));
-                return;
+                HOperatorSet.ScaleImage(
+                    _inputImage, out HObject tmp,
+                    new HTuple(ScaleMult), new HTuple(ScaleAdd));
+                img = tmp;
             }
 
-            // 1. 先 Gamma
-            HObject img = _inputImage;
             if (EnableGamma)
             {
                 HOperatorSet.GammaImage(
@@ -90,7 +123,6 @@ namespace MyWPF1.ViewModels
                 img = tmp;
             }
 
-            // 2. 再 Emphasize
             if (EnableEmphasize)
             {
                 HOperatorSet.Emphasize(

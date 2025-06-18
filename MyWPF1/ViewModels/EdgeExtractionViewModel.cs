@@ -89,7 +89,6 @@ namespace MyWPF1.ViewModels
 
             // 清理
             if (gray != _inputImage) gray.Dispose();
-            //imaDir.Dispose();
         }
     }
 }
