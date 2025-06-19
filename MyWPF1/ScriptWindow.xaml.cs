@@ -16,7 +16,7 @@ namespace MyWPF1
     {
         private HDevEngine _engine;
         public ObservableCollection<string>[] Scripts { get; }
-        private const string DefaultImagePath = "default.png"; // 默认测试图像路径
+        private const string DefaultImagePath = "F:\\钽电容\\新缺陷例图\\新\\Image_20250612163038577.bmp"; // 默认测试图像路径
 
         public ScriptWindow()
         {
@@ -67,17 +67,18 @@ namespace MyWPF1
                     var program = new HDevProgram(script);
 
                     // 创建 HDevProcedure，指定脚本主过程名称（替换为你的过程名）
-                    var procedure = new HDevProcedure(program, "main");
+                    var procedure = new HDevProcedure(program, "LargeDefect1");
                     var procCall = new HDevProcedureCall(procedure);
 
                     // 设置图像输入到过程的 Image 参数
-                    procCall.SetInputIconicParamObject("Image", image);
+                    procCall.SetInputIconicParamObject("ImagePath", image);
 
                     // 执行过程
                     procCall.Execute();
 
                     // 获取过程输出参数 Result
-                    HTuple result = procCall.GetOutputCtrlParamTuple("Result");
+                    HObject resultImage = procCall.GetOutputIconicParamObject("DefectRegions");
+                    HTuple result = procCall.GetOutputCtrlParamTuple("IsOk");
                     bool ok = result.I == 1;
                     if (!ok)
                     {
