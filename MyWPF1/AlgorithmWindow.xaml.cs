@@ -131,6 +131,24 @@ namespace MyWPF1
             var selectedTool = ccd.SelectedItem;
             var listBox = (System.Windows.Controls.ListBox)sender;
 
+            // 1) 如果之前已经有选中的工具，把它的结果保存到 ImageSources ---
+            var previousInst = ccd.CurrentToolInstance;
+            if (previousInst != null)
+            {
+                // 找到它在 ImageSources 中的位置
+                var idxSrc = ccd.ImageSources
+                    .Select((src, idx) => new { src, idx })
+                    .FirstOrDefault(x => x.src.InstanceId == previousInst.InstanceId)?.idx;
+                if (idxSrc.HasValue)
+                {
+                    // 用新的 HObject 替换
+                    ccd.ImageSources[idxSrc.Value] = new ImageSourceItem(
+                        previousInst.InstanceId,
+                        previousInst.DisplayName,
+                        previousInst.ViewModel.CurrentResultImage);
+                }
+            }
+
             // 1) 内部重排
             if (e.Data.GetDataPresent("Reorder"))
             {
@@ -264,6 +282,24 @@ namespace MyWPF1
             // 2. 拿到 ArrowVM 与 当前 CCDVM
             var arrow = (ArrowViewModel)DataContext;
             var ccd = arrow.SelectedCCD;
+
+            // 1) 如果之前已经有选中的工具，把它的结果保存到 ImageSources ---
+            var previousInst = ccd.CurrentToolInstance;
+            if (previousInst != null)
+            {
+                // 找到它在 ImageSources 中的位置
+                var idxSrc = ccd.ImageSources
+                    .Select((src, idx) => new { src, idx })
+                    .FirstOrDefault(x => x.src.InstanceId == previousInst.InstanceId)?.idx;
+                if (idxSrc.HasValue)
+                {
+                    // 用新的 HObject 替换
+                    ccd.ImageSources[idxSrc.Value] = new ImageSourceItem(
+                        previousInst.InstanceId,
+                        previousInst.DisplayName,
+                        previousInst.ViewModel.CurrentResultImage);
+                }
+            }
 
             // 3. 标记被选中
             ccd.SelectedItem = selectedTool;

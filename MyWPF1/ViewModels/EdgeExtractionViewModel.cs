@@ -12,10 +12,6 @@ namespace MyWPF1.ViewModels
             "deriche1","deriche2","lanser1",
             "lanser2","shen","mshen","canny","sobel_fast"
         ];
-        public ObservableCollection<string> NMSOptions { get; } =
-        [
-            "nms","inms","hvnms","none"
-        ];
 
         // 绑定属性
         private string _filter = "canny";
@@ -23,13 +19,6 @@ namespace MyWPF1.ViewModels
         {
             get => _filter;
             set { if (_filter != value) { _filter = value; OnPropertyChanged(); Apply(); } }
-        }
-
-        private string _nms = "nms";
-        public string NMS
-        {
-            get => _nms;
-            set { if (_nms != value) { _nms = value; OnPropertyChanged(); Apply(); } }
         }
 
         private double _alpha = 1.0;
@@ -69,19 +58,17 @@ namespace MyWPF1.ViewModels
             if (LowThreshold > HighThreshold)
                 LowThreshold = HighThreshold - 1;
             // 调用 EdgesImage：输出幅值和方向
-            HOperatorSet.EdgesImage(
+            HOperatorSet.EdgesSubPix(
                 gray,
-                out HObject imaAmp,
-                out HObject imaDir,
+                out HObject Edges,
                 new HTuple(Filter),
                 new HTuple(Alpha),
-                new HTuple(NMS),
                 new HTuple(LowThreshold),
                 new HTuple(HighThreshold)
             );
 
             // 把幅值图当结果显示
-            _resultImage = imaAmp;
+            _resultImage = Edges;
 
             _hWindowControl.HalconWindow.ClearWindow();
             _hWindowControl.HalconWindow.DispObj(_resultImage);

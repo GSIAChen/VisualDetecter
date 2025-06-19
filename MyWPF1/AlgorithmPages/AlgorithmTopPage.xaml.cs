@@ -65,6 +65,7 @@ namespace MyWPF1
                     if (idx >= 0)
                         inst.ViewModel.SelectedSourceIndex = idx;
                 }
+                inst.ViewModel.Apply(); // 应用当前工具
             }
         }
 
