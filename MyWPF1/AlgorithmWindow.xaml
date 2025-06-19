@@ -156,7 +156,6 @@
                 </ContentControl>
             </StackPanel>
         </DataTemplate>
-
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>

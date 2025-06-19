@@ -48,7 +48,11 @@ namespace MyWPF1
                         ccd.Initialize(imgPage.hWindowControl, _imageVM._image);
                 }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
             };
-            
+            _arrowVM.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(ArrowViewModel.SelectedCCD))
+                    ShowTopPageForCurrentCCD();
+            };
         }
 
         // 文本点击选择
@@ -310,15 +314,15 @@ namespace MyWPF1
             var inst = ccd.CurrentToolInstance;
 
             // 7. 弹出（或复用）AlgorithmTopPage，并让它刷新：
-            if (_topPage == null)
+            if (ccd.TopPage == null)
             {
-                _topPage = new AlgorithmTopPage(_arrowVM, _arrowVM.SelectedCCD);
-                AlgorithmTopContainer.Content = _topPage;
-                TopFrame.Content = _topPage;
+                ccd.TopPage = new AlgorithmTopPage(_arrowVM, _arrowVM.SelectedCCD);
+                AlgorithmTopContainer.Content = ccd.TopPage;
+                TopFrame.Content = ccd.TopPage;
             }
-            _topPage.CurrentToolInstance = inst;
-            _topPage.SelectedItem = selectedTool;
-            _topPage.RefreshFor(selectedTool);
+            ccd.TopPage.CurrentToolInstance = inst;
+            ccd.TopPage.SelectedItem = selectedTool;
+            ccd.TopPage.RefreshFor(selectedTool);
 
             // 8. 最后把 SettingsPage 塞进去
             if (inst.SettingsPage == null)
@@ -383,6 +387,26 @@ namespace MyWPF1
             {
                 _arrowVM.RemoveToolInstance(selected);
             }
+        }
+
+        private void ShowTopPageForCurrentCCD()
+        {
+            var ccd = _arrowVM.SelectedCCD;
+            if (ccd == null)
+            {
+                AlgorithmTopContainer.Content = null;
+                SettingsContainer.Content = null;
+                return;
+            }
+
+            if (ccd.TopPage == null)
+            {
+                // 第一次为这个 CCD 创建它自己的 TopPage
+                ccd.TopPage = new AlgorithmTopPage(_arrowVM, ccd);
+            }
+            AlgorithmTopContainer.Content = ccd.TopPage;
+            // 如果你也有 SettingsContainer，需要恢复它上次打开的 SettingsPage：
+            // SettingsContainer.Content = ccd.TopPage.CurrentSettingsPage;
         }
     }
 

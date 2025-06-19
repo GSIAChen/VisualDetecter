@@ -13,6 +13,7 @@ public class CCDViewModel : INotifyPropertyChanged
     public ImageSourceItem OriginalSource { get; private set; }
     private HWindowControl _hwin;
     private HObject _currentImage;  // 原图或上一个工具的输出
+    public AlgorithmTopPage TopPage { get; set; }
 
     // —— 一套 CCD 专属的状态 ——  
     public ObservableCollection<SelectableItem> SelectedItems { get; } = new();

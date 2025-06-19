@@ -16,7 +16,7 @@ namespace MyWPF1
     /// </summary>
     public partial class AlgorithmTopPage : UserControl, INotifyPropertyChanged
     {
-        private readonly CCDViewModel _ccd;    // 目前所使用的相机
+        private readonly CCDViewModel _ccd;
         public ObservableCollection<ImageSourceItem> FilteredSources { get; } = new();
         public SelectableItem CurrentTool { get; }
         private ToolInstance _currentToolInstance;
@@ -64,8 +64,8 @@ namespace MyWPF1
                     var idx = FilteredSources.IndexOf(_selectedSource);
                     if (idx >= 0)
                         inst.ViewModel.SelectedSourceIndex = idx;
+                    inst.ViewModel.Apply();
                 }
-                inst.ViewModel.Apply(); // 应用当前工具
             }
         }
 

@@ -120,38 +120,6 @@ namespace MyWPF1.ViewModels
                 _inputImage = rgbImage;
             }
 
-            /** 灰度图转为HSV伪彩色图
-             *
-            // 1. 读取灰度图并获取尺寸
-            HOperatorSet.GetImageSize(_inputImage, out HTuple width, out HTuple height);
-
-            // 2. 用灰度值构造 Hue 通道图（用同一数据）
-            HObject hue, sat, val;
-            HOperatorSet.GenImageInterleaved(_inputImage, out hue, "byte", width, height, "h");
-            // 其实我们直接用 _inputImage 作为 hue 图
-
-            // 3. 生成饱和度和明度常量图（都是 255）
-            HOperatorSet.GenImageConst(out sat, "byte", width, height);
-            HOperatorSet.GenImageConst(out val, "byte", width, height);
-
-            // 4. 把 “HSV” 转回 RGB
-            // 注意：TransFromRgb 接受三个单通道输入和一个 colorSpace
-            HOperatorSet.TransFromRgb(hue, sat, val,
-                out HObject r, out HObject g, out HObject b,
-                new HTuple("hsv"));
-
-            // 5. 合为一张彩色图
-            HOperatorSet.Compose3(r, g, b, out HObject pseudoColor);
-
-            // 6. 显示或保存
-            _hWindowControl.HalconWindow.ClearWindow();
-            _hWindowControl.HalconWindow.DispObj(pseudoColor);
-
-            // 7. 资源清理
-            hue.Dispose(); sat.Dispose(); val.Dispose();
-            r.Dispose(); g.Dispose(); b.Dispose();
-            **/
-
             // RGB 分量
             if (RedChannel || GreenChannel || BlueChannel)
             {
