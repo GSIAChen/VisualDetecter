@@ -1,25 +1,27 @@
-﻿using MyWPF1;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
+using System.Runtime.CompilerServices;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace MyWPF1
 {
     // MainWindow.xaml.cs
     public partial class MainWindow : Window
     {
+        public ObservableCollection<CameraStat> Stats { get; } =
+            new ObservableCollection<CameraStat>(
+                Enumerable.Range(1, 7).Select(i => new CameraStat(i))
+            );
+
+        // 还可以给一个总计项放在索引 7
+        public CameraStat TotalStat { get; } = new CameraStat(-1);
+
         public MainWindow()
         {
             InitializeComponent();
+            this.DataContext = this;
         }
 
         // 示例事件处理（需要时添加）
@@ -42,8 +44,10 @@ namespace MyWPF1
         {
             var scriptWindow = new ScriptWindow
             {
-                Owner = this // 设置父窗口
+                Owner = this,
+                // 订阅事件
             };
+            scriptWindow.CameraResultReported += OnCameraResultReported;
             scriptWindow.ShowDialog();
         }
 
@@ -111,6 +115,54 @@ namespace MyWPF1
             // 停止按钮逻辑
         }
 
+        private void OnCameraResultReported(object sender, CameraResultEventArgs e)
+        {
+            var stat = Stats[e.CameraIndex];
+            if (e.IsOk) stat.OkCount++; else stat.NgCount++;
+            // 同时更新总计
+            if (e.IsOk) TotalStat.OkCount++; else TotalStat.NgCount++;
+        }
+    }
 
+    public class CameraStat : INotifyPropertyChanged
+    {
+        public int CameraIndex { get; }
+        public string DisplayHeader => $"相机{CameraIndex}统计";
+
+        private int _okCount = 0;
+        public int OkCount
+        {
+            get => _okCount;
+            set { _okCount = value; OnPropertyChanged(); OnPropertyChanged(nameof(TotalCount)); OnPropertyChanged(nameof(Accuracy)); }
+        }
+
+        private int _ngCount = 0;
+        public int NgCount
+        {
+            get => _ngCount;
+            set { _ngCount = value; OnPropertyChanged(); OnPropertyChanged(nameof(TotalCount)); OnPropertyChanged(nameof(Accuracy)); }
+        }
+
+        private int _reCount = 0;
+        public int ReCount
+        {
+            get => _reCount;
+            set { _reCount = value; OnPropertyChanged(); OnPropertyChanged(nameof(TotalCount)); OnPropertyChanged(nameof(Accuracy)); }
+        }
+
+        // 通过 OkCount + NgCount 自动计算总数
+        public int TotalCount => OkCount + NgCount;
+
+        // 精度 = OK/(OK+NG)
+        public double Accuracy => TotalCount == 0 ? 0 : (double)OkCount / TotalCount;
+
+        public CameraStat(int index)
+        {
+            CameraIndex = index;
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        private void OnPropertyChanged([CallerMemberName] string name = null!)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }

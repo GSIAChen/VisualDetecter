@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
-using Microsoft.Win32;
 using HalconDotNet;
 using MessageBox = System.Windows.MessageBox;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
@@ -14,6 +13,7 @@ namespace MyWPF1
     /// </summary>
     public partial class ScriptWindow : Window
     {
+        public event EventHandler<CameraResultEventArgs> CameraResultReported;
         private HDevEngine _engine;
         public ObservableCollection<string>[] Scripts { get; }
         private const string DefaultImagePath = "F:\\钽电容\\新缺陷例图\\新\\Image_20250612163038577.bmp"; // 默认测试图像路径
@@ -83,17 +83,25 @@ namespace MyWPF1
                     if (!ok)
                     {
                         allOk = false;
-                        break;
                     }
                 }
                 catch (Exception ex)
                 {
                     allOk = false;
-                    MessageBox.Show($"执行脚本 {script} 时出错：{ex.Message}");
-                    break;
                 }
+                CameraResultReported?.Invoke(this, new CameraResultEventArgs
+                {
+                    CameraIndex = index,
+                    IsOk = allOk
+                });
+                Debug.WriteLine($"Script {script} executed. Result: {(allOk ? "OK" : "NG")}");
             }
-            MessageBox.Show(allOk ? "OK" : "NG");
         }
+    }
+
+    public class CameraResultEventArgs : EventArgs
+    {
+        public int CameraIndex { get; set; }
+        public bool IsOk { get; set; }
     }
 }
