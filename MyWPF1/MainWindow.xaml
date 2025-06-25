@@ -239,7 +239,6 @@
             <Setter Property="Margin" Value="18,0,0,0"/>
         </Style>
     </Window.Resources>
-
     <Grid Background="{StaticResource DarkBackgroundBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -366,360 +365,121 @@
                         MinWidth="200">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="5">
                         <StackPanel>
-                            <!-- 总体统计 -->
-                            <Expander Header="数据统计" IsExpanded="True">
-                                <Grid Background="{StaticResource CardBackgroundBrush}" UseLayoutRounding="True">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
+              
+                            <!-- 内容区域 -->
+                                <Border Name="左视窗1"
+                                        Grid.Column="0"
+                                        Background="Beige" 
+                                        BorderBrush="Gray"
+                                        BorderThickness="1"
+                                        Margin="10"
+                                        MinWidth="200">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <StackPanel>
+                                        <!-- 全部机位总计 Expander -->
+                                        <Expander Header="全部机位统计" IsExpanded="True" Margin="0,0,0,10"
+                                                       Height="125">
+                                            <Grid Background="AliceBlue">
+                                                <!-- 这里直接和之前一模一样，把绑定改成 TotalStat.xxx -->
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*"/>
+                                                    <RowDefinition Height="*"/>
+                                                    <RowDefinition Height="*"/>
+                                                    <RowDefinition Height="*"/>
+                                                    <RowDefinition Height="*"/>
+                                                </Grid.RowDefinitions>
 
-                                    <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource StatBorder}">
-                                        <Label Content="总数" Style="{StaticResource HeaderLabel}"/>
-                                    </Border>
-                                    <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource StatBorder}">
-                                        <Label Content="1" Style="{StaticResource StatLabel}"/>
-                                    </Border>
+                                                <!-- 左侧标题列 -->
+                                                <TextBlock Grid.Row="0" Grid.Column="0" Text="总数" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Row="1" Grid.Column="0" Text="合格率" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Row="2" Grid.Column="0" Text="OK数量" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Row="3" Grid.Column="0" Text="NG数量" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Row="4" Grid.Column="0" Text="回收数量" VerticalAlignment="Center"/>
 
-                                    <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource StatBorder}">
-                                        <Label Content="合格率" Style="{StaticResource HeaderLabel}"/>
-                                    </Border>
-                                    <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource StatBorder}">
-                                        <Label Content="90%" Style="{StaticResource StatLabel}" Foreground="{StaticResource SecondaryBrush}"/>
-                                    </Border>
+                                                <!-- 右侧值列 -->
+                                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalStat.TotalCount}" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TotalStat.Accuracy, StringFormat=P1}" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding TotalStat.OkCount}" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding TotalStat.NgCount}" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding TotalStat.ReCount}" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Expander>
 
-                                    <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource StatBorder}">
-                                        <Label Content="产能（个/分钟）" Style="{StaticResource HeaderLabel}"/>
-                                    </Border>
-                                    <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource StatBorder}">
-                                        <Label Content="1000" Style="{StaticResource StatLabel}"/>
-                                    </Border>
+                                        <!-- 每个机位的 Expander 列表 -->
+                                        <ItemsControl ItemsSource="{Binding Stats}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Expander Header="{Binding DisplayHeader}"
+                                                              IsExpanded="False" Margin="0,0,0,10" Height="125">
+                                                        <Grid Background="AliceBlue">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="*" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="*"/>
+                                                                <RowDefinition Height="*"/>
+                                                                <RowDefinition Height="*"/>
+                                                                <RowDefinition Height="*"/>
+                                                                <RowDefinition Height="*"/>
+                                                            </Grid.RowDefinitions>
 
-                                    <Border Grid.Row="3" Grid.Column="0" Style="{StaticResource StatBorder}">
-                                        <Label Content="OK数量" Style="{StaticResource HeaderLabel}"/>
-                                    </Border>
-                                    <Border Grid.Row="3" Grid.Column="1" Style="{StaticResource StatBorder}">
-                                        <Label Content="900" Style="{StaticResource StatLabel}" Foreground="{StaticResource SecondaryBrush}"/>
-                                    </Border>
+                                                            <!-- 左侧标题列 -->
+                                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="总数" />
+                                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="合格率" />
+                                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="OK数量" />
+                                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="NG数量" />
+                                                            <TextBlock Grid.Row="4" Grid.Column="0" Text="回收数量" />
 
-                                    <Border Grid.Row="4" Grid.Column="0" Style="{StaticResource StatBorder}">
-                                        <Label Content="NG数量" Style="{StaticResource HeaderLabel}"/>
-                                    </Border>
-                                    <Border Grid.Row="4" Grid.Column="1" Style="{StaticResource StatBorder}">
-                                        <Label Content="100" Style="{StaticResource StatLabel}" Foreground="{StaticResource DangerBrush}"/>
-                                    </Border>
-
-                                    <Border Grid.Row="5" Grid.Column="0" Style="{StaticResource StatBorder}">
-                                        <Label Content="回收数量" Style="{StaticResource HeaderLabel}"/>
-                                    </Border>
-                                    <Border Grid.Row="5" Grid.Column="1" Style="{StaticResource StatBorder}">
-                                        <Label Content="50" Style="{StaticResource StatLabel}" Foreground="{StaticResource AccentBrush}"/>
-                                    </Border>
-                                </Grid>
-                            </Expander>
-
-                            <!-- 相机统计区域 -->
-                            <Expander Header="相机1统计">
-                                <Grid>
-                                    <!-- 相机统计内容 -->
-                                </Grid>
-                            </Expander>
-
-                            <Expander Header="相机2统计">
-                                <!-- 相机统计内容 -->
-                            </Expander>
-        <!-- 工具栏 -->
-        <DockPanel Name="上工具栏"
-                   Grid.Row="0" 
-                   LastChildFill="False" 
-                   Background="#81D8D0"
-                   Height="80">
-            <!-- 开始按钮 -->
-            <Button Name="开始"
-                    Click="StartButton_Click"
-                    DockPanel.Dock="Left"
-                    Style="{StaticResource IconButtonStyle}"
-                    Margin="10,0">
-                <StackPanel Orientation="Vertical">
-                    <Image Source="Images/开始.png" 
-                           Width="40"
-                           Height="40"
-                           RenderOptions.BitmapScalingMode="HighQuality"/>
-                    <TextBlock Text="开始"
-                               Margin="5,5,0,0"
-                               FontSize="14"/>
-                </StackPanel>
-            </Button>
-            <!-- 停止按钮 -->
-            <Button Name="停止"
-                    Click="StopButton_Click"
-                    DockPanel.Dock="Left"
-                    Style="{StaticResource IconButtonStyle}"
-                    Margin="10,0">
-                <StackPanel Orientation="Vertical">
-                    <Image Source="Images/停止.png" 
-                           Width="40"
-                           Height="40"
-                           RenderOptions.BitmapScalingMode="HighQuality"/>
-                    <TextBlock Text="停止"
-                               Margin="5,5,0,0"
-                               FontSize="14"/>
-                </StackPanel>
-            </Button>
-            <Button Name="进料"
-                    Click="ProductStartButton_Click"
-                    DockPanel.Dock="Left"
-                    Style="{StaticResource IconButtonStyle}"
-                    Margin="10,0">
-                <StackPanel Orientation="Vertical">
-                    <Image Source="Images/开始.png" 
-                           Width="40"
-                           Height="40"
-                           RenderOptions.BitmapScalingMode="HighQuality"/>
-                    <TextBlock Text="进料"
-                               Margin="5,5,0,0"
-                               FontSize="14"/>
-                </StackPanel>
-            </Button>
-            <!-- 停止按钮 -->
-            <Button Name="停止进料"
-                    Click="ProductStopButton_Click"
-                    DockPanel.Dock="Left"
-                    Style="{StaticResource IconButtonStyle}"
-                    Margin="10,0">
-                <StackPanel Orientation="Vertical">
-                    <Image Source="Images/停止.png" 
-                           Width="40"
-                           Height="40"
-                           RenderOptions.BitmapScalingMode="HighQuality"/>
-                    <TextBlock Text="停止进料"
-                               Margin="5,5,0,0"
-                               FontSize="14"/>
-                </StackPanel>
-            </Button>
-            <!-- 参数设置按钮 -->
-            <Button Name="清料"
-                    Click="ClearButton_Click"
-                    DockPanel.Dock="Left"
-                    Style="{StaticResource IconButtonStyle}"
-                    Margin="10,0">
-                <StackPanel Orientation="Vertical">
-                    <Image Source="Images/停止.png" 
-                        Width="40"
-                        Height="40"
-                        RenderOptions.BitmapScalingMode="HighQuality"/>
-                    <TextBlock Text="清料"
-                        Margin="5,5,0,0"
-                        FontSize="14"/>
-                </StackPanel>
-            </Button>
-            <Button Name="脚本"
-                    DockPanel.Dock="Left"
-                    Click="ScriptButton_Click"
-                    Style="{StaticResource IconButtonStyle}"
-                    Margin="10,0">
-                <StackPanel Orientation="Vertical">
-                    <Image Source="Images/停止.png" 
-                        Width="40"
-                        Height="40"
-                        RenderOptions.BitmapScalingMode="HighQuality"/>
-                    <TextBlock Text="脚本"
-                        Margin="5,5,0,0"
-                        FontSize="14"/>
-                </StackPanel>
-            </Button>
-            <Button Name="加载配置"
-                    DockPanel.Dock="Left"
-                    Style="{StaticResource IconButtonStyle}"
-                    Margin="10,0">
-                <StackPanel Orientation="Vertical">
-                    <Image Source="Images/停止.png" 
-                        Width="40"
-                        Height="40"
-                        RenderOptions.BitmapScalingMode="HighQuality"/>
-                    <TextBlock Text="加载配置"
-                        Margin="5,5,0,0"
-                        FontSize="14"/>
-                </StackPanel>
-            </Button>
-            <!-- 参数设置按钮 -->
-            <Button Name="算法"
-                    Click="AlgorithmButton_Click"
-                    DockPanel.Dock="Left"
-                    Style="{StaticResource IconButtonStyle}"
-                    Margin="10,0">
-                <StackPanel Orientation="Vertical">
-                    <Image Source="Images/停止.png" 
-                        Width="40"
-                        Height="40"
-                        RenderOptions.BitmapScalingMode="HighQuality"/>
-                    <TextBlock Text="算法"
-                        Margin="5,5,0,0"
-                        FontSize="14"/>
-                </StackPanel>
-            </Button>
-            <Button Name="深度学习"
-                    Click="LaunchLabelingTool_Click"
-                    DockPanel.Dock="Left"
-                    Style="{StaticResource IconButtonStyle}"
-                    Margin="10,0">
-                <StackPanel Orientation="Vertical">
-                    <Image Source="Images/停止.png" 
-                        Width="40"
-                        Height="40"
-                        RenderOptions.BitmapScalingMode="HighQuality"/>
-                    <TextBlock Text="深度学习"
-                        Margin="5,5,0,0"
-                        FontSize="14"/>
-                </StackPanel>
-            </Button>
-            <!-- 参数设置按钮 -->
-            <Button Name="参数"
-                    Click="SettingsButton_Click"
-                    DockPanel.Dock="Left"
-                    Style="{StaticResource IconButtonStyle}"
-                    Margin="10,0">
-                <StackPanel Orientation="Vertical">
-                    <Image Source="Images/停止.png" 
-                        Width="40"
-                        Height="40"
-                        RenderOptions.BitmapScalingMode="HighQuality"/>
-                    <TextBlock Text="参数"
-                        Margin="5,5,0,0"
-                        FontSize="14"/>
-                </StackPanel>
-            </Button>
-        </DockPanel>
-        <!-- 内容区域 -->
-        <Grid Grid.Row="1"
-              Grid.Column="0"
-              Background="AntiqueWhite">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*"/>
-                <ColumnDefinition Width="6*"/>
-                <ColumnDefinition Width="2*"/>
-            </Grid.ColumnDefinitions>
-            <Border Name="左视窗"
-                    Grid.Column="0"
-                    Background="Beige" 
-                    BorderBrush="Gray"
-                    BorderThickness="1"
-                    Margin="10"
-                    MinWidth="200">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel>
-                        <!-- 全部机位总计 Expander -->
-                        <Expander Header="全部机位统计" IsExpanded="True" Margin="0,0,0,10"
-                                  Height="125">
-                            <Grid Background="AliceBlue">
-                                <!-- 这里直接和之前一模一样，把绑定改成 TotalStat.xxx -->
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
-
-                                <!-- 左侧标题列 -->
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="总数" VerticalAlignment="Center"/>
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="合格率" VerticalAlignment="Center"/>
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="OK数量" VerticalAlignment="Center"/>
-                                <TextBlock Grid.Row="3" Grid.Column="0" Text="NG数量" VerticalAlignment="Center"/>
-                                <TextBlock Grid.Row="4" Grid.Column="0" Text="回收数量" VerticalAlignment="Center"/>
-
-                                <!-- 右侧值列 -->
-                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalStat.TotalCount}" VerticalAlignment="Center"/>
-                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TotalStat.Accuracy, StringFormat=P1}" VerticalAlignment="Center"/>
-                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding TotalStat.OkCount}" VerticalAlignment="Center"/>
-                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding TotalStat.NgCount}" VerticalAlignment="Center"/>
-                                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding TotalStat.ReCount}" VerticalAlignment="Center"/>
-                            </Grid>
-                        </Expander>
-
-                        <!-- 每个机位的 Expander 列表 -->
-                        <ItemsControl ItemsSource="{Binding Stats}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Expander Header="{Binding DisplayHeader}"
-                                              IsExpanded="False" Margin="0,0,0,10" Height="125">
-                                        <Grid Background="AliceBlue">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="*"/>
-                                                <RowDefinition Height="*"/>
-                                                <RowDefinition Height="*"/>
-                                                <RowDefinition Height="*"/>
-                                                <RowDefinition Height="*"/>
-                                            </Grid.RowDefinitions>
-
-                                            <!-- 左侧标题列 -->
-                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="总数" />
-                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="合格率" />
-                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="OK数量" />
-                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="NG数量" />
-                                            <TextBlock Grid.Row="4" Grid.Column="0" Text="回收数量" />
-
-                                            <!-- 右侧值列 -->
-                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalCount}" />
-                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Accuracy, StringFormat=P1}" />
-                                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding OkCount}" />
-                                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding NgCount}" />
-                                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ReCount}" />
-                                        </Grid>
-                                    </Expander>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-
-                </ScrollViewer>
-            </Border>
-            <Border Name="主视窗"
+                                                            <!-- 右侧值列 -->
+                                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalCount}" />
+                                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Accuracy, StringFormat=P1}" />
+                                                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding OkCount}" />
+                                                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding NgCount}" />
+                                                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ReCount}" />
+                                                        </Grid>
+                                                    </Expander>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </ScrollViewer>
+                                </Border>
+                            <Border Name="主视窗"
                     Grid.Column="1"
                     Background="Beige" 
                     BorderBrush="Gray"
                     BorderThickness="1"
                     Margin="10"
                     MinWidth="600">
-                            <TextBlock Text="主视窗" 
+                                <TextBlock Text="主视窗" 
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
                                        Foreground="#5F7E97"
                                        FontSize="24"/>
-                        </Border>
-                    </Grid>
-                </Border>
+                            </Border>
 
-                <!-- 右侧面板卡片 -->
-                <Border Name="右视窗"
-                        Grid.Column="2"
-                        Style="{StaticResource Card}"
-                        MinWidth="200">
-                    <Grid>
-                        <Border Background="#1A2D3F" CornerRadius="4">
-                            <TextBlock Text="右视窗" 
+                            <!-- 右侧面板卡片 -->
+                            <Border Name="右视窗"
+                                    Grid.Column="2"
+                                    Style="{StaticResource Card}"
+                                    MinWidth="200">
+                                <Grid>
+                                    <Border Background="#1A2D3F" CornerRadius="4">
+                                        <TextBlock Text="右视窗" 
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
                                        Foreground="#5F7E97"
                                        FontSize="18"/>
-                        </Border>
-                    </Grid>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
                 </Border>
             </Grid>
         </Border>

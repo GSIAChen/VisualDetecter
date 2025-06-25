@@ -33,7 +33,7 @@
 
   <ItemGroup>
     <Reference Include="hdevenginedotnet">
-      <HintPath>C:\Users\huanxiangpeng\AppData\Local\Programs\MVTec\HALCON-24.11-Progress-Steady\bin\dotnet35\hdevenginedotnet.dll</HintPath>
+      <HintPath>C:\Users\gsia\AppData\Local\Programs\MVTec\HALCON-24.11-Progress-Steady\bin\dotnet35\hdevenginedotnet.dll</HintPath>
     </Reference>
     <Reference Include="System.Windows.Forms" />
     <Reference Include="WindowsFormsIntegration" />
@@ -41,7 +41,7 @@
 
   <ItemGroup>
     <Reference Include="halcondotnet">
-      <HintPath>C:\Users\huanxiangpeng\AppData\Local\Programs\MVTec\HALCON-24.11-Progress-Steady\bin\dotnet35\halcondotnet.dll</HintPath>
+      <HintPath>C:\Users\gsia\AppData\Local\Programs\MVTec\HALCON-24.11-Progress-Steady\bin\dotnet35\halcondotnet.dll</HintPath>
     </Reference>
   </ItemGroup>
 

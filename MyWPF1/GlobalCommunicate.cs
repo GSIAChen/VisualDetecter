@@ -18,7 +18,7 @@ class GlobalCommunicate
     private const long OffsetObjectId = 4;
     private const long OffsetImageData = 12;
 
-    static void Main()
+    public static void ReadingFileThread()
     {
         // 1) 打开同名内存映射
         using var mmf = MemoryMappedFile.OpenExisting(MmfName, MemoryMappedFileRights.Read);
