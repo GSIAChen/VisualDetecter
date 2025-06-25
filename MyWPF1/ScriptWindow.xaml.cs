@@ -1,9 +1,9 @@
-﻿using System;
+﻿using HalconDotNet;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
+using System.IO.Pipes;
 using System.Windows;
-using Microsoft.Win32;
-using HalconDotNet;
 using MessageBox = System.Windows.MessageBox;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 
@@ -14,9 +14,10 @@ namespace MyWPF1
     /// </summary>
     public partial class ScriptWindow : Window
     {
+        public event EventHandler<CameraResultEventArgs> CameraResultReported;
         private HDevEngine _engine;
         public ObservableCollection<string>[] Scripts { get; }
-        private const string DefaultImagePath = "default.png"; // 默认测试图像路径
+        private const string DefaultImagePath = "F:\\钽电容\\新缺陷例图\\新\\Image_20250612163038577.bmp"; // 默认测试图像路径
 
         public ScriptWindow()
         {
@@ -67,32 +68,64 @@ namespace MyWPF1
                     var program = new HDevProgram(script);
 
                     // 创建 HDevProcedure，指定脚本主过程名称（替换为你的过程名）
-                    var procedure = new HDevProcedure(program, "main");
+                    var procedure = new HDevProcedure(program, "LargeDefect1");
                     var procCall = new HDevProcedureCall(procedure);
 
                     // 设置图像输入到过程的 Image 参数
-                    procCall.SetInputIconicParamObject("Image", image);
+                    procCall.SetInputIconicParamObject("ImagePath", image);
 
                     // 执行过程
                     procCall.Execute();
 
                     // 获取过程输出参数 Result
-                    HTuple result = procCall.GetOutputCtrlParamTuple("Result");
+                    HObject resultImage = procCall.GetOutputIconicParamObject("DefectRegions");
+                    HTuple result = procCall.GetOutputCtrlParamTuple("IsOk");
                     bool ok = result.I == 1;
                     if (!ok)
                     {
                         allOk = false;
-                        break;
                     }
                 }
                 catch (Exception ex)
                 {
                     allOk = false;
-                    MessageBox.Show($"执行脚本 {script} 时出错：{ex.Message}");
-                    break;
+                }
+                CameraResultReported?.Invoke(this, new CameraResultEventArgs
+                {
+                    CameraIndex = index,
+                    IsOk = allOk
+                });
+                Debug.WriteLine($"Script {script} executed. Result: {(allOk ? "OK" : "NG")}");
+                Debug.WriteLine($"Executing script: {script}");
+                SendResultToCpp(index, allOk);
+            }
+        }
+
+        private void SendResultToCpp(int cameraIndex, bool isOk)
+        {
+            try
+            {
+                using (var client = new NamedPipeClientStream(".", "HalconResultPipe", PipeDirection.Out))
+                {
+                    client.Connect(2000); // 最多等待2秒连接C++端
+                    using (var writer = new StreamWriter(client))
+                    {
+                        writer.AutoFlush = true;
+                        string message = $"{cameraIndex},{(isOk ? "OK" : "NG")}";
+                        writer.WriteLine(message);
+                    }
                 }
             }
-            MessageBox.Show(allOk ? "OK" : "NG");
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"发送到C++失败：{ex.Message}");
+            }
         }
+    }
+
+    public class CameraResultEventArgs : EventArgs
+    {
+        public int CameraIndex { get; set; }
+        public bool IsOk { get; set; }
     }
 }
