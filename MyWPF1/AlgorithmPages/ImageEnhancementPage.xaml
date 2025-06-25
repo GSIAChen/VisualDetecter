@@ -9,188 +9,208 @@
       mc:Ignorable="d" 
       xmlns:winforms="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
       xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
-      xmlns:ctrl="clr-namespace:MyWPF1.Controls"
-             d:DesignHeight="450" d:DesignWidth="800" Background="#23272E">
+      xmlns:ctrl="clr-namespace:MyWPF1.Controls" Background="#1E1E1E" Height="617" Width="923">
     <UserControl.Resources>
-        <local:IndexConverter x:Key="IndexConverter"/>
-        <local:ComboBoxIndexConverter x:Key="ComboBoxIndexConverter"/>
-        <SolidColorBrush x:Key="DarkBackground" Color="#23272E"/>
-        <SolidColorBrush x:Key="CardBackground" Color="#21232B"/>
-        <SolidColorBrush x:Key="AccentColor" Color="#4DACFF"/>
-        <SolidColorBrush x:Key="PrimaryText" Color="#E0E0E0"/>
-        <SolidColorBrush x:Key="SecondaryText" Color="#B0B0B0"/>
-        <SolidColorBrush x:Key="BorderColor" Color="#3A3F4B"/>
-        
-        <Style TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="Normal"/>
-        </Style>
-        
-        <Style TargetType="Button">
-            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
-            <Setter Property="Background" Value="#2D313A"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Padding" Value="12,6"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
+        <SolidColorBrush x:Key="DarkBackground" Color="#1E1E1E"/>
+        <SolidColorBrush x:Key="MediumBackground" Color="#23272E"/>
+        <SolidColorBrush x:Key="LightBackground" Color="#2D2D30"/>
+        <SolidColorBrush x:Key="AccentColor" Color="#007ACC"/>
+        <SolidColorBrush x:Key="TextColor" Color="#E0E0E0"/>
+        <SolidColorBrush x:Key="BorderColor" Color="#3F3F46"/>
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Background" Value="{StaticResource LightBackground}"/>
+            <Setter Property="Margin" Value="0,0,0,24"/>
+            <Setter Property="Padding" Value="20,18"/>
+            <Setter Property="Effect">
                 <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" 
-                                BorderBrush="{TemplateBinding BorderBrush}" 
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="6">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#3A3F4B"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Color="#33000000"/>
                 </Setter.Value>
             </Setter>
         </Style>
-        
-        <Style TargetType="TextBox">
-            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
-            <Setter Property="Background" Value="#2D2D30"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Padding" Value="8,6"/>
-            <Setter Property="CaretBrush" Value="{StaticResource AccentColor}"/>
-            <Setter Property="Height" Value="28"/>
+        <Style x:Key="TitleCard" TargetType="Border">
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="0,0,0,0"/>
+            <Setter Property="Margin" Value="0,0,0,24"/>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#2D8CF0" Offset="0"/>
+                        <GradientStop Color="#007ACC" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Color="#66000000"/>
+                </Setter.Value>
+            </Setter>
         </Style>
-        
-        <Style TargetType="Slider">
-            <Setter Property="Background" Value="#23272E"/>
-            <Setter Property="Foreground" Value="{StaticResource AccentColor}"/>
-            <Setter Property="Height" Value="22"/>
+        <Style x:Key="TitleText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="Margin" Value="18,0,0,0"/>
         </Style>
-        
-        <Style TargetType="ctrl:NumericUpDown">
-            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
-            <Setter Property="Background" Value="#2D2D30"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Height" Value="28"/>
+        <Style x:Key="LabelText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#E0E0E0"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
-        
         <Style TargetType="ComboBox">
-            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
-            <Setter Property="Background" Value="{StaticResource CardBackground}"/>
+            <Setter Property="Background" Value="{StaticResource LightBackground}"/>
+            <Setter Property="Foreground" Value="#E0E0E0"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="5,0"/>
+            <Setter Property="Foreground" Value="#000000"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="15"/>
+        </Style>
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Foreground" Value="#000000"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="15"/>
+        </Style>
+        <Style TargetType="Slider">
+            <Setter Property="Background" Value="{StaticResource LightBackground}"/>
+            <Setter Property="Foreground" Value="{StaticResource AccentColor}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
             <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#E0E0E0"/>
+        </Style>
+        <Style x:Key="SmallCheckBox" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#E0E0E0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+        <Style x:Key="SmallButton" TargetType="Button">
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Height" Value="28"/>
+            <Setter Property="Padding" Value="8,2"/>
         </Style>
-        
-        <Style TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource CardBackground}"/>
-            <Setter Property="CornerRadius" Value="8"/>
+        <Style TargetType="ctrl:NumericUpDown">
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="FontSize" Value="14"/>
         </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Foreground" Value="#000000"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Height" Value="32"/>
+        </Style>
+        <DataTemplate x:Key="BlackComboBoxItemTemplate">
+            <TextBlock Text="{Binding}" Foreground="#000000" FontWeight="Bold" FontSize="15"/>
+        </DataTemplate>
     </UserControl.Resources>
-    
-    <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="15">
-        <StackPanel>
-            <!-- 亮度对比度设置 -->
-            <Border Background="{StaticResource CardBackground}" CornerRadius="8" Margin="0,0,0,15">
-                <StackPanel Margin="15">
-                    <TextBlock Text="亮度对比度设置" FontWeight="Bold" FontSize="15" Foreground="{StaticResource AccentColor}" Margin="0,0,0,15"/>
-                    
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        
-                        <!-- 亮度 -->
-                        <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                            <TextBlock Text="亮度：" Style="{StaticResource LabelText}" Margin="0,0,0,5"/>
-                            <Slider Minimum="-100" Maximum="100" Value="{Binding Brightness}" 
-                                    Width="150" HorizontalAlignment="Left"/>
-                            <ctrl:NumericUpDown Value="{Binding Brightness}" Minimum="-100" Maximum="100" 
-                                                Width="80" HorizontalAlignment="Left" Margin="0,5,0,0"/>
-                        </StackPanel>
-                        
-                        <!-- 对比度 -->
-                        <StackPanel Grid.Column="1">
-                            <TextBlock Text="对比度：" Style="{StaticResource LabelText}" Margin="0,0,0,5"/>
-                            <Slider Minimum="0" Maximum="200" Value="{Binding Contrast}" 
-                                    Width="150" HorizontalAlignment="Left"/>
-                            <ctrl:NumericUpDown Value="{Binding Contrast}" Minimum="0" Maximum="200" 
-                                                Width="80" HorizontalAlignment="Left" Margin="0,5,0,0"/>
-                        </StackPanel>
-                    </Grid>
+    <Grid Margin="30" Background="{StaticResource MediumBackground}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <!-- 线性增强标题卡片 -->
+        <Border Style="{StaticResource TitleCard}" Grid.Row="0">
+            <TextBlock Text="线性增强" Style="{StaticResource TitleText}"/>
+        </Border>
+        <!-- 线性增强卡片 -->
+        <Border Style="{StaticResource Card}" Grid.Row="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2.2*"/>
+                    <ColumnDefinition Width="2.8*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="6,0,0,0">
+                    <CheckBox Content="启用线性增强" IsChecked="{Binding EnableScale, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource SmallCheckBox}"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
+                        <TextBlock Text="乘法因子：" Width="70" Style="{StaticResource LabelText}" FontSize="14"/>
+                        <Slider Minimum="0.001" Maximum="3.0" Width="90" Value="{Binding ScaleMult, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="20"/>
+                        <ctrl:NumericUpDown Value="{Binding ScaleMult, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Minimum="0.001" Maximum="3.0" Increment="0.05" Width="93" Height="24"/>
+                    </StackPanel>
                 </StackPanel>
-            </Border>
-            
-            <!-- 伽马校正设置 -->
-            <Border Background="{StaticResource CardBackground}" CornerRadius="8" Margin="0,0,0,15">
-                <StackPanel Margin="15">
-                    <TextBlock Text="伽马校正设置" FontWeight="Bold" FontSize="15" Foreground="{StaticResource AccentColor}" Margin="0,0,0,15"/>
-                    
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        
-                        <!-- 伽马值 -->
-                        <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                            <TextBlock Text="伽马值：" Style="{StaticResource LabelText}" Margin="0,0,0,5"/>
-                            <Slider Minimum="0.1" Maximum="3.0" Value="{Binding Gamma}" 
-                                    Width="150" HorizontalAlignment="Left"/>
-                            <ctrl:NumericUpDown Value="{Binding Gamma}" Minimum="0.1" Maximum="3.0" 
-                                                Width="80" HorizontalAlignment="Left" Margin="0,5,0,0"/>
-                        </StackPanel>
-                        
-                        <!-- 饱和度 -->
-                        <StackPanel Grid.Column="1">
-                            <TextBlock Text="饱和度：" Style="{StaticResource LabelText}" Margin="0,0,0,5"/>
-                            <Slider Minimum="0" Maximum="200" Value="{Binding Saturation}" 
-                                    Width="150" HorizontalAlignment="Left"/>
-                            <ctrl:NumericUpDown Value="{Binding Saturation}" Minimum="0" Maximum="200" 
-                                                Width="80" HorizontalAlignment="Left" Margin="0,5,0,0"/>
-                        </StackPanel>
-                    </Grid>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,0,0">
+                    <TextBlock Text="加法因子：" Width="70" Style="{StaticResource LabelText}" FontSize="14"/>
+                    <Slider Minimum="-255" Maximum="255" Width="90" Value="{Binding ScaleAdd, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="20"/>
+                    <ctrl:NumericUpDown Value="{Binding ScaleAdd, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Minimum="-255" Maximum="255" Increment="5" Width="56" Height="24"/>
                 </StackPanel>
-            </Border>
-            
-            <!-- 锐化设置 -->
-            <Border Background="{StaticResource CardBackground}" CornerRadius="8">
-                <StackPanel Margin="15">
-                    <TextBlock Text="锐化设置" FontWeight="Bold" FontSize="15" Foreground="{StaticResource AccentColor}" Margin="0,0,0,15"/>
-                    
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        
-                        <!-- 锐化强度 -->
-                        <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                            <TextBlock Text="锐化强度：" Style="{StaticResource LabelText}" Margin="0,0,0,5"/>
-                            <Slider Minimum="0" Maximum="100" Value="{Binding Sharpness}" 
-                                    Width="150" HorizontalAlignment="Left"/>
-                            <ctrl:NumericUpDown Value="{Binding Sharpness}" Minimum="0" Maximum="100" 
-                                                Width="80" HorizontalAlignment="Left" Margin="0,5,0,0"/>
-                        </StackPanel>
-                        
-                        <!-- 锐化半径 -->
-                        <StackPanel Grid.Column="1">
-                            <TextBlock Text="锐化半径：" Style="{StaticResource LabelText}" Margin="0,0,0,5"/>
-                            <ctrl:NumericUpDown Value="{Binding SharpRadius}" Minimum="0.1" Maximum="5.0" 
-                                                Width="120" HorizontalAlignment="Left"/>
-                        </StackPanel>
-                    </Grid>
+            </Grid>
+        </Border>
+        <!-- Gamma校正标题卡片 -->
+        <Border Style="{StaticResource TitleCard}" Grid.Row="2">
+            <TextBlock Text="Gamma校正" Style="{StaticResource TitleText}"/>
+        </Border>
+        <!-- Gamma校正卡片 -->
+        <Border Style="{StaticResource Card}" Grid.Row="3" Margin="0,0,0,18">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2.2*"/>
+                    <ColumnDefinition Width="2.8*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="6,0,0,0">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <TextBlock Text="Gamma值：" Width="70" Style="{StaticResource LabelText}" FontSize="14"/>
+                        <Slider Minimum="0.1" Maximum="10" Width="90" Value="{Binding Gamma, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="20"/>
+                        <ctrl:NumericUpDown Value="{Binding Gamma, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Minimum="0.1" Maximum="10" Increment="0.05" Width="90" Height="24"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="偏移量：" Width="70" Style="{StaticResource LabelText}" FontSize="14"/>
+                        <Slider Minimum="0" Maximum="5" Width="90" Value="{Binding Offset, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="20"/>
+                        <ctrl:NumericUpDown Value="{Binding Offset, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Minimum="0" Maximum="5" Increment="0.05" Width="101" Height="24"/>
+                    </StackPanel>
                 </StackPanel>
-            </Border>
-        </StackPanel>
-    </ScrollViewer>
+                <StackPanel Grid.Column="1" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,0,0">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <TextBlock Text="阈值：" Width="70" Style="{StaticResource LabelText}" FontSize="14"/>
+                        <Slider Minimum="0" Maximum="5" Width="90" Value="{Binding Threshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="20"/>
+                        <ctrl:NumericUpDown Value="{Binding Threshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Minimum="0" Maximum="5" Increment="0.05" Width="58" Height="24"/>
+                    </StackPanel>
+                    <CheckBox Content="正向Gamma校正" IsChecked="{Binding Encode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource SmallCheckBox}"/>
+                    <CheckBox Content="启用Gamma校正" IsChecked="{Binding EnableGamma, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource SmallCheckBox}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+        <!-- 图像锐化标题卡片 -->
+        <Border Style="{StaticResource TitleCard}" Grid.Row="4">
+            <TextBlock Text="图像锐化" Style="{StaticResource TitleText}"/>
+        </Border>
+        <!-- 图像锐化卡片 -->
+        <Border Style="{StaticResource Card}" Grid.Row="5">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2.2*"/>
+                    <ColumnDefinition Width="2.8*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="6,0,0,0">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <TextBlock Text="Mask大小：" Width="70" Style="{StaticResource LabelText}" FontSize="14"/>
+                        <ctrl:NumericUpDown Value="{Binding MaskSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Minimum="3" Maximum="31" Increment="2" Width="45" Height="24"/>
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,0,0">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <TextBlock Text="增强系数：" Width="70" Style="{StaticResource LabelText}" FontSize="14"/>
+                        <Slider Minimum="0.5" Maximum="3" Width="90" Value="{Binding Factor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="20"/>
+                        <ctrl:NumericUpDown Value="{Binding Factor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Minimum="0.5" Maximum="3" Increment="0.05" Width="51" Height="24"/>
+                    </StackPanel>
+                    <CheckBox Content="启用图像锐化" IsChecked="{Binding EnableEmphasize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource SmallCheckBox}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
 </UserControl>

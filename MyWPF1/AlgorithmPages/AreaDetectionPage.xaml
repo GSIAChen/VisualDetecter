@@ -17,32 +17,26 @@
         <SolidColorBrush x:Key="DarkBackground" Color="#23272E"/>
         <SolidColorBrush x:Key="CardBackground" Color="#21232B"/>
         <SolidColorBrush x:Key="AccentColor" Color="#4DACFF"/>
-        <SolidColorBrush x:Key="PrimaryText" Color="#E0E0E0"/>
-        <SolidColorBrush x:Key="SecondaryText" Color="#B0B0B0"/>
+        <SolidColorBrush x:Key="TextColor" Color="#F3F6FA"/>
         <SolidColorBrush x:Key="BorderColor" Color="#3A3F4B"/>
-        
         <Style TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="Foreground" Value="#F3F6FA"/>
+            <Setter Property="FontSize" Value="14"/>
         </Style>
-        
         <Style TargetType="Button">
-            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
             <Setter Property="Background" Value="#2D313A"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Padding" Value="12,6"/>
-            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="8,0"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}" 
                                 BorderBrush="{TemplateBinding BorderBrush}" 
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="6">
+                                CornerRadius="8">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -54,108 +48,117 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        
         <Style TargetType="TextBox">
-            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
-            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="Foreground" Value="#000000"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Height" Value="32"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Padding" Value="4,2"/>
             <Setter Property="CaretBrush" Value="{StaticResource AccentColor}"/>
-            <Setter Property="Height" Value="28"/>
         </Style>
-        
         <Style TargetType="Slider">
             <Setter Property="Background" Value="#23272E"/>
             <Setter Property="Foreground" Value="{StaticResource AccentColor}"/>
             <Setter Property="Height" Value="22"/>
         </Style>
-        
         <Style TargetType="ctrl:NumericUpDown">
-            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
-            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="Foreground" Value="#F3F6FA"/>
+            <Setter Property="Background" Value="#23272E"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Height" Value="28"/>
+            <Setter Property="FontSize" Value="14"/>
         </Style>
-        
-        <Style TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource CardBackground}"/>
-            <Setter Property="CornerRadius" Value="8"/>
+        <Style TargetType="ComboBox">
+            <Setter Property="Foreground" Value="#000000"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="15"/>
         </Style>
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Foreground" Value="#000000"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="15"/>
+        </Style>
+        <DataTemplate x:Key="BlackComboBoxItemTemplate">
+            <TextBlock Text="{Binding}" Foreground="#000000" FontWeight="Bold" FontSize="15"/>
+        </DataTemplate>
     </UserControl.Resources>
-    
-    <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="15">
-        <StackPanel>
-            <!-- 二值化设置 -->
-            <Border Background="{StaticResource CardBackground}" CornerRadius="8" Margin="0,0,0,15">
-                <StackPanel Margin="15">
-                    <TextBlock Text="二值化设置" FontWeight="Bold" FontSize="15" Foreground="{StaticResource AccentColor}" Margin="0,0,0,10"/>
-                    
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        
-                        <!-- 二值阈值 -->
-                        <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0,0,10,0">
-                            <TextBlock Text="二值阈值：" Width="80" VerticalAlignment="Center" Foreground="{StaticResource SecondaryText}"/>
-                            <Slider Minimum="0" Maximum="255" VerticalAlignment="Center"
-                                    Width="120" Value="{Binding Threshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                            <ctrl:NumericUpDown Value="{Binding Threshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                Minimum="0" Maximum="255" Increment="1" Width="60" Margin="10,0,0,0"/>
-                        </StackPanel>
-                        
-                        <!-- 面积大小 -->
-                        <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <TextBlock Text="面积大小：" Width="80" VerticalAlignment="Center" Foreground="{StaticResource SecondaryText}"/>
-                            <TextBlock Text="{Binding Area}" Width="80" VerticalAlignment="Center" 
-                                       FontWeight="SemiBold" Foreground="{StaticResource AccentColor}"/>
-                        </StackPanel>
-                    </Grid>
-                </StackPanel>
-            </Border>
-            
-            <!-- 边界设置 -->
-            <Border Background="{StaticResource CardBackground}" CornerRadius="8">
-                <StackPanel Margin="15">
-                    <TextBlock Text="边界设置" FontWeight="Bold" FontSize="15" Foreground="{StaticResource AccentColor}" Margin="0,0,0,15"/>
-                    
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        
-                        <!-- 上下边界 -->
-                        <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                <TextBlock Text="上边界：" Width="80" VerticalAlignment="Center" Foreground="{StaticResource SecondaryText}"/>
-                                <TextBox Text="{Binding Row1}" Width="100" VerticalAlignment="Center"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="下边界：" Width="80" VerticalAlignment="Center" Foreground="{StaticResource SecondaryText}"/>
-                                <TextBox Text="{Binding Row2}" Width="100" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </StackPanel>
-                        
-                        <!-- 左右边界 -->
-                        <StackPanel Grid.Column="1">
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                <TextBlock Text="左边界：" Width="80" VerticalAlignment="Center" Foreground="{StaticResource SecondaryText}"/>
-                                <TextBox Text="{Binding Column1}" Width="100" VerticalAlignment="Center"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="右边界：" Width="80" VerticalAlignment="Center" Foreground="{StaticResource SecondaryText}"/>
-                                <TextBox Text="{Binding Column2}" Width="100" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </StackPanel>
-                    </Grid>
-                </StackPanel>
-            </Border>
+    <Grid Margin="10" Background="{StaticResource DarkBackground}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <ContentControl>
+            <ContentControl.ContentTemplate>
+                <DataTemplate>
+                    <ContentPresenter Content="{TemplateBinding Content}">
+                        <ContentPresenter.RenderTransform>
+                            <TranslateTransform X="300"/>
+                        </ContentPresenter.RenderTransform>
+                        <ContentPresenter.Triggers>
+                            <EventTrigger RoutedEvent="ContentPresenter.Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation 
+                                    Storyboard.TargetProperty="RenderTransform.X"
+                                    From="300" To="0" 
+                                    Duration="0:0:0.3"
+                                    DecelerationRatio="0.6"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </ContentPresenter.Triggers>
+                    </ContentPresenter>
+                </DataTemplate>
+            </ContentControl.ContentTemplate>
+        </ContentControl>
+        <!-- 二值阈 -->
+        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="15,5">
+            <TextBlock Text="二值阈：" Width="80" VerticalAlignment="Center"/>
+            <Slider Minimum="0" Maximum="255" VerticalAlignment="Center"
+                        Width="120" Value="{Binding Threshold, 
+                        Mode=TwoWay, 
+                        UpdateSourceTrigger=PropertyChanged}"/>
+            <ctrl:NumericUpDown Value="{Binding Threshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                Minimum="0" Maximum="255" Increment="1" Width="55" Height="25"/>
         </StackPanel>
-    </ScrollViewer>
+        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="15,5">
+            <TextBlock Text="面积大小：" Width="80" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding Area}" Width="80" VerticalAlignment="Center"/>
+        </StackPanel>
+        <Grid Grid.Row="1" Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <StackPanel Orientation="Horizontal" Margin="15,5" Grid.Row="0">
+                <TextBlock Text="上边界：" Width="100" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="0" Text="{Binding Row1}" Margin="15,5" VerticalAlignment="Center" Width="80"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="15,5" Grid.Row="1">
+                <TextBlock Text="下边界：" Width="100" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="0" Text="{Binding Row2}" Margin="15,5" VerticalAlignment="Center" Width="80"/>
+            </StackPanel>
+        </Grid>
+        <Grid Grid.Row="1" Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <StackPanel Orientation="Horizontal" Margin="15,5" Grid.Row="0" Grid.Column="1">
+                <TextBlock Text="左边界：" Width="100" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="0" Text="{Binding Column1}" Margin="15,5" VerticalAlignment="Center" Width="80"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="15,5" Grid.Row="1">
+                <TextBlock Text="右边界：" Width="100" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="0" Text="{Binding Column2}" Margin="15,5" VerticalAlignment="Center" Width="80"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
 </UserControl>

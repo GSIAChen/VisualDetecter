@@ -461,14 +461,32 @@
         <!-- 右侧设置容器 -->
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
-                <RowDefinition Height="1.5*"/>
-                <RowDefinition Height="8.5*"/>
+                <RowDefinition Height="2.2*"/>
+                <RowDefinition Height="8*"/>
             </Grid.RowDefinitions>
-            <ContentControl x:Name="AlgorithmTopContainer" Grid.Row="0">
-                <Frame x:Name="TopFrame" Grid.Column="1" Grid.Row="0"/>
-            </ContentControl>
-            <ContentControl x:Name="SettingsContainer" Grid.Row="1">
-            </ContentControl>
+            
+            <!-- 上方：AlgorithmTopPage 容器 -->
+            <Border Grid.Row="0" Background="{StaticResource CardBackground}" Margin="8,8,8,4" CornerRadius="8">
+                <Border.Effect>
+                    <DropShadowEffect Color="#000000" Direction="270" ShadowDepth="2" Opacity="0.1" BlurRadius="4"/>
+                </Border.Effect>
+                <ContentControl x:Name="AlgorithmTopContainer">
+                    <Frame x:Name="TopFrame"/>
+                </ContentControl>
+            </Border>
+            
+            <!-- 分隔线 -->
+            <Border Grid.Row="0" Height="1" Background="#3A3F4B" 
+                    VerticalAlignment="Bottom" Margin="8,0,8,0"/>
+            
+            <!-- 下方：设置页面容器 -->
+            <Border Grid.Row="1" Background="{StaticResource CardBackground}" Margin="8,4,8,8" CornerRadius="8">
+                <Border.Effect>
+                    <DropShadowEffect Color="#000000" Direction="270" ShadowDepth="2" Opacity="0.1" BlurRadius="4"/>
+                </Border.Effect>
+                <ContentControl x:Name="SettingsContainer">
+                </ContentControl>
+            </Border>
         </Grid>
     </Grid>
 </Window>
