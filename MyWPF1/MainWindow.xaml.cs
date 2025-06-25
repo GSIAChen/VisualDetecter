@@ -22,6 +22,8 @@ namespace MyWPF1
         {
             InitializeComponent();
             this.DataContext = this;
+            var pipeServer = new NamedPipeImageServer();
+            _ = pipeServer.StartListeningAsync();  // 异步监听 Named Pipe，永不阻塞
         }
 
         // 示例事件处理（需要时添加）
@@ -57,10 +59,11 @@ namespace MyWPF1
             var scriptWindow = new ScriptWindow
             {
                 Owner = this,
-                // 订阅事件
             };
             scriptWindow.CameraResultReported += OnCameraResultReported;
-            scriptWindow.ShowDialog();
+            scriptWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            scriptWindow.ShowInTaskbar = false;
+            scriptWindow.Show();
         }
 
         private void AlgorithmButton_Click(object sender, RoutedEventArgs e)
@@ -69,7 +72,7 @@ namespace MyWPF1
             {
                 Owner = this // 设置父窗口
             };
-            algorithmWindow.ShowDialog();
+            algorithmWindow.Show();
         }
 
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
@@ -78,7 +81,7 @@ namespace MyWPF1
             {
                 Owner = this // 设置父窗口
             };
-            settingsWindow.ShowDialog();
+            settingsWindow.Show();
         }
 
         private void LaunchLabelingTool_Click(object sender, RoutedEventArgs e)
