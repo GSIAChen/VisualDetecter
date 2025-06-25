@@ -96,6 +96,7 @@ namespace MyWPF1
                     IsOk = allOk
                 });
                 Debug.WriteLine($"Script {script} executed. Result: {(allOk ? "OK" : "NG")}");
+                Debug.WriteLine($"Executing script: {script}");
                 SendResultToCpp(index, allOk);
             }
         }
