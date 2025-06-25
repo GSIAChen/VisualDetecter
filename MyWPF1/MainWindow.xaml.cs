@@ -28,16 +28,28 @@ namespace MyWPF1
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
             // 开始按钮逻辑
+            System.Windows.MessageBox.Show("开始检测", "提示");
         }
 
         private void StopButton_Click(object sender, RoutedEventArgs e)
         {
             // 停止按钮逻辑
+            System.Windows.MessageBox.Show("停止检测", "提示");
         }
 
         private void ClearButton_Click(object sender, RoutedEventArgs e)
         {
-            // 停止按钮逻辑
+            // 清料按钮逻辑 - 清空所有统计数据
+            foreach (var stat in Stats)
+            {
+                stat.OkCount = 0;
+                stat.NgCount = 0;
+                stat.ReCount = 0;
+            }
+            TotalStat.OkCount = 0;
+            TotalStat.NgCount = 0;
+            TotalStat.ReCount = 0;
+            System.Windows.MessageBox.Show("统计数据已清空", "提示");
         }
 
         private void ScriptButton_Click(object sender, RoutedEventArgs e)
@@ -127,27 +139,45 @@ namespace MyWPF1
     public class CameraStat : INotifyPropertyChanged
     {
         public int CameraIndex { get; }
-        public string DisplayHeader => $"相机{CameraIndex}统计";
+        public string DisplayHeader => CameraIndex == -1 ? "全部机位统计" : $"相机{CameraIndex}统计";
 
         private int _okCount = 0;
         public int OkCount
         {
             get => _okCount;
-            set { _okCount = value; OnPropertyChanged(); OnPropertyChanged(nameof(TotalCount)); OnPropertyChanged(nameof(Accuracy)); }
+            set 
+            { 
+                _okCount = value; 
+                OnPropertyChanged(); 
+                OnPropertyChanged(nameof(TotalCount)); 
+                OnPropertyChanged(nameof(Accuracy)); 
+            }
         }
 
         private int _ngCount = 0;
         public int NgCount
         {
             get => _ngCount;
-            set { _ngCount = value; OnPropertyChanged(); OnPropertyChanged(nameof(TotalCount)); OnPropertyChanged(nameof(Accuracy)); }
+            set 
+            { 
+                _ngCount = value; 
+                OnPropertyChanged(); 
+                OnPropertyChanged(nameof(TotalCount)); 
+                OnPropertyChanged(nameof(Accuracy)); 
+            }
         }
 
         private int _reCount = 0;
         public int ReCount
         {
             get => _reCount;
-            set { _reCount = value; OnPropertyChanged(); OnPropertyChanged(nameof(TotalCount)); OnPropertyChanged(nameof(Accuracy)); }
+            set 
+            { 
+                _reCount = value; 
+                OnPropertyChanged(); 
+                OnPropertyChanged(nameof(TotalCount)); 
+                OnPropertyChanged(nameof(Accuracy)); 
+            }
         }
 
         // 通过 OkCount + NgCount 自动计算总数

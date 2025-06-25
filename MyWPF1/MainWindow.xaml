@@ -367,35 +367,43 @@
                         <StackPanel>
                             <StackPanel>
                                 <!-- 全部机位总计 Expander -->
-                                <Expander Header="全部机位统计" IsExpanded="True" Margin="0,0,0,10"
-                                                       Height="125">
-                                    <Grid Background="AliceBlue">
-                                        <!-- 这里直接和之前一模一样，把绑定改成 TotalStat.xxx -->
+                                <Expander Header="全部机位统计" IsExpanded="True" Margin="0,0,0,10">
+                                    <Grid Background="Transparent" Margin="5">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
-                                            <RowDefinition Height="*"/>
-                                            <RowDefinition Height="*"/>
-                                            <RowDefinition Height="*"/>
-                                            <RowDefinition Height="*"/>
-                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
 
                                         <!-- 左侧标题列 -->
-                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="总数" VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="合格率" VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="OK数量" VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Row="3" Grid.Column="0" Text="NG数量" VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Row="4" Grid.Column="0" Text="回收数量" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="总数" VerticalAlignment="Center" 
+                                                   Foreground="{StaticResource LightTextBrush}" FontWeight="SemiBold" Margin="5,3"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="合格率" VerticalAlignment="Center" 
+                                                   Foreground="{StaticResource LightTextBrush}" FontWeight="SemiBold" Margin="5,3"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="OK数量" VerticalAlignment="Center" 
+                                                   Foreground="{StaticResource LightTextBrush}" FontWeight="SemiBold" Margin="5,3"/>
+                                        <TextBlock Grid.Row="3" Grid.Column="0" Text="NG数量" VerticalAlignment="Center" 
+                                                   Foreground="{StaticResource LightTextBrush}" FontWeight="SemiBold" Margin="5,3"/>
+                                        <TextBlock Grid.Row="4" Grid.Column="0" Text="回收数量" VerticalAlignment="Center" 
+                                                   Foreground="{StaticResource LightTextBrush}" FontWeight="SemiBold" Margin="5,3"/>
 
                                         <!-- 右侧值列 -->
-                                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalStat.TotalCount}" VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TotalStat.Accuracy, StringFormat=P1}" VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding TotalStat.OkCount}" VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding TotalStat.NgCount}" VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding TotalStat.ReCount}" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalStat.TotalCount}" VerticalAlignment="Center" 
+                                                   Foreground="{StaticResource PrimaryBrush}" FontWeight="Bold" Margin="5,3"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TotalStat.Accuracy, StringFormat=P1}" VerticalAlignment="Center" 
+                                                   Foreground="{StaticResource SecondaryBrush}" FontWeight="Bold" Margin="5,3"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding TotalStat.OkCount}" VerticalAlignment="Center" 
+                                                   Foreground="{StaticResource SecondaryBrush}" FontWeight="Bold" Margin="5,3"/>
+                                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding TotalStat.NgCount}" 
+                                                   Foreground="{StaticResource DangerBrush}" FontWeight="Bold" Margin="5,3"/>
+                                        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding TotalStat.ReCount}" 
+                                                   Foreground="{StaticResource AccentBrush}" FontWeight="Bold" Margin="5,3"/>
                                     </Grid>
                                 </Expander>
 
@@ -404,33 +412,43 @@
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <Expander Header="{Binding DisplayHeader}"
-                                                              IsExpanded="False" Margin="0,0,0,10" Height="125">
-                                                <Grid Background="AliceBlue">
+                                                              IsExpanded="False" Margin="0,0,0,10">
+                                                <Grid Background="Transparent" Margin="5">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*" />
                                                         <ColumnDefinition Width="*" />
                                                     </Grid.ColumnDefinitions>
                                                     <Grid.RowDefinitions>
-                                                        <RowDefinition Height="*"/>
-                                                        <RowDefinition Height="*"/>
-                                                        <RowDefinition Height="*"/>
-                                                        <RowDefinition Height="*"/>
-                                                        <RowDefinition Height="*"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
                                                     </Grid.RowDefinitions>
 
                                                     <!-- 左侧标题列 -->
-                                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="总数" />
-                                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="合格率" />
-                                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="OK数量" />
-                                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="NG数量" />
-                                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="回收数量" />
+                                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="总数" 
+                                                               Foreground="{StaticResource LightTextBrush}" FontWeight="SemiBold" Margin="5,3"/>
+                                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="合格率" 
+                                                               Foreground="{StaticResource LightTextBrush}" FontWeight="SemiBold" Margin="5,3"/>
+                                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="OK数量" 
+                                                               Foreground="{StaticResource LightTextBrush}" FontWeight="SemiBold" Margin="5,3"/>
+                                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="NG数量" 
+                                                               Foreground="{StaticResource LightTextBrush}" FontWeight="SemiBold" Margin="5,3"/>
+                                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="回收数量" 
+                                                               Foreground="{StaticResource LightTextBrush}" FontWeight="SemiBold" Margin="5,3"/>
 
                                                     <!-- 右侧值列 -->
-                                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalCount}" />
-                                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Accuracy, StringFormat=P1}" />
-                                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding OkCount}" />
-                                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding NgCount}" />
-                                                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ReCount}" />
+                                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalCount}" 
+                                                               Foreground="{StaticResource PrimaryBrush}" FontWeight="Bold" Margin="5,3"/>
+                                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Accuracy, StringFormat=P1}" 
+                                                               Foreground="{StaticResource SecondaryBrush}" FontWeight="Bold" Margin="5,3"/>
+                                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding OkCount}" 
+                                                               Foreground="{StaticResource SecondaryBrush}" FontWeight="Bold" Margin="5,3"/>
+                                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding NgCount}" 
+                                                               Foreground="{StaticResource DangerBrush}" FontWeight="Bold" Margin="5,3"/>
+                                                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ReCount}" 
+                                                               Foreground="{StaticResource AccentBrush}" FontWeight="Bold" Margin="5,3"/>
                                                 </Grid>
                                             </Expander>
                                         </DataTemplate>

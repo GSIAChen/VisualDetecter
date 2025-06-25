@@ -10,8 +10,141 @@
              xmlns:winforms="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
              xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
              xmlns:ctrl="clr-namespace:MyWPF1.Controls"
-                    d:DesignHeight="450" d:DesignWidth="800" Background="AntiqueWhite">
-    <Grid>
+                    d:DesignHeight="450" d:DesignWidth="800" Background="#23272E">
+    <UserControl.Resources>
+        <local:IndexConverter x:Key="IndexConverter"/>
+        <local:ComboBoxIndexConverter x:Key="ComboBoxIndexConverter"/>
+        <SolidColorBrush x:Key="DarkBackground" Color="#23272E"/>
+        <SolidColorBrush x:Key="CardBackground" Color="#21232B"/>
+        <SolidColorBrush x:Key="AccentColor" Color="#4DACFF"/>
+        <SolidColorBrush x:Key="PrimaryText" Color="#E0E0E0"/>
+        <SolidColorBrush x:Key="SecondaryText" Color="#B0B0B0"/>
+        <SolidColorBrush x:Key="BorderColor" Color="#3A3F4B"/>
+        
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+        </Style>
+        
+        <Style TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
+            <Setter Property="Background" Value="#2D313A"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#3A3F4B"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style TargetType="TextBox">
+            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
+            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="CaretBrush" Value="{StaticResource AccentColor}"/>
+            <Setter Property="Height" Value="28"/>
+        </Style>
+        
+        <Style TargetType="Slider">
+            <Setter Property="Background" Value="#23272E"/>
+            <Setter Property="Foreground" Value="{StaticResource AccentColor}"/>
+            <Setter Property="Height" Value="22"/>
+        </Style>
+        
+        <Style TargetType="ctrl:NumericUpDown">
+            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
+            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Height" Value="28"/>
+        </Style>
+        
+        <Style TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardBackground}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+        </Style>
+    </UserControl.Resources>
+    
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="15">
+        <StackPanel>
+            <!-- 连接性分析设置 -->
+            <Border Background="{StaticResource CardBackground}" CornerRadius="8" Margin="0,0,0,15">
+                <StackPanel Margin="15">
+                    <TextBlock Text="连接性分析设置" FontWeight="Bold" FontSize="15" Foreground="{StaticResource AccentColor}" Margin="0,0,0,15"/>
+                    
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <!-- 连接性类型 -->
+                        <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                            <TextBlock Text="连接性类型：" Style="{StaticResource LabelText}" Margin="0,0,0,5"/>
+                            <ComboBox ItemsSource="{Binding ConnectivityTypes}" 
+                                      SelectedItem="{Binding SelectedConnectivity}"
+                                      Width="150" HorizontalAlignment="Left"/>
+                        </StackPanel>
+                        
+                        <!-- 最小面积 -->
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="最小面积：" Style="{StaticResource LabelText}" Margin="0,0,0,5"/>
+                            <ctrl:NumericUpDown Value="{Binding MinArea}" Minimum="1" Maximum="10000" 
+                                                Width="120" HorizontalAlignment="Left"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
             
-    </Grid>
+            <!-- 区域属性设置 -->
+            <Border Background="{StaticResource CardBackground}" CornerRadius="8">
+                <StackPanel Margin="15">
+                    <TextBlock Text="区域属性设置" FontWeight="Bold" FontSize="15" Foreground="{StaticResource AccentColor}" Margin="0,0,0,15"/>
+                    
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <!-- 最大面积 -->
+                        <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                            <TextBlock Text="最大面积：" Style="{StaticResource LabelText}" Margin="0,0,0,5"/>
+                            <ctrl:NumericUpDown Value="{Binding MaxArea}" Minimum="1" Maximum="100000" 
+                                                Width="120" HorizontalAlignment="Left"/>
+                        </StackPanel>
+                        
+                        <!-- 区域数量 -->
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="区域数量：" Style="{StaticResource LabelText}" Margin="0,0,0,5"/>
+                            <TextBlock Text="{Binding RegionCount}" FontWeight="SemiBold" 
+                                       Foreground="{StaticResource AccentColor}" HorizontalAlignment="Left"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>

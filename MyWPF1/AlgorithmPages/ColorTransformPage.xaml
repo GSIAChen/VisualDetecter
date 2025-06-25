@@ -9,157 +9,156 @@
       mc:Ignorable="d" 
       xmlns:winforms="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
       xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
-      d:DesignHeight="450" d:DesignWidth="800" Background="#1E1E1E">
+      xmlns:ctrl="clr-namespace:MyWPF1.Controls"
+      d:DesignHeight="450" d:DesignWidth="800" Background="#23272E">
     <UserControl.Resources>
-        <!-- 深色主题资源 -->
-        <SolidColorBrush x:Key="DarkBackground" Color="#1E1E1E"/>
-        <SolidColorBrush x:Key="MediumBackground" Color="#23272E"/>
-        <SolidColorBrush x:Key="LightBackground" Color="#2D2D30"/>
-        <SolidColorBrush x:Key="AccentColor" Color="#007ACC"/>
-        <SolidColorBrush x:Key="AccentHover" Color="#0086D1"/>
-        <SolidColorBrush x:Key="AccentPressed" Color="#005A9E"/>
-        <SolidColorBrush x:Key="TextColor" Color="#E0E0E0"/>
-        <SolidColorBrush x:Key="SubTextColor" Color="#A0A0A0"/>
-        <SolidColorBrush x:Key="BorderColor" Color="#3F3F46"/>
-        <SolidColorBrush x:Key="InputBackground" Color="#23272E"/>
-
-        <!-- 标题卡片样式 -->
-        <Style x:Key="TitleCard" TargetType="Border">
-            <Setter Property="CornerRadius" Value="12"/>
-            <Setter Property="Padding" Value="0,0,0,0"/>
-            <Setter Property="Margin" Value="0,0,0,18"/>
-            <Setter Property="Background">
-                <Setter.Value>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#2D8CF0" Offset="0"/>
-                        <GradientStop Color="#007ACC" Offset="1"/>
-                    </LinearGradientBrush>
-                </Setter.Value>
-            </Setter>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Color="#66000000"/>
-                </Setter.Value>
-            </Setter>
+        <local:IndexConverter x:Key="IndexConverter"/>
+        <local:ComboBoxIndexConverter x:Key="ComboBoxIndexConverter"/>
+        <SolidColorBrush x:Key="DarkBackground" Color="#23272E"/>
+        <SolidColorBrush x:Key="CardBackground" Color="#21232B"/>
+        <SolidColorBrush x:Key="AccentColor" Color="#4DACFF"/>
+        <SolidColorBrush x:Key="PrimaryText" Color="#E0E0E0"/>
+        <SolidColorBrush x:Key="SecondaryText" Color="#B0B0B0"/>
+        <SolidColorBrush x:Key="BorderColor" Color="#3A3F4B"/>
+        
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Normal"/>
         </Style>
-        <!-- 内容卡片样式 -->
-        <Style x:Key="Card" TargetType="Border">
-            <Setter Property="CornerRadius" Value="10"/>
-            <Setter Property="Background" Value="{StaticResource LightBackground}"/>
-            <Setter Property="Margin" Value="0,0,0,18"/>
-            <Setter Property="Padding" Value="20,18"/>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Color="#33000000"/>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <!-- 标题文本样式 -->
-        <Style x:Key="TitleText" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="20"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="HorizontalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="18,0,0,0"/>
-        </Style>
-        <!-- 通道名文本样式 -->
-        <Style x:Key="ChannelText" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
-            <Setter Property="FontSize" Value="16"/>
+        
+        <Style TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
+            <Setter Property="Background" Value="#2D313A"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Margin" Value="0,0,10,0"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-        </Style>
-        <!-- 复选框美化 -->
-        <Style TargetType="CheckBox">
-            <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
-            <Setter Property="FontSize" Value="16"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="HorizontalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="10,0,0,0"/>
-            <Setter Property="Padding" Value="5"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="CheckBox">
-                        <StackPanel Orientation="Horizontal">
-                            <Border x:Name="box" Width="20" Height="20" CornerRadius="4" BorderThickness="2" BorderBrush="{StaticResource AccentColor}" Background="{StaticResource InputBackground}">
-                                <Path x:Name="check" Data="M 4 10 L 9 15 L 16 6" Stroke="{StaticResource AccentColor}" StrokeThickness="2" Visibility="Collapsed"/>
-                            </Border>
-                            <ContentPresenter VerticalAlignment="Center" Margin="8,0,0,0"/>
-                        </StackPanel>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="box" Property="Background" Value="{StaticResource AccentColor}"/>
-                                <Setter TargetName="check" Property="Visibility" Value="Visible"/>
-                            </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="box" Property="BorderBrush" Value="{StaticResource AccentHover}"/>
+                                <Setter Property="Background" Value="#3A3F4B"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
+        
+        <Style TargetType="TextBox">
+            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
+            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="CaretBrush" Value="{StaticResource AccentColor}"/>
+            <Setter Property="Height" Value="28"/>
+        </Style>
+        
+        <Style TargetType="Slider">
+            <Setter Property="Background" Value="#23272E"/>
+            <Setter Property="Foreground" Value="{StaticResource AccentColor}"/>
+            <Setter Property="Height" Value="22"/>
+        </Style>
+        
+        <Style TargetType="ctrl:NumericUpDown">
+            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
+            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Height" Value="28"/>
+        </Style>
+        
+        <Style TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardBackground}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+        </Style>
     </UserControl.Resources>
-    <Grid Margin="30" Background="{StaticResource MediumBackground}">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <!-- RGB标题卡片 -->
-        <Border Style="{StaticResource TitleCard}" Grid.Row="0">
-            <TextBlock Text="RGB通道" Style="{StaticResource TitleText}"/>
-        </Border>
-        <!-- RGB内容卡片 -->
-        <Border Style="{StaticResource Card}" Grid.Row="1">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center">
-                    <TextBlock Text="R通道" Style="{StaticResource ChannelText}"/>
-                    <CheckBox IsChecked="{Binding RedChannel}"/>
+    
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="15">
+        <StackPanel>
+            <!-- 颜色空间转换 -->
+            <Border Background="{StaticResource CardBackground}" CornerRadius="8" Margin="0,0,0,15">
+                <StackPanel Margin="15">
+                    <TextBlock Text="颜色空间转换" FontWeight="Bold" FontSize="15" Foreground="{StaticResource AccentColor}" Margin="0,0,0,15"/>
+                    
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <!-- 源颜色空间 -->
+                        <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                            <TextBlock Text="源颜色空间：" Style="{StaticResource LabelText}" Margin="0,0,0,5"/>
+                            <ComboBox ItemsSource="{Binding SourceColorSpaces}" 
+                                      SelectedItem="{Binding SelectedSourceColorSpace}"
+                                      Width="150" HorizontalAlignment="Left"/>
+                        </StackPanel>
+                        
+                        <!-- 目标颜色空间 -->
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="目标颜色空间：" Style="{StaticResource LabelText}" Margin="0,0,0,5"/>
+                            <ComboBox ItemsSource="{Binding TargetColorSpaces}" 
+                                      SelectedItem="{Binding SelectedTargetColorSpace}"
+                                      Width="150" HorizontalAlignment="Left"/>
+                        </StackPanel>
+                    </Grid>
                 </StackPanel>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
-                    <TextBlock Text="G通道" Style="{StaticResource ChannelText}"/>
-                    <CheckBox IsChecked="{Binding GreenChannel}"/>
+            </Border>
+            
+            <!-- 颜色通道设置 -->
+            <Border Background="{StaticResource CardBackground}" CornerRadius="8">
+                <StackPanel Margin="15">
+                    <TextBlock Text="颜色通道设置" FontWeight="Bold" FontSize="15" Foreground="{StaticResource AccentColor}" Margin="0,0,0,15"/>
+                    
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <!-- 红色通道 -->
+                        <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                            <TextBlock Text="红色通道：" Style="{StaticResource LabelText}" Margin="0,0,0,5"/>
+                            <Slider Minimum="0" Maximum="255" Value="{Binding RedChannel}" 
+                                    Width="150" HorizontalAlignment="Left"/>
+                            <ctrl:NumericUpDown Value="{Binding RedChannel}" Minimum="0" Maximum="255" 
+                                                Width="80" HorizontalAlignment="Left" Margin="0,5,0,0"/>
+                        </StackPanel>
+                        
+                        <!-- 绿色通道 -->
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="绿色通道：" Style="{StaticResource LabelText}" Margin="0,0,0,5"/>
+                            <Slider Minimum="0" Maximum="255" Value="{Binding GreenChannel}" 
+                                    Width="150" HorizontalAlignment="Left"/>
+                            <ctrl:NumericUpDown Value="{Binding GreenChannel}" Minimum="0" Maximum="255" 
+                                                Width="80" HorizontalAlignment="Left" Margin="0,5,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                    
+                    <!-- 蓝色通道 -->
+                    <StackPanel Margin="0,15,0,0">
+                        <TextBlock Text="蓝色通道：" Style="{StaticResource LabelText}" Margin="0,0,0,5"/>
+                        <Slider Minimum="0" Maximum="255" Value="{Binding BlueChannel}" 
+                                Width="150" HorizontalAlignment="Left"/>
+                        <ctrl:NumericUpDown Value="{Binding BlueChannel}" Minimum="0" Maximum="255" 
+                                            Width="80" HorizontalAlignment="Left" Margin="0,5,0,0"/>
+                    </StackPanel>
                 </StackPanel>
-                <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center">
-                    <TextBlock Text="B通道" Style="{StaticResource ChannelText}"/>
-                    <CheckBox IsChecked="{Binding BlueChannel}"/>
-                </StackPanel>
-            </Grid>
-        </Border>
-        <!-- HSV标题卡片 -->
-        <Border Style="{StaticResource TitleCard}" Grid.Row="2">
-            <TextBlock Text="HSV通道" Style="{StaticResource TitleText}"/>
-        </Border>
-        <!-- HSV内容卡片 -->
-        <Border Style="{StaticResource Card}" Grid.Row="3">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center">
-                    <TextBlock Text="H通道" Style="{StaticResource ChannelText}"/>
-                    <CheckBox IsChecked="{Binding HueChannel}"/>
-                </StackPanel>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
-                    <TextBlock Text="S通道" Style="{StaticResource ChannelText}"/>
-                    <CheckBox IsChecked="{Binding SaturationChannel}"/>
-                </StackPanel>
-                <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center">
-                    <TextBlock Text="V通道" Style="{StaticResource ChannelText}"/>
-                    <CheckBox IsChecked="{Binding ValueChannel}"/>
-                </StackPanel>
-            </Grid>
-        </Border>
-    </Grid>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>

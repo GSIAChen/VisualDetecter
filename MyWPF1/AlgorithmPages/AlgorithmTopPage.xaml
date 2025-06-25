@@ -17,23 +17,32 @@
         <SolidColorBrush x:Key="ButtonBackground" Color="#2D313A"/>
         <SolidColorBrush x:Key="ButtonHover" Color="#3A3F4B"/>
         <SolidColorBrush x:Key="BorderBrush" Color="#3A3F4B"/>
+        <SolidColorBrush x:Key="PrimaryText" Color="#E0E0E0"/>
+        <SolidColorBrush x:Key="SecondaryText" Color="#B0B0B0"/>
+        <SolidColorBrush x:Key="AccentColor" Color="#4DACFF"/>
+        
         <Style TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource LightForeground}"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Normal"/>
         </Style>
+        
         <Style TargetType="Button">
-            <Setter Property="Foreground" Value="{StaticResource LightForeground}"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
             <Setter Property="Background" Value="{StaticResource ButtonBackground}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}" 
                                 BorderBrush="{TemplateBinding BorderBrush}" 
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="8">
+                                CornerRadius="6">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -45,133 +54,96 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        
         <Style TargetType="ComboBox">
-            <Setter Property="Foreground" Value="{StaticResource LightForeground}"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
             <Setter Property="Background" Value="{StaticResource CardBackground}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Height" Value="28"/>
         </Style>
+        
         <Style TargetType="ComboBoxItem">
-            <Setter Property="Foreground" Value="{StaticResource LightForeground}"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
             <Setter Property="Background" Value="{StaticResource CardBackground}"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontSize" Value="13"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Padding" Value="8,2"/>
+            <Setter Property="Padding" Value="8,4"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ComboBoxItem">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="4">
                             <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter Property="Background" Value="#3A3F4B"/>
-                                <Setter Property="Foreground" Value="#4DACFF"/>
+                                <Setter Property="Foreground" Value="{StaticResource AccentColor}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#2A2F3A"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
+        
         <Style TargetType="CheckBox">
-            <Setter Property="Foreground" Value="{StaticResource LightForeground}"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Normal"/>
         </Style>
+        
         <Style TargetType="Border">
             <Setter Property="Background" Value="{StaticResource CardBackground}"/>
-            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="CornerRadius" Value="8"/>
         </Style>
     </UserControl.Resources>
-    <Grid Margin="10">
-        <ContentControl x:Name="AlgorithmTopContainer">
-            <ContentControl.ContentTemplate>
-                <DataTemplate>
-                    <ContentPresenter Content="{TemplateBinding Content}">
-                        <ContentPresenter.RenderTransform>
-                            <TranslateTransform X="300"/>
-                        </ContentPresenter.RenderTransform>
-                        <ContentPresenter.Triggers>
-                            <EventTrigger RoutedEvent="ContentPresenter.Loaded">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation 
-                                    Storyboard.TargetProperty="RenderTransform.X"
-                                    From="300" To="0" 
-                                    Duration="0:0:0.3"
-                                    DecelerationRatio="0.6"/>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                        </ContentPresenter.Triggers>
-                    </ContentPresenter>
-                </DataTemplate>
-            </ContentControl.ContentTemplate>
-        </ContentControl>
-        <!-- 基本属性卡片 -->
-        <Border Background="{StaticResource CardBackground}" CornerRadius="12">
+    
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- 标题栏 -->
+        <Border Grid.Row="0" Background="{StaticResource CardBackground}" CornerRadius="8" Margin="0,0,0,10">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="8" ShadowDepth="2" Color="#66000000"/>
             </Border.Effect>
+            <TextBlock Text="基本属性" FontWeight="Bold" FontSize="16" Foreground="{StaticResource AccentColor}"
+                       Margin="15,10" HorizontalAlignment="Left" VerticalAlignment="Center"/>
         </Border>
-        <TextBlock Grid.Row="0" Text="基本属性" FontWeight="Bold" FontSize="16"
-                       Margin="0,0" Height="20" Width="90"
-                       HorizontalAlignment="Left" VerticalAlignment="Top">
-            <TextBlock.Background>
-                <DrawingBrush>
-                    <DrawingBrush.Drawing>
-                        <GeometryDrawing>
-                            <GeometryDrawing.Geometry>
-                                <PathGeometry>
-                                    <PathFigure StartPoint="0,0" IsClosed="True">
-                                        <!-- 左侧直线 -->
-                                        <LineSegment Point="80,0"/>
-                                        <!-- 右侧弧线 -->
-                                        <ArcSegment Point="80,20"
-                                            Size="10,10"
-                                            SweepDirection="Clockwise"
-                                            RotationAngle="90"/>
-                                        <!-- 底部直线 -->
-                                        <LineSegment Point="0,20"/>
-                                    </PathFigure>
-                                </PathGeometry>
-                            </GeometryDrawing.Geometry>
-                            <GeometryDrawing.Brush>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#4DACFF" Offset="0"/>
-                                    <GradientStop Color="#0080FF" Offset="1"/>
-                                </LinearGradientBrush>
-                            </GeometryDrawing.Brush>
-                        </GeometryDrawing>
-                    </DrawingBrush.Drawing>
-                </DrawingBrush>
-            </TextBlock.Background>
-        </TextBlock>
-        <Grid>
+        
+        <!-- 内容区域 -->
+        <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0"
-                       FontSize="14"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
-                       Text="{Binding CurrentToolInstance.DisplayName}"/>
-            <Grid Grid.Column="1">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <Grid Grid.Row="0">
+            
+            <!-- 工具名称 -->
+            <Border Grid.Column="0" Background="{StaticResource CardBackground}" CornerRadius="8" Margin="5">
+                <TextBlock Text="{Binding CurrentToolInstance.DisplayName}" 
+                           FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource AccentColor}"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10"/>
+            </Border>
+            
+            <!-- 图源选择和保存按钮 -->
+            <StackPanel Grid.Column="1" Margin="5">
+                <Grid Margin="0,0,0,10">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="图源：" FontSize="14"
-                           HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="0" Text="图源：" FontSize="13" Foreground="{StaticResource SecondaryText}"
+                               HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
                     <ComboBox Grid.Column="1" AlternationCount="1000" ItemsSource="{Binding FilteredSources}"
                               SelectedItem="{Binding SelectedSource, Mode=TwoWay}"
-                              Width="90" Height="30" HorizontalAlignment="Left" VerticalAlignment="Center"
                               VerticalContentAlignment="Center" IsReadOnly="True">
                         <ComboBox.ItemContainerStyle>
                             <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}"/>
@@ -189,8 +161,8 @@
                                                         RelativeSource={RelativeSource AncestorType=ComboBoxItem},
                                                         Path=(ItemsControl.AlternationIndex),
                                                         Converter={StaticResource ComboBoxIndexConverter}}"
-                                                        VerticalAlignment="Center"/>
-                                                <TextBlock Text="{Binding Text}" VerticalAlignment="Center"/>
+                                                        VerticalAlignment="Center" Foreground="{StaticResource SecondaryText}"/>
+                                                <TextBlock Text="{Binding Text}" VerticalAlignment="Center" Margin="5,0,0,0"/>
                                             </StackPanel>
                                         </DataTemplate>
                                     </ContentControl.Resources>
@@ -200,19 +172,15 @@
                         </ComboBox.ItemTemplate>
                     </ComboBox>
                 </Grid>
-                <Button Grid.Row="1" x:Name="SaveButton" Content="保存"
-                        Width="90" Height="30" Command="{Binding SaveCommand}"
-                        VerticalAlignment="Center" HorizontalAlignment="Center"/>
-            </Grid>
-            <Grid Grid.Column="2">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <CheckBox Grid.Row="0" Content="屏蔽此项" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <CheckBox Grid.Row="1" Content="显示输出" IsChecked="True"
-                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Grid>
+                <Button x:Name="SaveButton" Content="保存" Command="{Binding SaveCommand}"
+                        HorizontalAlignment="Center" Width="80" Height="28"/>
+            </StackPanel>
+            
+            <!-- 选项设置 -->
+            <StackPanel Grid.Column="2" Margin="5">
+                <CheckBox Content="屏蔽此项" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,10"/>
+                <CheckBox Content="显示输出" IsChecked="True" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </StackPanel>
         </Grid>
     </Grid>
 </UserControl>
