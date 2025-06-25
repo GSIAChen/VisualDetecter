@@ -161,7 +161,7 @@ namespace MyWPF1.ViewModels
         {
             if (_inputImage == null || !_inputImage.IsInitialized()) return;
             HObject tmp = null;
-       
+
             if (EnableGauss)
             {
                 HOperatorSet.GaussFilter(_inputImage, out tmp, new HTuple(GaussSize));

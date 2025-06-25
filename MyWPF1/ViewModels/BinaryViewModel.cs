@@ -12,15 +12,33 @@ namespace MyWPF1.ViewModels
         [
             "dark","light"
         ];
-        private int _globalThreshold = 128;
-        public int GlobalThreshold
+        public ObservableCollection<string> MethodOptions { get; } =
+        [
+            "max_separability","smooth_histo"
+        ];
+
+        private int _lowerBound = 0;
+        public int LowerBound
         {
-            get => _globalThreshold;
+            get => _lowerBound;
             set
             {
-                if (_globalThreshold == value) return;
-                _globalThreshold = value;
-                OnPropertyChanged(nameof(GlobalThreshold));
+                if (_lowerBound == value) return;
+                _lowerBound = value;
+                OnPropertyChanged(nameof(LowerBound));
+                Apply();
+            }
+        }
+
+        private int _upperBound = 128;
+        public int UpperBound
+        {
+            get => _upperBound;
+            set
+            {
+                if (_upperBound == value) return;
+                _upperBound = value;
+                OnPropertyChanged(nameof(UpperBound));
                 Apply();
             }
         }
@@ -36,6 +54,7 @@ namespace MyWPF1.ViewModels
 
                 // 如果选择了全局，则取消局部
                 if (value) EnableLocalThreshold = false;
+                if (value) EnableBinaryThreshold = false;
 
                 OnPropertyChanged(nameof(EnableGlobalThreshold));
                 Apply();
@@ -92,8 +111,53 @@ namespace MyWPF1.ViewModels
 
                 // 如果选择了局部，则取消全局
                 if (value) EnableGlobalThreshold = false;
+                if (value) EnableBinaryThreshold = false;
 
                 OnPropertyChanged(nameof(EnableLocalThreshold));
+                Apply();
+            }
+        }
+
+        private string _method = "max_separability";
+        public string Method
+        {
+            get => _method;
+            set
+            {
+                if (_method == value) return;
+                _method = value;
+                OnPropertyChanged(nameof(Method));
+                Apply();
+            }
+        }
+
+        private string _binaryColor = "dark";
+        public string BinaryColor
+        {
+            get => _binaryColor;
+            set
+            {
+                if (_binaryColor == value) return;
+                _binaryColor = value;
+                OnPropertyChanged(nameof(BinaryColor));
+                Apply();
+            }
+        }
+
+        private bool _enableBinaryThreshold = false;
+        public bool EnableBinaryThreshold
+        {
+            get => _enableBinaryThreshold;
+            set
+            {
+                if (_enableBinaryThreshold == value) return;
+                _enableBinaryThreshold = value;
+
+                // 如果选择了全局，则取消局部
+                if (value) EnableLocalThreshold = false;
+                if (value) EnableGlobalThreshold = false;
+
+                OnPropertyChanged(nameof(EnableBinaryThreshold));
                 Apply();
             }
         }
@@ -103,7 +167,6 @@ namespace MyWPF1.ViewModels
             // 全局阈值分割
             if (_inputImage == null || !_inputImage.IsInitialized()) return;
 
-            Debug.WriteLine($"Global Threshold: {_globalThreshold}, Light/Dark: {LightDark}");
             HOperatorSet.CountChannels(_inputImage, out HTuple channels);
             bool isGray = (channels.I == 1);
             if (!isGray)
@@ -113,9 +176,11 @@ namespace MyWPF1.ViewModels
                 _inputImage = grayImage;
                 r.Dispose(); g.Dispose(); b.Dispose();
             }
+            if (_lowerBound > _upperBound)
+                _lowerBound = _upperBound - 1;
             if (EnableGlobalThreshold)
             {
-                HOperatorSet.Threshold(_inputImage, out _region, _globalThreshold, 255);
+                HOperatorSet.Threshold(_inputImage, out _region, new HTuple(LowerBound), new HTuple(UpperBound));
                 HOperatorSet.PaintRegion(_region,
                              _inputImage,
                              out _resultImage,
@@ -133,13 +198,24 @@ namespace MyWPF1.ViewModels
                 HOperatorSet.LocalThreshold(_inputImage, out HObject localRegion, new HTuple("adapted_std_deviation"),
                     new HTuple(LightDark),
                     new HTuple(new string[] { "mask_size", "scale", "range" }),
-                    new HTuple(new HTuple[] { new(MaskSize), new(Scale), range}));
+                    new HTuple(new HTuple[] { new(MaskSize), new(Scale), range }));
                 HOperatorSet.PaintRegion(localRegion,
                              _inputImage,
                              out _resultImage,
                              255,
                              "fill");
                 OnPropertyChanged(nameof(EnableLocalThreshold));
+            }
+            if (EnableBinaryThreshold)
+            {
+                HOperatorSet.BinaryThreshold(_inputImage, out HObject BinaryRegion,
+                    new HTuple(Method), new HTuple(BinaryColor), out HTuple usedThreshold);
+                HOperatorSet.PaintRegion(BinaryRegion,
+                             _inputImage,
+                             out _resultImage,
+                             255,
+                             "fill");
+                OnPropertyChanged(nameof(EnableBinaryThreshold));
             }
             _hWindowControl.HalconWindow.ClearWindow();
             _hWindowControl.HalconWindow.DispObj(_resultImage);

@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 public abstract class ToolBaseViewModel : INotifyPropertyChanged
 {
-    public abstract HObject CurrentResultImage { get; }
+    public virtual HObject CurrentResultImage => _resultImage;
     public abstract void Apply();
     protected HObject _inputImage;
     public HObject _resultImage;
@@ -31,7 +31,6 @@ public abstract class ToolBaseViewModel : INotifyPropertyChanged
     {
         if (_inputImage == image) return;
         _inputImage = image;
-        Apply();
     }
 
     public virtual void SaveResultImage(string path)

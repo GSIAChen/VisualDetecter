@@ -94,6 +94,7 @@ namespace MyWPF1.ViewModels
                 return;
 
             // 2. 确保输入图像是灰度图像，如果是彩色图像则转换为灰度图像
+            /**
             HOperatorSet.CountChannels(_inputImage, out HTuple channels);
             bool isGray = (channels.I == 1);
             if (!isGray)
@@ -103,7 +104,7 @@ namespace MyWPF1.ViewModels
                 _inputImage = grayImage;
                 r.Dispose(); g.Dispose(); b.Dispose();
             }
-            
+            **/
             // 3. 在 ROI 上构造区域并缩小域
             HOperatorSet.GenRectangle1(
                 out HObject rectangle,
@@ -118,11 +119,10 @@ namespace MyWPF1.ViewModels
                 out HObject domainImage);
 
             // 4. 二值化
-            HOperatorSet.Threshold(domainImage, out HObject region, _threshold, 255);
-            _region = region;
+
 
             // 5. 面积检测
-            HOperatorSet.AreaCenter(region, out HTuple areaTuple, out HTuple rowTuple, out HTuple colTuple);
+            HOperatorSet.AreaCenter(domainImage, out HTuple areaTuple, out HTuple rowTuple, out HTuple colTuple);
             Area = areaTuple.D;
 
             HOperatorSet.GenContourRegionXld(
@@ -130,7 +130,7 @@ namespace MyWPF1.ViewModels
             out HObject rectContour,
             "border");
 
-            HOperatorSet.PaintRegion(region,
+            HOperatorSet.PaintRegion(domainImage,
                          _inputImage,
                          out _resultImage,
                          255,
@@ -142,7 +142,7 @@ namespace MyWPF1.ViewModels
             _hWindowControl.HalconWindow.DispObj(rectContour);
 
             // 清理
-            region.Dispose(); rectangle.Dispose(); rectContour.Dispose();
+            rectangle.Dispose(); rectContour.Dispose();
 
             OnPropertyChanged(nameof(Area));
         }

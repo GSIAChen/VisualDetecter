@@ -140,14 +140,14 @@
                     <TextBlock Text="低频阈：" Width="80" Style="{StaticResource LabelText}"/>
                     <Slider Minimum="10" Maximum="40" Width="120" Value="{Binding LowThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     <ctrl:NumericUpDown Value="{Binding LowThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                        Increment="1" Width="55" Height="25"/>
+                                        Minimum="10" Maximum="40" Increment="1" Width="55" Height="25"/>
                 </StackPanel>
                 <!-- 高频阈 -->
                 <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="15,10" VerticalAlignment="Center" HorizontalAlignment="Right">
                     <TextBlock Text="高频阈：" Width="80" Style="{StaticResource LabelText}"/>
                     <Slider Minimum="20" Maximum="80" Width="120" Value="{Binding HighThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     <ctrl:NumericUpDown Value="{Binding HighThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                        Increment="1" Width="55" Height="25"/>
+                                        Minimum="20" Maximum="80" Increment="1" Width="55" Height="25"/>
                 </StackPanel>
             </Grid>
         </Border>

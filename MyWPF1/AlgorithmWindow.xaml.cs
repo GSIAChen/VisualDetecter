@@ -9,7 +9,6 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using Xceed.Wpf.Toolkit.Primitives;
-using System.Threading.Tasks;
 
 namespace MyWPF1
 {
@@ -26,7 +25,7 @@ namespace MyWPF1
         {
             InitializeComponent();
             //Loaded += AlgorithmWindow_Loaded;
-            
+
             _arrowVM = new ArrowViewModel();
             _imageVM = new ImageViewModel(_arrowVM);
 
@@ -37,42 +36,23 @@ namespace MyWPF1
             // 当窗口真正完成首次渲染后，再初始化 VM
             this.ContentRendered += (s, e) =>
             {
-                // Dispatcher 再次延后一个"空闲时机"，确保 HWindowControl 真正拿到尺寸
-                Dispatcher.BeginInvoke(async () =>
+                // Dispatcher 再次延后一个“空闲时机”，确保 HWindowControl 真正拿到尺寸
+                Dispatcher.BeginInvoke(() =>
                 {
-                    try
-                    {
-                        // ① 初始化主图 - 使用相对路径或存在的图片
-                        string imagePath = @"images\test.bmp"; // 改为相对路径
-                        
-                        // 如果相对路径不存在，尝试使用绝对路径
-                        if (!System.IO.File.Exists(imagePath))
-                        {
-                            // 尝试在项目目录下找图片
-                            string projectDir = System.IO.Directory.GetCurrentDirectory();
-                            imagePath = System.IO.Path.Combine(projectDir, "images", "test.bmp");
-                            
-                            // 如果还是不存在，创建一个测试图片或跳过
-                            if (!System.IO.File.Exists(imagePath))
-                            {
-                                System.Windows.MessageBox.Show("未找到测试图片，请确保 images/test.bmp 文件存在");
-                                return;
-                            }
-                        }
-                        
-                        await Task.Run(() => _imageVM.Initialize(imgPage.hWindowControl, imagePath));
+                    // ① 初始化主图
+                    string imagePath = @"F:\钽电容\崩缺.bmp";
+                    _imageVM.Initialize(imgPage.hWindowControl, imagePath);
 
-                        // ② 初始化每个 CCDVM
-                        foreach (var ccd in _arrowVM.CCDs)
-                            await Task.Run(() => ccd.Initialize(imgPage.hWindowControl, _imageVM._image));
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Windows.MessageBox.Show($"初始化失败: {ex.Message}");
-                    }
+                    // ② 初始化每个 CCDVM
+                    foreach (var ccd in _arrowVM.CCDs)
+                        ccd.Initialize(imgPage.hWindowControl, _imageVM._image);
                 }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
             };
-            
+            _arrowVM.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(ArrowViewModel.SelectedCCD))
+                    ShowTopPageForCurrentCCD();
+            };
         }
 
         // 文本点击选择
@@ -113,7 +93,7 @@ namespace MyWPF1
         // 处理拖拽进入时的视觉效果
         private void TargetListBox_DragOver(object sender, System.Windows.DragEventArgs e)
         {
-            // 1. 先做原来的 Drop/Copy 效果判断
+            // 1. 先做原来的 Drop/Copy 效果判断
             if (e.Data.GetDataPresent("Reorder"))
                 e.Effects = System.Windows.DragDropEffects.Move;
             else if (e.Data.GetDataPresent("SelectableItem"))
@@ -121,7 +101,7 @@ namespace MyWPF1
             else
                 e.Effects = (System.Windows.DragDropEffects)GetNone();
 
-            // 2. 自动滚动逻辑
+            // 2. 自动滚动逻辑
             // 鼠标相对于 ListBox 的坐标
             System.Windows.Point pos = e.GetPosition(TargetListBox);
             double height = TargetListBox.ActualHeight;
@@ -154,6 +134,24 @@ namespace MyWPF1
             var ccd = arrow.SelectedCCD;
             var selectedTool = ccd.SelectedItem;
             var listBox = (System.Windows.Controls.ListBox)sender;
+
+            // 1) 如果之前已经有选中的工具，把它的结果保存到 ImageSources ---
+            var previousInst = ccd.CurrentToolInstance;
+            if (previousInst != null)
+            {
+                // 找到它在 ImageSources 中的位置
+                var idxSrc = ccd.ImageSources
+                    .Select((src, idx) => new { src, idx })
+                    .FirstOrDefault(x => x.src.InstanceId == previousInst.InstanceId)?.idx;
+                if (idxSrc.HasValue)
+                {
+                    // 用新的 HObject 替换
+                    ccd.ImageSources[idxSrc.Value] = new ImageSourceItem(
+                        previousInst.InstanceId,
+                        previousInst.DisplayName,
+                        previousInst.ViewModel.CurrentResultImage);
+                }
+            }
 
             // 1) 内部重排
             if (e.Data.GetDataPresent("Reorder"))
@@ -289,6 +287,24 @@ namespace MyWPF1
             var arrow = (ArrowViewModel)DataContext;
             var ccd = arrow.SelectedCCD;
 
+            // 1) 如果之前已经有选中的工具，把它的结果保存到 ImageSources ---
+            var previousInst = ccd.CurrentToolInstance;
+            if (previousInst != null)
+            {
+                // 找到它在 ImageSources 中的位置
+                var idxSrc = ccd.ImageSources
+                    .Select((src, idx) => new { src, idx })
+                    .FirstOrDefault(x => x.src.InstanceId == previousInst.InstanceId)?.idx;
+                if (idxSrc.HasValue)
+                {
+                    // 用新的 HObject 替换
+                    ccd.ImageSources[idxSrc.Value] = new ImageSourceItem(
+                        previousInst.InstanceId,
+                        previousInst.DisplayName,
+                        previousInst.ViewModel.CurrentResultImage);
+                }
+            }
+
             // 3. 标记被选中
             ccd.SelectedItem = selectedTool;
 
@@ -298,15 +314,15 @@ namespace MyWPF1
             var inst = ccd.CurrentToolInstance;
 
             // 7. 弹出（或复用）AlgorithmTopPage，并让它刷新：
-            if (_topPage == null)
+            if (ccd.TopPage == null)
             {
-                _topPage = new AlgorithmTopPage(_arrowVM, _arrowVM.SelectedCCD);
-                AlgorithmTopContainer.Content = _topPage;
-                TopFrame.Content = _topPage;
+                ccd.TopPage = new AlgorithmTopPage(_arrowVM, _arrowVM.SelectedCCD);
+                AlgorithmTopContainer.Content = ccd.TopPage;
+                TopFrame.Content = ccd.TopPage;
             }
-            _topPage.CurrentToolInstance = inst;
-            _topPage.SelectedItem = selectedTool;
-            _topPage.RefreshFor(selectedTool);
+            ccd.TopPage.CurrentToolInstance = inst;
+            ccd.TopPage.SelectedItem = selectedTool;
+            ccd.TopPage.RefreshFor(selectedTool);
 
             // 8. 最后把 SettingsPage 塞进去
             if (inst.SettingsPage == null)
@@ -371,6 +387,26 @@ namespace MyWPF1
             {
                 _arrowVM.RemoveToolInstance(selected);
             }
+        }
+
+        private void ShowTopPageForCurrentCCD()
+        {
+            var ccd = _arrowVM.SelectedCCD;
+            if (ccd == null)
+            {
+                AlgorithmTopContainer.Content = null;
+                SettingsContainer.Content = null;
+                return;
+            }
+
+            if (ccd.TopPage == null)
+            {
+                // 第一次为这个 CCD 创建它自己的 TopPage
+                ccd.TopPage = new AlgorithmTopPage(_arrowVM, ccd);
+            }
+            AlgorithmTopContainer.Content = ccd.TopPage;
+            // 如果你也有 SettingsContainer，需要恢复它上次打开的 SettingsPage：
+            // SettingsContainer.Content = ccd.TopPage.CurrentSettingsPage;
         }
     }
 
