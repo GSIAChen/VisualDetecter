@@ -26,13 +26,14 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.7.25104.5739" />
+    <PackageReference Include="HandyControl" Version="3.5.1" />
     <PackageReference Include="Microsoft.Windows.Compatibility" Version="9.0.6" />
     <PackageReference Include="MvvmLight" Version="5.4.1.1" />
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="hdevenginedotnet">
-      <HintPath>C:\Users\gsia\AppData\Local\Programs\MVTec\HALCON-24.11-Progress-Steady\bin\dotnet35\hdevenginedotnet.dll</HintPath>
+      <HintPath>C:\Users\huanxiangpeng\AppData\Local\Programs\MVTec\HALCON-24.11-Progress-Steady\bin\dotnet35\hdevenginedotnet.dll</HintPath>
     </Reference>
     <Reference Include="System.Windows.Forms" />
     <Reference Include="WindowsFormsIntegration" />
@@ -40,13 +41,15 @@
 
   <ItemGroup>
     <Reference Include="halcondotnet">
-      <HintPath>C:\Users\gsia\AppData\Local\Programs\MVTec\HALCON-24.11-Progress-Steady\bin\dotnet35\halcondotnet.dll</HintPath>
+      <HintPath>C:\Users\huanxiangpeng\AppData\Local\Programs\MVTec\HALCON-24.11-Progress-Steady\bin\dotnet35\halcondotnet.dll</HintPath>
     </Reference>
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="images\停止.png" />
-    <Resource Include="images\开始.png" />
+    <Resource Include="images\开始.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
 </Project>

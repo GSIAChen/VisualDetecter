@@ -6,156 +6,160 @@
       xmlns:local="clr-namespace:MyWPF1" xmlns:models="clr-namespace:MyWPF1.Models"
       xmlns:sys="clr-namespace:System;assembly=mscorlib"
       xmlns:viewModels="clr-namespace:MyWPF1.ViewModels"
-             mc:Ignorable="d" 
+      mc:Ignorable="d" 
       xmlns:winforms="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
       xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
-      d:DesignHeight="450" d:DesignWidth="800" Background="AntiqueWhite">
-    <Grid Margin="10">
+      d:DesignHeight="450" d:DesignWidth="800" Background="#1E1E1E">
+    <UserControl.Resources>
+        <!-- 深色主题资源 -->
+        <SolidColorBrush x:Key="DarkBackground" Color="#1E1E1E"/>
+        <SolidColorBrush x:Key="MediumBackground" Color="#23272E"/>
+        <SolidColorBrush x:Key="LightBackground" Color="#2D2D30"/>
+        <SolidColorBrush x:Key="AccentColor" Color="#007ACC"/>
+        <SolidColorBrush x:Key="AccentHover" Color="#0086D1"/>
+        <SolidColorBrush x:Key="AccentPressed" Color="#005A9E"/>
+        <SolidColorBrush x:Key="TextColor" Color="#E0E0E0"/>
+        <SolidColorBrush x:Key="SubTextColor" Color="#A0A0A0"/>
+        <SolidColorBrush x:Key="BorderColor" Color="#3F3F46"/>
+        <SolidColorBrush x:Key="InputBackground" Color="#23272E"/>
+
+        <!-- 标题卡片样式 -->
+        <Style x:Key="TitleCard" TargetType="Border">
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="0,0,0,0"/>
+            <Setter Property="Margin" Value="0,0,0,18"/>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#2D8CF0" Offset="0"/>
+                        <GradientStop Color="#007ACC" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Color="#66000000"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- 内容卡片样式 -->
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Background" Value="{StaticResource LightBackground}"/>
+            <Setter Property="Margin" Value="0,0,0,18"/>
+            <Setter Property="Padding" Value="20,18"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Color="#33000000"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- 标题文本样式 -->
+        <Style x:Key="TitleText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="18,0,0,0"/>
+        </Style>
+        <!-- 通道名文本样式 -->
+        <Style x:Key="ChannelText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <!-- 复选框美化 -->
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="10,0,0,0"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <StackPanel Orientation="Horizontal">
+                            <Border x:Name="box" Width="20" Height="20" CornerRadius="4" BorderThickness="2" BorderBrush="{StaticResource AccentColor}" Background="{StaticResource InputBackground}">
+                                <Path x:Name="check" Data="M 4 10 L 9 15 L 16 6" Stroke="{StaticResource AccentColor}" StrokeThickness="2" Visibility="Collapsed"/>
+                            </Border>
+                            <ContentPresenter VerticalAlignment="Center" Margin="8,0,0,0"/>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="box" Property="Background" Value="{StaticResource AccentColor}"/>
+                                <Setter TargetName="check" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="box" Property="BorderBrush" Value="{StaticResource AccentHover}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    <Grid Margin="30" Background="{StaticResource MediumBackground}">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <ContentControl x:Name="SettingsContainer">
-            <ContentControl.ContentTemplate>
-                <DataTemplate>
-                    <ContentPresenter Content="{TemplateBinding Content}">
-                        <ContentPresenter.RenderTransform>
-                            <TranslateTransform X="300"/>
-                        </ContentPresenter.RenderTransform>
-                        <ContentPresenter.Triggers>
-                            <EventTrigger RoutedEvent="ContentPresenter.Loaded">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation 
-                                    Storyboard.TargetProperty="RenderTransform.X"
-                                    From="300" To="0" 
-                                    Duration="0:0:0.3"
-                                    DecelerationRatio="0.6"/>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                        </ContentPresenter.Triggers>
-                    </ContentPresenter>
-                </DataTemplate>
-            </ContentControl.ContentTemplate>
-        </ContentControl>
-        <Border Background="Beige" Grid.Row="0"></Border>
-        <TextBlock Grid.Row="0" Text="RGB通道" FontWeight="Bold" FontSize="16"
-                       Margin="0,0" Height="20" Width="90"
-                       HorizontalAlignment="Left" VerticalAlignment="Top">
-            <TextBlock.Background>
-                <DrawingBrush>
-                    <DrawingBrush.Drawing>
-                        <GeometryDrawing>
-                            <GeometryDrawing.Geometry>
-                                <PathGeometry>
-                                    <PathFigure StartPoint="0,0" IsClosed="True">
-                                        <!-- 左侧直线 -->
-                                        <LineSegment Point="80,0"/>
-                                        <!-- 右侧弧线 -->
-                                        <ArcSegment Point="80,20"
-                                            Size="10,10"
-                                            SweepDirection="Clockwise"
-                                            RotationAngle="90"/>
-                                        <!-- 底部直线 -->
-                                        <LineSegment Point="0,20"/>
-                                    </PathFigure>
-                                </PathGeometry>
-                            </GeometryDrawing.Geometry>
-                            <GeometryDrawing.Brush>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#4DACFF" Offset="0"/>
-                                    <GradientStop Color="#0080FF" Offset="1"/>
-                                </LinearGradientBrush>
-                            </GeometryDrawing.Brush>
-                        </GeometryDrawing>
-                    </DrawingBrush.Drawing>
-                </DrawingBrush>
-            </TextBlock.Background>
-        </TextBlock>
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center">
-            <TextBlock Text="R通道" Grid.Column="0" FontWeight="Bold" FontSize="14"
-                       Margin="5,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <CheckBox IsChecked="{Binding RedChannel}" Grid.Column="0"
-                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </StackPanel>
-            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
-                <TextBlock Text="G通道" Grid.Column="0" FontWeight="Bold" FontSize="14"
-                       Margin="5,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <CheckBox IsChecked="{Binding GreenChannel}" Grid.Column="0"
-                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </StackPanel>
-            <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center">
-                <TextBlock Text="B通道" Grid.Column="0" FontWeight="Bold" FontSize="14"
-                       Margin="5,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <CheckBox IsChecked="{Binding BlueChannel}" Grid.Column="0"
-                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </StackPanel>
-        </Grid>
-        <Border Background="Beige" Grid.Row="1" Margin="0,5"></Border>
-        <TextBlock Grid.Row="1" Text="HSV通道" FontWeight="Bold" FontSize="16"
-                       Margin="0,0" Height="20" Width="90"
-                       HorizontalAlignment="Left" VerticalAlignment="Top">
-            <TextBlock.Background>
-                <DrawingBrush>
-                    <DrawingBrush.Drawing>
-                        <GeometryDrawing>
-                            <GeometryDrawing.Geometry>
-                                <PathGeometry>
-                                    <PathFigure StartPoint="0,0" IsClosed="True">
-                                        <!-- 左侧直线 -->
-                                        <LineSegment Point="80,0"/>
-                                        <!-- 右侧弧线 -->
-                                        <ArcSegment Point="80,20"
-                                            Size="10,10"
-                                            SweepDirection="Clockwise"
-                                            RotationAngle="90"/>
-                                        <!-- 底部直线 -->
-                                        <LineSegment Point="0,20"/>
-                                    </PathFigure>
-                                </PathGeometry>
-                            </GeometryDrawing.Geometry>
-                            <GeometryDrawing.Brush>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#4DACFF" Offset="0"/>
-                                    <GradientStop Color="#0080FF" Offset="1"/>
-                                </LinearGradientBrush>
-                            </GeometryDrawing.Brush>
-                        </GeometryDrawing>
-                    </DrawingBrush.Drawing>
-                </DrawingBrush>
-            </TextBlock.Background>
-        </TextBlock>
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center">
-                <TextBlock Text="H通道" Grid.Column="0" FontWeight="Bold" FontSize="14"
-                       Margin="5,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <CheckBox IsChecked="{Binding HueChannel}" Grid.Column="0"
-                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </StackPanel>
-            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
-                <TextBlock Text="S通道" Grid.Column="0" FontWeight="Bold" FontSize="14"
-                       Margin="5,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <CheckBox IsChecked="{Binding SaturationChannel}" Grid.Column="0"
-                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </StackPanel>
-            <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center">
-                <TextBlock Text="V通道" Grid.Column="0" FontWeight="Bold" FontSize="14"
-                       Margin="5,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <CheckBox IsChecked="{Binding ValueChannel}" Grid.Column="0"
-                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </StackPanel>
-        </Grid>
+        <!-- RGB标题卡片 -->
+        <Border Style="{StaticResource TitleCard}" Grid.Row="0">
+            <TextBlock Text="RGB通道" Style="{StaticResource TitleText}"/>
+        </Border>
+        <!-- RGB内容卡片 -->
+        <Border Style="{StaticResource Card}" Grid.Row="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Text="R通道" Style="{StaticResource ChannelText}"/>
+                    <CheckBox IsChecked="{Binding RedChannel}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Text="G通道" Style="{StaticResource ChannelText}"/>
+                    <CheckBox IsChecked="{Binding GreenChannel}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Text="B通道" Style="{StaticResource ChannelText}"/>
+                    <CheckBox IsChecked="{Binding BlueChannel}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+        <!-- HSV标题卡片 -->
+        <Border Style="{StaticResource TitleCard}" Grid.Row="2">
+            <TextBlock Text="HSV通道" Style="{StaticResource TitleText}"/>
+        </Border>
+        <!-- HSV内容卡片 -->
+        <Border Style="{StaticResource Card}" Grid.Row="3">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Text="H通道" Style="{StaticResource ChannelText}"/>
+                    <CheckBox IsChecked="{Binding HueChannel}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Text="S通道" Style="{StaticResource ChannelText}"/>
+                    <CheckBox IsChecked="{Binding SaturationChannel}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Text="V通道" Style="{StaticResource ChannelText}"/>
+                    <CheckBox IsChecked="{Binding ValueChannel}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
     </Grid>
 </UserControl>

@@ -13,11 +13,14 @@
     <Window.Resources>
         <local:IndexConverter x:Key="IndexConverter"/>
         <Style TargetType="ListBox">
-            <EventSetter Event="PreviewMouseWheel"
-                   Handler="ListBox_PreviewMouseWheel" />
+            <Setter Property="Background" Value="#21232B"/>
+            <Setter Property="Foreground" Value="#E0E0E0"/>
+            <EventSetter Event="PreviewMouseWheel" Handler="ListBox_PreviewMouseWheel" />
         </Style>
-        <!-- 选中项样式 -->
         <Style TargetType="ListBoxItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#E0E0E0"/>
+            <Setter Property="FontSize" Value="15"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">
@@ -27,18 +30,24 @@
                             <ContentPresenter/>
                         </Border>
                         <ControlTemplate.Triggers>
-                            <!-- 鼠标悬停效果 -->
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#EEE"/>
+                                <Setter Property="Background" Value="#3A3D47"/>
                             </Trigger>
-                            <!-- 选中状态效果 -->
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="LightBlue"/>
+                                <Setter Property="Background" Value="#007ACC"/>
+                                <Setter Property="Foreground" Value="#FFF"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="#23272E"/>
+            <Setter Property="Foreground" Value="#E0E0E0"/>
+            <Setter Property="BorderBrush" Value="#3F3F46"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="FontSize" Value="15"/>
         </Style>
         <!-- 布尔值到可见性转换器 -->
         <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
@@ -156,9 +165,53 @@
                 </ContentControl>
             </StackPanel>
         </DataTemplate>
-
+        <!-- 合并后的深色美化样式，消除重复TargetType定义 -->
+        <SolidColorBrush x:Key="DarkBackground" Color="#181C22"/>
+        <SolidColorBrush x:Key="CardBackground" Color="#23272E"/>
+        <SolidColorBrush x:Key="AccentColor" Color="#007ACC"/>
+        <SolidColorBrush x:Key="TextColor" Color="#E0E0E0"/>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#E0E0E0"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="#23272E"/>
+            <Setter Property="Foreground" Value="#E0E0E0"/>
+            <Setter Property="BorderBrush" Value="#3F3F46"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Margin="8,2"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#2A3A4A"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#204DACFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="Border">
+            <Setter Property="Background" Value="#23272E"/>
+        </Style>
     </Window.Resources>
-    <Grid>
+    <Grid Background="{StaticResource DarkBackground}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="5*"/>
             <ColumnDefinition Width="5*"/>
@@ -210,7 +263,7 @@
                     <ColumnDefinition Width="2*"/>
                     <ColumnDefinition Width="4*"/>
                 </Grid.ColumnDefinitions>
-                <ScrollViewer Background='AntiqueWhite' VerticalScrollBarVisibility="Auto">
+                <ScrollViewer Background='{StaticResource CardBackground}' VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10" Orientation="Vertical">
                         <!-- 预处理工具组 -->
                         <StackPanel Orientation="Horizontal" >
@@ -226,7 +279,7 @@
                         </StackPanel>
                         <ContentControl Visibility="{Binding IsChecked, ElementName=PreprocessingToggle,
                             Converter={StaticResource BoolToVisibility}}">
-                            <ListBox Grid.Row="0" Background="Beige"
+                            <ListBox Grid.Row="0" Background="{StaticResource CardBackground}"
                                  ItemsSource="{Binding PreprocessingItems}"
                                  PreviewMouseLeftButtonDown="ListBox_PreviewMouseLeftButtonDown"
                                  PreviewMouseMove="ListBox_PreviewMouseMove"
@@ -252,7 +305,7 @@
                         </StackPanel>
                         <ContentControl Visibility="{Binding IsChecked, ElementName=PositioningToggle,
                         Converter={StaticResource BoolToVisibility}}">
-                            <ListBox Grid.Row="0" Background="Beige"
+                            <ListBox Grid.Row="0" Background="{StaticResource CardBackground}"
                                  ItemsSource="{Binding PositioningItems}"
                                  SelectionMode="Single"
                                  PreviewMouseLeftButtonDown="ListBox_PreviewMouseLeftButtonDown"
@@ -278,7 +331,7 @@
                         </StackPanel>
                         <ContentControl Visibility="{Binding IsChecked, ElementName=MeasureToggle,
                         Converter={StaticResource BoolToVisibility}}">
-                            <ListBox Grid.Row="0" Background="Beige"
+                            <ListBox Grid.Row="0" Background="{StaticResource CardBackground}"
                                  ItemsSource="{Binding MeasureItems}"
                                  SelectionMode="Single"
                                  PreviewMouseLeftButtonDown="ListBox_PreviewMouseLeftButtonDown"
@@ -304,7 +357,7 @@
                         </StackPanel>
                         <ContentControl Visibility="{Binding IsChecked, ElementName=FittingToggle,
                         Converter={StaticResource BoolToVisibility}}">
-                            <ListBox Grid.Row="0" Background="Beige"
+                            <ListBox Grid.Row="0" Background="{StaticResource CardBackground}"
                                  ItemsSource="{Binding FittingItems}"
                                  SelectionMode="Single"
                                  PreviewMouseLeftButtonDown="ListBox_PreviewMouseLeftButtonDown"
@@ -330,7 +383,7 @@
                         </StackPanel>
                         <ContentControl Visibility="{Binding IsChecked, ElementName=PredictToggle,
                         Converter={StaticResource BoolToVisibility}}">
-                            <ListBox Grid.Row="0" Background="Beige"
+                            <ListBox Grid.Row="0" Background="{StaticResource CardBackground}"
                                  ItemsSource="{Binding PredictItems}"
                                  SelectionMode="Single"
                                  PreviewMouseLeftButtonDown="ListBox_PreviewMouseLeftButtonDown"
@@ -344,7 +397,7 @@
                         </ContentControl>
                     </StackPanel>
                 </ScrollViewer>
-                <Border Grid.Column="1" Background="Beige">
+                <Border Grid.Column="1" Background="{StaticResource CardBackground}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*"/>
@@ -374,11 +427,11 @@
                             Command="{Binding SaveConfigCommand}"/>
                     </Grid>
                 </Border>
-                <ScrollViewer Background='AntiqueWhite' 
+                <ScrollViewer Background='{StaticResource CardBackground}' 
                           Grid.Column="2"
                           x:Name="RightScrollViewer" 
                           VerticalScrollBarVisibility="Auto">
-                    <ListBox Background="AntiqueWhite"
+                    <ListBox Background="{StaticResource CardBackground}"
                          x:Name="TargetListBox"
                          SelectionMode="Single" AlternationCount="1000"
                          AllowDrop="True" ItemsSource="{Binding SelectedCCD.SelectedItems}"

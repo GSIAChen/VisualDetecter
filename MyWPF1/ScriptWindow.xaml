@@ -5,57 +5,225 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MyWPF1"
         mc:Ignorable="d"
-        Title="ScriptWindow" Height="450" Width="800">
-    <Grid Background="AntiqueWhite">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+        Title="脚本管理" Height="450" Width="800"
+        Background="#FF0D1117">
+    <Window.Resources>
+        <!-- 深色主题颜色资源 -->
+        <SolidColorBrush x:Key="PrimaryBrush" Color="#FF1A73E8"/>
+        <SolidColorBrush x:Key="SecondaryBrush" Color="#FF34A853"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#FFF9AB00"/>
+        <SolidColorBrush x:Key="DangerBrush" Color="#FFEA4335"/>
+        <SolidColorBrush x:Key="DarkBackgroundBrush" Color="#FF0D1117"/>
+        <SolidColorBrush x:Key="CardBackgroundBrush" Color="#FF161B22"/>
+        <SolidColorBrush x:Key="LightTextBrush" Color="#FFE6EDF3"/>
+        <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="#FF1F2937"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#FF2D3748"/>
+        <SolidColorBrush x:Key="HoverBrush" Color="#30444d"/>
+
+        <!-- 按钮样式 -->
+        <Style x:Key="ScriptButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#2034A853"/>
+            <Setter Property="Foreground" Value="{StaticResource LightTextBrush}"/>
+            <Setter Property="BorderBrush" Value="#405F7E"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4"
+                                SnapsToDevicePixels="True">
+                            <Grid>
+                                <Border x:Name="hoverOverlay" 
+                                        Background="{StaticResource HoverBrush}" 
+                                        Opacity="0"
+                                        CornerRadius="4"/>
+                                <ContentPresenter
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Margin="{TemplateBinding Padding}"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="hoverOverlay" Property="Opacity" Value="1"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="hoverOverlay" Property="Background" Value="#406F8F"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 加载按钮样式 -->
+        <Style x:Key="LoadButtonStyle" TargetType="Button" BasedOn="{StaticResource ScriptButtonStyle}">
+            <Setter Property="Background" Value="#201A73E8"/>
+        </Style>
+
+        <!-- 执行按钮样式 -->
+        <Style x:Key="RunButtonStyle" TargetType="Button" BasedOn="{StaticResource ScriptButtonStyle}">
+            <Setter Property="Background" Value="#20F9AB00"/>
+        </Style>
+
+        <!-- 列表框样式 -->
+        <Style TargetType="ListBox">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{StaticResource LightTextBrush}"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+
+        <Style TargetType="ListBoxItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="5,3"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Border" 
+                                Background="Transparent" 
+                                BorderThickness="0"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#30444d"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#1A73E8"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 文本样式 -->
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource LightTextBrush}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+
+        <!-- 卡片样式 -->
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
+            <Setter Property="Margin" Value="18,18,18,18"/>
+            <Setter Property="Padding" Value="18,18"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Color="#33000000"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- 标题卡片样式 -->
+        <Style x:Key="TitleCard" TargetType="Border">
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="0,0,0,0"/>
+            <Setter Property="Margin" Value="0,0,0,18"/>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#2D8CF0" Offset="0"/>
+                        <GradientStop Color="#007ACC" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Color="#66000000"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- 标题文本样式 -->
+        <Style x:Key="TitleText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="18,0,0,0"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Background="{StaticResource DarkBackgroundBrush}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="2*"/>
-            <RowDefinition Height="2*"/>
-            <RowDefinition Height="5*"/>
-            <RowDefinition Height="2*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <!-- Camera Labels -->
-        <TextBlock Grid.Row="0" Grid.Column="0" Text="1号相机" HorizontalAlignment="Center" Margin="5" VerticalAlignment="Center"/>
-        <TextBlock Grid.Row="0" Grid.Column="1" Text="2号相机" HorizontalAlignment="Center" Margin="5" VerticalAlignment="Center"/>
-        <TextBlock Grid.Row="0" Grid.Column="2" Text="3号相机" HorizontalAlignment="Center" Margin="5" VerticalAlignment="Center"/>
-        <TextBlock Grid.Row="0" Grid.Column="3" Text="4号相机" HorizontalAlignment="Center" Margin="5" VerticalAlignment="Center"/>
-        <TextBlock Grid.Row="0" Grid.Column="4" Text="5号相机" HorizontalAlignment="Center" Margin="5" VerticalAlignment="Center"/>
-        <TextBlock Grid.Row="0" Grid.Column="5" Text="6号相机" HorizontalAlignment="Center" Margin="5" VerticalAlignment="Center"/>
-        <TextBlock Grid.Row="0" Grid.Column="6" Text="7号相机" HorizontalAlignment="Center" Margin="5" VerticalAlignment="Center"/>
-
-        <!-- Load .hdev Buttons -->
-        <Button Grid.Row="1" Grid.Column="0" Content="加载脚本" Margin="5" Click="LoadScript_Click" Tag="0" />
-        <Button Grid.Row="1" Grid.Column="1" Content="加载脚本" Margin="5" Click="LoadScript_Click" Tag="1" />
-        <Button Grid.Row="1" Grid.Column="2" Content="加载脚本" Margin="5" Click="LoadScript_Click" Tag="2" />
-        <Button Grid.Row="1" Grid.Column="3" Content="加载脚本" Margin="5" Click="LoadScript_Click" Tag="3" />
-        <Button Grid.Row="1" Grid.Column="4" Content="加载脚本" Margin="5" Click="LoadScript_Click" Tag="4" />
-        <Button Grid.Row="1" Grid.Column="5" Content="加载脚本" Margin="5" Click="LoadScript_Click" Tag="5" />
-        <Button Grid.Row="1" Grid.Column="6" Content="加载脚本" Margin="5" Click="LoadScript_Click" Tag="6" />
-
-        <!-- ListBoxes -->
-        <ListBox Grid.Row="2" Grid.Column="0" ItemsSource="{Binding Scripts[0]}" Margin="5" />
-        <ListBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding Scripts[1]}" Margin="5" />
-        <ListBox Grid.Row="2" Grid.Column="2" ItemsSource="{Binding Scripts[2]}" Margin="5" />
-        <ListBox Grid.Row="2" Grid.Column="3" ItemsSource="{Binding Scripts[3]}" Margin="5" />
-        <ListBox Grid.Row="2" Grid.Column="4" ItemsSource="{Binding Scripts[4]}" Margin="5" />
-        <ListBox Grid.Row="2" Grid.Column="5" ItemsSource="{Binding Scripts[5]}" Margin="5" />
-        <ListBox Grid.Row="2" Grid.Column="6" ItemsSource="{Binding Scripts[6]}" Margin="5" />
-
-        <!-- Run Buttons -->
-        <Button Grid.Row="3" Grid.Column="0" Content="执行脚本" Margin="5" Click="RunScripts_Click" Tag="0" />
-        <Button Grid.Row="3" Grid.Column="1" Content="执行脚本" Margin="5" Click="RunScripts_Click" Tag="1" />
-        <Button Grid.Row="3" Grid.Column="2" Content="执行脚本" Margin="5" Click="RunScripts_Click" Tag="2" />
-        <Button Grid.Row="3" Grid.Column="3" Content="执行脚本" Margin="5" Click="RunScripts_Click" Tag="3" />
-        <Button Grid.Row="3" Grid.Column="4" Content="执行脚本" Margin="5" Click="RunScripts_Click" Tag="4" />
-        <Button Grid.Row="3" Grid.Column="5" Content="执行脚本" Margin="5" Click="RunScripts_Click" Tag="5" />
-        <Button Grid.Row="3" Grid.Column="6" Content="执行脚本" Margin="5" Click="RunScripts_Click" Tag="6" />
+        <!-- 顶部标题卡片 -->
+        <Border Style="{StaticResource TitleCard}" Grid.Row="0" Margin="30,30,30,0">
+            <TextBlock Text="脚本管理" Style="{StaticResource TitleText}"/>
+        </Border>
+        <!-- 主体内容卡片 -->
+        <Border Style="{StaticResource Card}" Grid.Row="1" Margin="30,20,30,30">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <!-- 相机标签 -->
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="1号相机" FontWeight="Bold" HorizontalAlignment="Center"/>
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="2号相机" FontWeight="Bold" HorizontalAlignment="Center"/>
+                <TextBlock Grid.Row="0" Grid.Column="2" Text="3号相机" FontWeight="Bold" HorizontalAlignment="Center"/>
+                <TextBlock Grid.Row="0" Grid.Column="3" Text="4号相机" FontWeight="Bold" HorizontalAlignment="Center"/>
+                <TextBlock Grid.Row="0" Grid.Column="4" Text="5号相机" FontWeight="Bold" HorizontalAlignment="Center"/>
+                <TextBlock Grid.Row="0" Grid.Column="5" Text="6号相机" FontWeight="Bold" HorizontalAlignment="Center"/>
+                <TextBlock Grid.Row="0" Grid.Column="6" Text="7号相机" FontWeight="Bold" HorizontalAlignment="Center"/>
+                <!-- 加载脚本按钮 -->
+                <Button Grid.Row="1" Grid.Column="0" Content="加载脚本" Style="{StaticResource LoadButtonStyle}" Click="LoadScript_Click" Tag="0" />
+                <Button Grid.Row="1" Grid.Column="1" Content="加载脚本" Style="{StaticResource LoadButtonStyle}" Click="LoadScript_Click" Tag="1" />
+                <Button Grid.Row="1" Grid.Column="2" Content="加载脚本" Style="{StaticResource LoadButtonStyle}" Click="LoadScript_Click" Tag="2" />
+                <Button Grid.Row="1" Grid.Column="3" Content="加载脚本" Style="{StaticResource LoadButtonStyle}" Click="LoadScript_Click" Tag="3" />
+                <Button Grid.Row="1" Grid.Column="4" Content="加载脚本" Style="{StaticResource LoadButtonStyle}" Click="LoadScript_Click" Tag="4" />
+                <Button Grid.Row="1" Grid.Column="5" Content="加载脚本" Style="{StaticResource LoadButtonStyle}" Click="LoadScript_Click" Tag="5" />
+                <Button Grid.Row="1" Grid.Column="6" Content="加载脚本" Style="{StaticResource LoadButtonStyle}" Click="LoadScript_Click" Tag="6" />
+                <!-- 脚本列表 -->
+                <ListBox Grid.Row="2" Grid.Column="0" ItemsSource="{Binding Scripts[0]}"/>
+                <ListBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding Scripts[1]}"/>
+                <ListBox Grid.Row="2" Grid.Column="2" ItemsSource="{Binding Scripts[2]}"/>
+                <ListBox Grid.Row="2" Grid.Column="3" ItemsSource="{Binding Scripts[3]}"/>
+                <ListBox Grid.Row="2" Grid.Column="4" ItemsSource="{Binding Scripts[4]}"/>
+                <ListBox Grid.Row="2" Grid.Column="5" ItemsSource="{Binding Scripts[5]}"/>
+                <ListBox Grid.Row="2" Grid.Column="6" ItemsSource="{Binding Scripts[6]}"/>
+                <!-- 执行脚本按钮 -->
+                <Button Grid.Row="3" Grid.Column="0" Content="执行脚本" Style="{StaticResource RunButtonStyle}" Click="RunScripts_Click" Tag="0" />
+                <Button Grid.Row="3" Grid.Column="1" Content="执行脚本" Style="{StaticResource RunButtonStyle}" Click="RunScripts_Click" Tag="1" />
+                <Button Grid.Row="3" Grid.Column="2" Content="执行脚本" Style="{StaticResource RunButtonStyle}" Click="RunScripts_Click" Tag="2" />
+                <Button Grid.Row="3" Grid.Column="3" Content="执行脚本" Style="{StaticResource RunButtonStyle}" Click="RunScripts_Click" Tag="3" />
+                <Button Grid.Row="3" Grid.Column="4" Content="执行脚本" Style="{StaticResource RunButtonStyle}" Click="RunScripts_Click" Tag="4" />
+                <Button Grid.Row="3" Grid.Column="5" Content="执行脚本" Style="{StaticResource RunButtonStyle}" Click="RunScripts_Click" Tag="5" />
+                <Button Grid.Row="3" Grid.Column="6" Content="执行脚本" Style="{StaticResource RunButtonStyle}" Click="RunScripts_Click" Tag="6" />
+            </Grid>
+        </Border>
     </Grid>
 </Window>

@@ -9,5 +9,10 @@
         {
             InitializeComponent();
         }
+
+        private void CheckBox_Checked(object sender, System.Windows.RoutedEventArgs e)
+        {
+
+        }
     }
 }

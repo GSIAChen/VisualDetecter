@@ -10,12 +10,67 @@
       xmlns:winforms="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
       xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
       xmlns:ctrl="clr-namespace:MyWPF1.Controls"
-             d:DesignHeight="450" d:DesignWidth="800" Background="AntiqueWhite">
+             d:DesignHeight="450" d:DesignWidth="800" Background="#23272E">
     <UserControl.Resources>
         <local:IndexConverter x:Key="IndexConverter"/>
         <local:ComboBoxIndexConverter x:Key="ComboBoxIndexConverter"/>
+        <SolidColorBrush x:Key="DarkBackground" Color="#23272E"/>
+        <SolidColorBrush x:Key="CardBackground" Color="#21232B"/>
+        <SolidColorBrush x:Key="AccentColor" Color="#4DACFF"/>
+        <SolidColorBrush x:Key="TextColor" Color="#F3F6FA"/>
+        <SolidColorBrush x:Key="BorderColor" Color="#3A3F4B"/>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+            <Setter Property="Background" Value="#2D313A"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#3A3F4B"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="4,2"/>
+            <Setter Property="CaretBrush" Value="{StaticResource AccentColor}"/>
+        </Style>
+        <Style TargetType="Slider">
+            <Setter Property="Background" Value="#23272E"/>
+            <Setter Property="Foreground" Value="{StaticResource AccentColor}"/>
+            <Setter Property="Height" Value="22"/>
+        </Style>
+        <Style TargetType="ctrl:NumericUpDown">
+            <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+            <Setter Property="Background" Value="#23272E"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
     </UserControl.Resources>
-    <Grid Margin="10" Background="Beige">
+    <Grid Margin="10" Background="{StaticResource DarkBackground}">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
@@ -50,7 +105,7 @@
         </ContentControl>
         <!-- 二值阈 -->
         <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="15,5">
-            <TextBlock Text="二值阈：" Width="80" VerticalAlignment="Center" FontSize="14"/>
+            <TextBlock Text="二值阈：" Width="80" VerticalAlignment="Center"/>
             <Slider Minimum="0" Maximum="255" VerticalAlignment="Center"
                         Width="120" Value="{Binding Threshold, 
                         Mode=TwoWay, 
@@ -59,8 +114,8 @@
                                 Minimum="0" Maximum="255" Increment="1" Width="55" Height="25"/>
         </StackPanel>
         <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="15,5">
-            <TextBlock Text="面积大小：" Width="80" VerticalAlignment="Center" FontSize="14"/>
-            <TextBlock Text="{Binding Area}" Width="80" VerticalAlignment="Center" FontSize="14"/>
+            <TextBlock Text="面积大小：" Width="80" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding Area}" Width="80" VerticalAlignment="Center"/>
         </StackPanel>
         <Grid Grid.Row="1" Grid.Column="0">
             <Grid.RowDefinitions>
@@ -68,16 +123,14 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <StackPanel Orientation="Horizontal" Margin="15,5" Grid.Row="0">
-                <TextBlock Text="上边界：" Width="100" VerticalAlignment="Center" FontSize="14"/>
+                <TextBlock Text="上边界：" Width="100" VerticalAlignment="Center"/>
                 <TextBox Grid.Row="0" Text="{Binding Row1}" Margin="15,5" 
-                     VerticalAlignment="Center" Width="80"
-                     FontSize="14"/>
+                     VerticalAlignment="Center" Width="80"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="15,5" Grid.Row="1">
-                <TextBlock Text="下边界：" Width="100" VerticalAlignment="Center" FontSize="14"/>
+                <TextBlock Text="下边界：" Width="100" VerticalAlignment="Center"/>
                 <TextBox Grid.Row="0" Text="{Binding Row2}" Margin="15,5" 
-                     VerticalAlignment="Center" Width="80"
-                     FontSize="14"/>
+                     VerticalAlignment="Center" Width="80"/>
             </StackPanel>
         </Grid>
         <Grid Grid.Row="1" Grid.Column="1">
@@ -86,16 +139,14 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <StackPanel Orientation="Horizontal" Margin="15,5" Grid.Row="0" Grid.Column="1">
-                <TextBlock Text="左边界：" Width="100" VerticalAlignment="Center" FontSize="14"/>
+                <TextBlock Text="左边界：" Width="100" VerticalAlignment="Center"/>
                 <TextBox Grid.Row="0" Text="{Binding Column1}" Margin="15,5" 
-                     VerticalAlignment="Center" Width="80"
-                     FontSize="14"/>
+                     VerticalAlignment="Center" Width="80"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="15,5" Grid.Row="1">
-                <TextBlock Text="右边界：" Width="100" VerticalAlignment="Center" FontSize="14"/>
+                <TextBlock Text="右边界：" Width="100" VerticalAlignment="Center"/>
                 <TextBox Grid.Row="0" Text="{Binding Column2}" Margin="15,5" 
-                     VerticalAlignment="Center" Width="80"
-                     FontSize="14"/>
+                     VerticalAlignment="Center" Width="80"/>
             </StackPanel>
         </Grid>
     </Grid>

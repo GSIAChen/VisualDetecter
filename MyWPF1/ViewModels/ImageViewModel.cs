@@ -54,15 +54,33 @@ public class ImageViewModel : INotifyPropertyChanged
 
     public void Initialize(HWindowControl hwin, HTuple imagePath)
     {
-        Debug.WriteLine("ImageViewModel Initialized");
-        _hWindowControl = hwin;
-        HOperatorSet.ReadImage(out _image, imagePath);
-        HOperatorSet.GetImageSize(_image, out HTuple width, out HTuple height);
-        HTuple row = 0;
-        HTuple col = 0;
-        _hWindowControl.HalconWindow.SetPart(row, col, height - 1, width - 1);
-        _hWindowControl.HalconWindow.DispObj(_image);
-        Initialized?.Invoke(hwin, _image);
+        try
+        {
+            Debug.WriteLine("ImageViewModel Initialized");
+            _hWindowControl = hwin;
+            Debug.WriteLine($"加载图片路径: {imagePath}, 存在: {System.IO.File.Exists(imagePath.ToString())}");
+            if (!System.IO.File.Exists(imagePath.ToString()))
+            {
+                System.Windows.MessageBox.Show($"图片文件不存在: {imagePath}");
+                return;
+            }
+            
+            HOperatorSet.ReadImage(out _image, imagePath);
+            HOperatorSet.GetImageSize(_image, out HTuple width, out HTuple height);
+            HTuple row = 0;
+            HTuple col = 0;
+            
+            // 直接调用Halcon操作，因为HWindowControl本身就是Halcon控件
+            _hWindowControl.HalconWindow.SetPart(row, col, height - 1, width - 1);
+            _hWindowControl.HalconWindow.DispObj(_image);
+            
+            Initialized?.Invoke(hwin, _image);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"ImageViewModel.Initialize 异常: {ex.Message}");
+            System.Windows.MessageBox.Show($"初始化图像失败: {ex.Message}");
+        }
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

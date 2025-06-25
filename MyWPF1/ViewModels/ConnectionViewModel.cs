@@ -19,7 +19,7 @@ namespace MyWPF1.ViewModels
             HObject ConnectedRegions;
             HOperatorSet.Connection(_inputImage, out ConnectedRegions);
             HOperatorSet.CountObj(ConnectedRegions, out HTuple numRegions);
-            for (int i=0; numRegions; i++)
+            for (int i=0; i < numRegions; i++)
             {
                 HOperatorSet.SelectObj(ConnectedRegions, out HObject region, i + 1);
                 HOperatorSet.AreaCenter(region, out HTuple area, out HTuple row, out HTuple column);

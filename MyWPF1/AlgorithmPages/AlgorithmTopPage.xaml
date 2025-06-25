@@ -7,10 +7,80 @@
       xmlns:sys="clr-namespace:System;assembly=mscorlib"
       xmlns:viewModels="clr-namespace:MyWPF1.ViewModels" d:DataContext="{d:DesignInstance Type=local:AlgorithmTopPage}"
              mc:Ignorable="d" 
-      d:DesignHeight="450" d:DesignWidth="800" Background="AntiqueWhite">
+      d:DesignHeight="450" d:DesignWidth="800" Background="#23272E">
     <UserControl.Resources>
         <local:IndexConverter x:Key="IndexConverter"/>
         <local:ComboBoxIndexConverter x:Key="ComboBoxIndexConverter"/>
+        <!-- 深色主题样式 -->
+        <SolidColorBrush x:Key="CardBackground" Color="#21232B"/>
+        <SolidColorBrush x:Key="LightForeground" Color="#F3F6FA"/>
+        <SolidColorBrush x:Key="ButtonBackground" Color="#2D313A"/>
+        <SolidColorBrush x:Key="ButtonHover" Color="#3A3F4B"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#3A3F4B"/>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource LightForeground}"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource LightForeground}"/>
+            <Setter Property="Background" Value="{StaticResource ButtonBackground}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{StaticResource ButtonHover}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="Foreground" Value="{StaticResource LightForeground}"/>
+            <Setter Property="Background" Value="{StaticResource CardBackground}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+        </Style>
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Foreground" Value="{StaticResource LightForeground}"/>
+            <Setter Property="Background" Value="{StaticResource CardBackground}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="8,2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#3A3F4B"/>
+                                <Setter Property="Foreground" Value="#4DACFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{StaticResource LightForeground}"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        <Style TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardBackground}"/>
+            <Setter Property="CornerRadius" Value="12"/>
+        </Style>
     </UserControl.Resources>
     <Grid Margin="10">
         <ContentControl x:Name="AlgorithmTopContainer">
@@ -37,8 +107,12 @@
                 </DataTemplate>
             </ContentControl.ContentTemplate>
         </ContentControl>
-        <!-- 基本属性 -->
-        <Border Background="Beige"></Border>
+        <!-- 基本属性卡片 -->
+        <Border Background="{StaticResource CardBackground}" CornerRadius="12">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="8" ShadowDepth="2" Color="#66000000"/>
+            </Border.Effect>
+        </Border>
         <TextBlock Grid.Row="0" Text="基本属性" FontWeight="Bold" FontSize="16"
                        Margin="0,0" Height="20" Width="90"
                        HorizontalAlignment="Left" VerticalAlignment="Top">
@@ -100,9 +174,7 @@
                               Width="90" Height="30" HorizontalAlignment="Left" VerticalAlignment="Center"
                               VerticalContentAlignment="Center" IsReadOnly="True">
                         <ComboBox.ItemContainerStyle>
-                            <Style TargetType="ComboBoxItem">
-                                <Setter Property="VerticalContentAlignment" Value="Center"/>
-                            </Style>
+                            <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}"/>
                         </ComboBox.ItemContainerStyle>
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
