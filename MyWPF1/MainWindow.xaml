@@ -436,31 +436,267 @@
                             <Expander Header="相机2统计">
                                 <!-- 相机统计内容 -->
                             </Expander>
+        <!-- 工具栏 -->
+        <DockPanel Name="上工具栏"
+                   Grid.Row="0" 
+                   LastChildFill="False" 
+                   Background="#81D8D0"
+                   Height="80">
+            <!-- 开始按钮 -->
+            <Button Name="开始"
+                    Click="StartButton_Click"
+                    DockPanel.Dock="Left"
+                    Style="{StaticResource IconButtonStyle}"
+                    Margin="10,0">
+                <StackPanel Orientation="Vertical">
+                    <Image Source="Images/开始.png" 
+                           Width="40"
+                           Height="40"
+                           RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <TextBlock Text="开始"
+                               Margin="5,5,0,0"
+                               FontSize="14"/>
+                </StackPanel>
+            </Button>
+            <!-- 停止按钮 -->
+            <Button Name="停止"
+                    Click="StopButton_Click"
+                    DockPanel.Dock="Left"
+                    Style="{StaticResource IconButtonStyle}"
+                    Margin="10,0">
+                <StackPanel Orientation="Vertical">
+                    <Image Source="Images/停止.png" 
+                           Width="40"
+                           Height="40"
+                           RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <TextBlock Text="停止"
+                               Margin="5,5,0,0"
+                               FontSize="14"/>
+                </StackPanel>
+            </Button>
+            <Button Name="进料"
+                    Click="ProductStartButton_Click"
+                    DockPanel.Dock="Left"
+                    Style="{StaticResource IconButtonStyle}"
+                    Margin="10,0">
+                <StackPanel Orientation="Vertical">
+                    <Image Source="Images/开始.png" 
+                           Width="40"
+                           Height="40"
+                           RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <TextBlock Text="进料"
+                               Margin="5,5,0,0"
+                               FontSize="14"/>
+                </StackPanel>
+            </Button>
+            <!-- 停止按钮 -->
+            <Button Name="停止进料"
+                    Click="ProductStopButton_Click"
+                    DockPanel.Dock="Left"
+                    Style="{StaticResource IconButtonStyle}"
+                    Margin="10,0">
+                <StackPanel Orientation="Vertical">
+                    <Image Source="Images/停止.png" 
+                           Width="40"
+                           Height="40"
+                           RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <TextBlock Text="停止进料"
+                               Margin="5,5,0,0"
+                               FontSize="14"/>
+                </StackPanel>
+            </Button>
+            <!-- 参数设置按钮 -->
+            <Button Name="清料"
+                    Click="ClearButton_Click"
+                    DockPanel.Dock="Left"
+                    Style="{StaticResource IconButtonStyle}"
+                    Margin="10,0">
+                <StackPanel Orientation="Vertical">
+                    <Image Source="Images/停止.png" 
+                        Width="40"
+                        Height="40"
+                        RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <TextBlock Text="清料"
+                        Margin="5,5,0,0"
+                        FontSize="14"/>
+                </StackPanel>
+            </Button>
+            <Button Name="脚本"
+                    DockPanel.Dock="Left"
+                    Click="ScriptButton_Click"
+                    Style="{StaticResource IconButtonStyle}"
+                    Margin="10,0">
+                <StackPanel Orientation="Vertical">
+                    <Image Source="Images/停止.png" 
+                        Width="40"
+                        Height="40"
+                        RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <TextBlock Text="脚本"
+                        Margin="5,5,0,0"
+                        FontSize="14"/>
+                </StackPanel>
+            </Button>
+            <Button Name="加载配置"
+                    DockPanel.Dock="Left"
+                    Style="{StaticResource IconButtonStyle}"
+                    Margin="10,0">
+                <StackPanel Orientation="Vertical">
+                    <Image Source="Images/停止.png" 
+                        Width="40"
+                        Height="40"
+                        RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <TextBlock Text="加载配置"
+                        Margin="5,5,0,0"
+                        FontSize="14"/>
+                </StackPanel>
+            </Button>
+            <!-- 参数设置按钮 -->
+            <Button Name="算法"
+                    Click="AlgorithmButton_Click"
+                    DockPanel.Dock="Left"
+                    Style="{StaticResource IconButtonStyle}"
+                    Margin="10,0">
+                <StackPanel Orientation="Vertical">
+                    <Image Source="Images/停止.png" 
+                        Width="40"
+                        Height="40"
+                        RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <TextBlock Text="算法"
+                        Margin="5,5,0,0"
+                        FontSize="14"/>
+                </StackPanel>
+            </Button>
+            <Button Name="深度学习"
+                    Click="LaunchLabelingTool_Click"
+                    DockPanel.Dock="Left"
+                    Style="{StaticResource IconButtonStyle}"
+                    Margin="10,0">
+                <StackPanel Orientation="Vertical">
+                    <Image Source="Images/停止.png" 
+                        Width="40"
+                        Height="40"
+                        RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <TextBlock Text="深度学习"
+                        Margin="5,5,0,0"
+                        FontSize="14"/>
+                </StackPanel>
+            </Button>
+            <!-- 参数设置按钮 -->
+            <Button Name="参数"
+                    Click="SettingsButton_Click"
+                    DockPanel.Dock="Left"
+                    Style="{StaticResource IconButtonStyle}"
+                    Margin="10,0">
+                <StackPanel Orientation="Vertical">
+                    <Image Source="Images/停止.png" 
+                        Width="40"
+                        Height="40"
+                        RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <TextBlock Text="参数"
+                        Margin="5,5,0,0"
+                        FontSize="14"/>
+                </StackPanel>
+            </Button>
+        </DockPanel>
+        <!-- 内容区域 -->
+        <Grid Grid.Row="1"
+              Grid.Column="0"
+              Background="AntiqueWhite">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="6*"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+            <Border Name="左视窗"
+                    Grid.Column="0"
+                    Background="Beige" 
+                    BorderBrush="Gray"
+                    BorderThickness="1"
+                    Margin="10"
+                    MinWidth="200">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <!-- 全部机位总计 Expander -->
+                        <Expander Header="全部机位统计" IsExpanded="True" Margin="0,0,0,10"
+                                  Height="125">
+                            <Grid Background="AliceBlue">
+                                <!-- 这里直接和之前一模一样，把绑定改成 TotalStat.xxx -->
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
 
-                            <!-- 其他相机统计 -->
-                            <Expander Header="相机3统计">
-                                <!-- 相机统计内容 -->
-                            </Expander>
-                            <Expander Header="相机4统计">
-                                <!-- 相机统计内容 -->
-                            </Expander>
-                            <Expander Header="相机5统计">
-                                <!-- 相机统计内容 -->
-                            </Expander>
-                            <Expander Header="相机6统计">
-                                <!-- 相机统计内容 -->
-                            </Expander>
-                        </StackPanel>
-                    </ScrollViewer>
-                </Border>
+                                <!-- 左侧标题列 -->
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="总数" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="合格率" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="OK数量" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="NG数量" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="回收数量" VerticalAlignment="Center"/>
 
-                <!-- 主显示区域卡片 -->
-                <Border Name="主视窗"
-                        Grid.Column="1"
-                        Style="{StaticResource Card}"
-                        MinWidth="600">
-                    <Grid>
-                        <Border Background="#1A2D3F" CornerRadius="4">
+                                <!-- 右侧值列 -->
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalStat.TotalCount}" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TotalStat.Accuracy, StringFormat=P1}" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding TotalStat.OkCount}" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding TotalStat.NgCount}" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding TotalStat.ReCount}" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Expander>
+
+                        <!-- 每个机位的 Expander 列表 -->
+                        <ItemsControl ItemsSource="{Binding Stats}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Expander Header="{Binding DisplayHeader}"
+                                              IsExpanded="False" Margin="0,0,0,10" Height="125">
+                                        <Grid Background="AliceBlue">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="*"/>
+                                            </Grid.RowDefinitions>
+
+                                            <!-- 左侧标题列 -->
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="总数" />
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="合格率" />
+                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="OK数量" />
+                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="NG数量" />
+                                            <TextBlock Grid.Row="4" Grid.Column="0" Text="回收数量" />
+
+                                            <!-- 右侧值列 -->
+                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalCount}" />
+                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Accuracy, StringFormat=P1}" />
+                                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding OkCount}" />
+                                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding NgCount}" />
+                                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ReCount}" />
+                                        </Grid>
+                                    </Expander>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                </ScrollViewer>
+            </Border>
+            <Border Name="主视窗"
+                    Grid.Column="1"
+                    Background="Beige" 
+                    BorderBrush="Gray"
+                    BorderThickness="1"
+                    Margin="10"
+                    MinWidth="600">
                             <TextBlock Text="主视窗" 
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
