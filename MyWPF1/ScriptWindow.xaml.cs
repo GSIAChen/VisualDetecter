@@ -1,8 +1,9 @@
-﻿using System.Collections.ObjectModel;
+﻿using HalconDotNet;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipes;
 using System.Windows;
-using HalconDotNet;
 using MessageBox = System.Windows.MessageBox;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 
@@ -95,6 +96,28 @@ namespace MyWPF1
                     IsOk = allOk
                 });
                 Debug.WriteLine($"Script {script} executed. Result: {(allOk ? "OK" : "NG")}");
+                SendResultToCpp(index, allOk);
+            }
+        }
+
+        private void SendResultToCpp(int cameraIndex, bool isOk)
+        {
+            try
+            {
+                using (var client = new NamedPipeClientStream(".", "HalconResultPipe", PipeDirection.Out))
+                {
+                    client.Connect(2000); // 最多等待2秒连接C++端
+                    using (var writer = new StreamWriter(client))
+                    {
+                        writer.AutoFlush = true;
+                        string message = $"{cameraIndex},{(isOk ? "OK" : "NG")}";
+                        writer.WriteLine(message);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"发送到C++失败：{ex.Message}");
             }
         }
     }
