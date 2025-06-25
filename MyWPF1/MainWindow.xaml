@@ -365,119 +365,78 @@
                         MinWidth="200">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="5">
                         <StackPanel>
-              
-                            <!-- 内容区域 -->
-                                <Border Name="左视窗1"
-                                        Grid.Column="0"
-                                        Background="Beige" 
-                                        BorderBrush="Gray"
-                                        BorderThickness="1"
-                                        Margin="10"
-                                        MinWidth="200">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                    <StackPanel>
-                                        <!-- 全部机位总计 Expander -->
-                                        <Expander Header="全部机位统计" IsExpanded="True" Margin="0,0,0,10"
+                            <StackPanel>
+                                <!-- 全部机位总计 Expander -->
+                                <Expander Header="全部机位统计" IsExpanded="True" Margin="0,0,0,10"
                                                        Height="125">
-                                            <Grid Background="AliceBlue">
-                                                <!-- 这里直接和之前一模一样，把绑定改成 TotalStat.xxx -->
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                </Grid.ColumnDefinitions>
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="*"/>
-                                                    <RowDefinition Height="*"/>
-                                                    <RowDefinition Height="*"/>
-                                                    <RowDefinition Height="*"/>
-                                                    <RowDefinition Height="*"/>
-                                                </Grid.RowDefinitions>
+                                    <Grid Background="AliceBlue">
+                                        <!-- 这里直接和之前一模一样，把绑定改成 TotalStat.xxx -->
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
 
-                                                <!-- 左侧标题列 -->
-                                                <TextBlock Grid.Row="0" Grid.Column="0" Text="总数" VerticalAlignment="Center"/>
-                                                <TextBlock Grid.Row="1" Grid.Column="0" Text="合格率" VerticalAlignment="Center"/>
-                                                <TextBlock Grid.Row="2" Grid.Column="0" Text="OK数量" VerticalAlignment="Center"/>
-                                                <TextBlock Grid.Row="3" Grid.Column="0" Text="NG数量" VerticalAlignment="Center"/>
-                                                <TextBlock Grid.Row="4" Grid.Column="0" Text="回收数量" VerticalAlignment="Center"/>
+                                        <!-- 左侧标题列 -->
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="总数" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="合格率" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="OK数量" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Row="3" Grid.Column="0" Text="NG数量" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Row="4" Grid.Column="0" Text="回收数量" VerticalAlignment="Center"/>
 
-                                                <!-- 右侧值列 -->
-                                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalStat.TotalCount}" VerticalAlignment="Center"/>
-                                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TotalStat.Accuracy, StringFormat=P1}" VerticalAlignment="Center"/>
-                                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding TotalStat.OkCount}" VerticalAlignment="Center"/>
-                                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding TotalStat.NgCount}" VerticalAlignment="Center"/>
-                                                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding TotalStat.ReCount}" VerticalAlignment="Center"/>
-                                            </Grid>
-                                        </Expander>
+                                        <!-- 右侧值列 -->
+                                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalStat.TotalCount}" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TotalStat.Accuracy, StringFormat=P1}" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding TotalStat.OkCount}" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding TotalStat.NgCount}" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding TotalStat.ReCount}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Expander>
 
-                                        <!-- 每个机位的 Expander 列表 -->
-                                        <ItemsControl ItemsSource="{Binding Stats}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Expander Header="{Binding DisplayHeader}"
+                                <!-- 每个机位的 Expander 列表 -->
+                                <ItemsControl ItemsSource="{Binding Stats}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Expander Header="{Binding DisplayHeader}"
                                                               IsExpanded="False" Margin="0,0,0,10" Height="125">
-                                                        <Grid Background="AliceBlue">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="*" />
-                                                                <ColumnDefinition Width="*" />
-                                                            </Grid.ColumnDefinitions>
-                                                            <Grid.RowDefinitions>
-                                                                <RowDefinition Height="*"/>
-                                                                <RowDefinition Height="*"/>
-                                                                <RowDefinition Height="*"/>
-                                                                <RowDefinition Height="*"/>
-                                                                <RowDefinition Height="*"/>
-                                                            </Grid.RowDefinitions>
+                                                <Grid Background="AliceBlue">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="*"/>
+                                                        <RowDefinition Height="*"/>
+                                                        <RowDefinition Height="*"/>
+                                                        <RowDefinition Height="*"/>
+                                                        <RowDefinition Height="*"/>
+                                                    </Grid.RowDefinitions>
 
-                                                            <!-- 左侧标题列 -->
-                                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="总数" />
-                                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="合格率" />
-                                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="OK数量" />
-                                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="NG数量" />
-                                                            <TextBlock Grid.Row="4" Grid.Column="0" Text="回收数量" />
+                                                    <!-- 左侧标题列 -->
+                                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="总数" />
+                                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="合格率" />
+                                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="OK数量" />
+                                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="NG数量" />
+                                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="回收数量" />
 
-                                                            <!-- 右侧值列 -->
-                                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalCount}" />
-                                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Accuracy, StringFormat=P1}" />
-                                                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding OkCount}" />
-                                                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding NgCount}" />
-                                                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ReCount}" />
-                                                        </Grid>
-                                                    </Expander>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </StackPanel>
-                                </ScrollViewer>
-                                </Border>
-                            <Border Name="主视窗"
-                    Grid.Column="1"
-                    Background="Beige" 
-                    BorderBrush="Gray"
-                    BorderThickness="1"
-                    Margin="10"
-                    MinWidth="600">
-                                <TextBlock Text="主视窗" 
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       Foreground="#5F7E97"
-                                       FontSize="24"/>
-                            </Border>
-
-                            <!-- 右侧面板卡片 -->
-                            <Border Name="右视窗"
-                                    Grid.Column="2"
-                                    Style="{StaticResource Card}"
-                                    MinWidth="200">
-                                <Grid>
-                                    <Border Background="#1A2D3F" CornerRadius="4">
-                                        <TextBlock Text="右视窗" 
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       Foreground="#5F7E97"
-                                       FontSize="18"/>
-                                    </Border>
-                                </Grid>
-                            </Border>
+                                                    <!-- 右侧值列 -->
+                                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalCount}" />
+                                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Accuracy, StringFormat=P1}" />
+                                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding OkCount}" />
+                                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding NgCount}" />
+                                                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ReCount}" />
+                                                </Grid>
+                                            </Expander>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
