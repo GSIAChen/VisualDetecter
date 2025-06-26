@@ -44,7 +44,7 @@
         </Style>
         <Style TargetType="ComboBox">
             <Setter Property="Background" Value="#23272E"/>
-            <Setter Property="Foreground" Value="#E0E0E0"/>
+            <Setter Property="Foreground" Value="Black"/>
             <Setter Property="BorderBrush" Value="#3F3F46"/>
             <Setter Property="Height" Value="28"/>
             <Setter Property="FontSize" Value="15"/>
@@ -464,7 +464,7 @@
                 <RowDefinition Height="2.2*"/>
                 <RowDefinition Height="8*"/>
             </Grid.RowDefinitions>
-            
+
             <!-- 上方：AlgorithmTopPage 容器 -->
             <Border Grid.Row="0" Background="{StaticResource CardBackground}" Margin="8,8,8,4" CornerRadius="8">
                 <Border.Effect>
@@ -474,11 +474,11 @@
                     <Frame x:Name="TopFrame"/>
                 </ContentControl>
             </Border>
-            
+
             <!-- 分隔线 -->
             <Border Grid.Row="0" Height="1" Background="#3A3F4B" 
                     VerticalAlignment="Bottom" Margin="8,0,8,0"/>
-            
+
             <!-- 下方：设置页面容器 -->
             <Border Grid.Row="1" Background="{StaticResource CardBackground}" Margin="8,4,8,8" CornerRadius="8">
                 <Border.Effect>

@@ -9,8 +9,9 @@
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800" Background="#23272E">
     <UserControl.Resources>
-        <local:IndexConverter x:Key="IndexConverter"/>
-        <local:ComboBoxIndexConverter x:Key="ComboBoxIndexConverter"/>
+        <DataTemplate x:Key="BlackComboBoxSelectionTemplate">
+            <TextBlock Text="{Binding Text}" Foreground="Black" FontWeight="Bold" FontSize="15"/>
+        </DataTemplate>
         <!-- 深色主题样式 -->
         <SolidColorBrush x:Key="CardBackground" Color="#21232B"/>
         <SolidColorBrush x:Key="LightForeground" Color="#F3F6FA"/>
@@ -46,14 +47,23 @@
             </Setter>
         </Style>
         <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="#23272E"/>
             <Setter Property="Foreground" Value="#000000"/>
-            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="BorderBrush" Value="#3F3F46"/>
+            <Setter Property="Height" Value="28"/>
             <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="Bold"/>
         </Style>
         <Style TargetType="ComboBoxItem">
             <Setter Property="Foreground" Value="#000000"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="FontSize" Value="15"/>
+        </Style>
+        <DataTemplate x:Key="BlackComboBoxItemTemplate">
+            <TextBlock Text="{Binding Text}" Foreground="#000000" FontWeight="Bold" FontSize="15"/>
+        </DataTemplate>
+        <Style x:Key="ComboBoxTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="Black"/>
         </Style>
         <Style TargetType="CheckBox">
             <Setter Property="Foreground" Value="{StaticResource LightForeground}"/>
@@ -158,34 +168,25 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="图源：" FontSize="14"
                            HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                    <ComboBox Grid.Column="1" AlternationCount="1000" ItemsSource="{Binding FilteredSources}"
-                              SelectedItem="{Binding SelectedSource, Mode=TwoWay}"
-                              Width="90" Height="30" HorizontalAlignment="Left" VerticalAlignment="Center"
-                              VerticalContentAlignment="Center" IsReadOnly="True"
-                              FontWeight="Bold" FontSize="15" Foreground="#000000">
+                    <ComboBox
+                        Grid.Column="1"
+                        ItemsSource="{Binding FilteredSources}"
+                        SelectedItem="{Binding SelectedSource, Mode=TwoWay}"
+                        Width="90"
+                        Height="28"
+                        VerticalContentAlignment="Center"
+                        FontWeight="Bold"
+                        FontSize="15">
                         <ComboBox.ItemContainerStyle>
-                            <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}"/>
+                            <Style TargetType="ComboBoxItem">
+                                <Setter Property="Foreground" Value="#000000"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="FontSize" Value="15"/>
+                            </Style>
                         </ComboBox.ItemContainerStyle>
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
-                                <ContentControl>
-                                    <ContentControl.Resources>
-                                        <DataTemplate DataType="{x:Type sys:String}">
-                                            <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
-                                        </DataTemplate>
-                                        <DataTemplate DataType="{x:Type viewModels:SelectableItem}">
-                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding 
-                                                        RelativeSource={RelativeSource AncestorType=ComboBoxItem},
-                                                        Path=(ItemsControl.AlternationIndex),
-                                                        Converter={StaticResource ComboBoxIndexConverter}}"
-                                                        VerticalAlignment="Center"/>
-                                                <TextBlock Text="{Binding Text}" VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </ContentControl.Resources>
-                                    <ContentPresenter Content="{Binding}"/>
-                                </ContentControl>
+                                <TextBlock Text="{Binding}" Foreground="#000000" FontWeight="Bold" FontSize="15"/>
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
