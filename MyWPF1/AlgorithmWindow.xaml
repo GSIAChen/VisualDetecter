@@ -222,7 +222,7 @@
                 <RowDefinition Height="6*"/>
                 <RowDefinition Height="3*"/>
             </Grid.RowDefinitions>
-            <Border Background="#81D8D0">
+            <Border Background="{StaticResource CardBackground}">
                 <StackPanel Grid.Row="0"
                             Orientation="Horizontal"
                             HorizontalAlignment="Right">

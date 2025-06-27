@@ -36,7 +36,7 @@ namespace MyWPF1
             // 当窗口真正完成首次渲染后，再初始化 VM
             this.ContentRendered += (s, e) =>
             {
-                // Dispatcher 再次延后一个“空闲时机”，确保 HWindowControl 真正拿到尺寸
+                // Dispatcher 再次延后一个"空闲时机"，确保 HWindowControl 真正拿到尺寸
                 Dispatcher.BeginInvoke(() =>
                 {
                     // ① 初始化主图
@@ -93,7 +93,7 @@ namespace MyWPF1
         // 处理拖拽进入时的视觉效果
         private void TargetListBox_DragOver(object sender, System.Windows.DragEventArgs e)
         {
-            // 1. 先做原来的 Drop/Copy 效果判断
+            // 1. 先做原来的 Drop/Copy 效果判断
             if (e.Data.GetDataPresent("Reorder"))
                 e.Effects = System.Windows.DragDropEffects.Move;
             else if (e.Data.GetDataPresent("SelectableItem"))
@@ -101,7 +101,7 @@ namespace MyWPF1
             else
                 e.Effects = (System.Windows.DragDropEffects)GetNone();
 
-            // 2. 自动滚动逻辑
+            // 2. 自动滚动逻辑
             // 鼠标相对于 ListBox 的坐标
             System.Windows.Point pos = e.GetPosition(TargetListBox);
             double height = TargetListBox.ActualHeight;
@@ -385,7 +385,12 @@ namespace MyWPF1
             var selected = (SelectableItem)TargetListBox.SelectedItem;
             if (selected != null)
             {
-                _arrowVM.RemoveToolInstance(selected);
+                var arrow = (ArrowViewModel)DataContext;
+                var ccd = arrow.SelectedCCD;
+                if (ccd != null)
+                {
+                    ccd.RemoveToolInstance(selected);
+                }
             }
         }
 
