@@ -87,18 +87,29 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="CheckBox">
                         <StackPanel Orientation="Horizontal">
-                            <Border x:Name="box" Width="20" Height="20" CornerRadius="4" BorderThickness="2" BorderBrush="{StaticResource AccentColor}" Background="{StaticResource InputBackground}">
-                                <Path x:Name="check" Data="M 4 10 L 9 15 L 16 6" Stroke="{StaticResource AccentColor}" StrokeThickness="2" Visibility="Collapsed"/>
+                            <Border x:Name="Border"
+                                    Width="20" Height="20"
+                                    CornerRadius="4"
+                                    BorderThickness="2"
+                                    BorderBrush="{StaticResource AccentColor}"
+                                    Background="{StaticResource InputBackground}"
+                                    VerticalAlignment="Center"
+                                    Margin="0,0,6,0">
+                                <Path x:Name="CheckMark"
+                                      Data="M 4 10 L 9 15 L 16 6"
+                                      Stroke="White"
+                                      StrokeThickness="2"
+                                      Visibility="Collapsed"/>
                             </Border>
                             <ContentPresenter VerticalAlignment="Center" Margin="8,0,0,0"/>
                         </StackPanel>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="box" Property="Background" Value="{StaticResource AccentColor}"/>
-                                <Setter TargetName="check" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource AccentColor}"/>
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="box" Property="BorderBrush" Value="{StaticResource AccentHover}"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource AccentHover}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>

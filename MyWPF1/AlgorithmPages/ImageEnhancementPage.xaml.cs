@@ -14,5 +14,10 @@
         {
 
         }
+
+        private void NumericUpDown_Loaded(object sender, System.Windows.RoutedEventArgs e)
+        {
+
+        }
     }
 }

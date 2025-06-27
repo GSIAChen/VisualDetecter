@@ -68,6 +68,39 @@
         <Style TargetType="CheckBox">
             <Setter Property="Foreground" Value="{StaticResource LightForeground}"/>
             <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <StackPanel Orientation="Horizontal">
+                            <Border x:Name="Border"
+                                    Width="18" Height="18"
+                                    CornerRadius="4"
+                                    BorderThickness="2"
+                                    BorderBrush="#4DACFF"
+                                    Background="Transparent"
+                                    VerticalAlignment="Center"
+                                    Margin="0,0,6,0">
+                                <Path x:Name="CheckMark"
+                                      Data="M 4 9 L 8 13 L 14 5"
+                                      StrokeThickness="2"
+                                      Stroke="White"
+                                      Visibility="Collapsed"/>
+                            </Border>
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#4DACFF"/>
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Border" Property="BorderBrush" Value="#888"/>
+                                <Setter Property="Foreground" Value="#888"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
         <Style TargetType="Border">
             <Setter Property="Background" Value="{StaticResource CardBackground}"/>
