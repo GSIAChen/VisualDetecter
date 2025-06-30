@@ -16,14 +16,12 @@ namespace MyWPF1
             );
 
         // 还可以给一个总计项放在索引 7
-        public CameraStat TotalStat { get; } = new CameraStat(-1);
+        public CameraStat TotalStat { get; } = new CameraStat(8);
 
         public MainWindow()
         {
             InitializeComponent();
             this.DataContext = this;
-            var pipeServer = new NamedPipeImageServer();
-            _ = pipeServer.StartListeningAsync();  // 异步监听 Named Pipe，永不阻塞
         }
 
         // 示例事件处理（需要时添加）
@@ -134,8 +132,6 @@ namespace MyWPF1
         {
             var stat = Stats[e.CameraIndex];
             if (e.IsOk) stat.OkCount++; else stat.NgCount++;
-            // 同时更新总计
-            if (e.IsOk) TotalStat.OkCount++; else TotalStat.NgCount++;
         }
     }
 
