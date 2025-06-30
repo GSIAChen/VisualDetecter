@@ -1,15 +1,19 @@
-﻿using System.Collections.ObjectModel;
+﻿using HalconDotNet;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using Xceed.Wpf.Toolkit.Primitives;
 
 namespace MyWPF1
 {
     // MainWindow.xaml.cs
     public partial class MainWindow : Window
     {
+        private ScriptWindow _scriptWindow;
+
         public ObservableCollection<CameraStat> Stats { get; } =
             new ObservableCollection<CameraStat>(
                 Enumerable.Range(1, 7).Select(i => new CameraStat(i))
@@ -59,6 +63,7 @@ namespace MyWPF1
                 Owner = this,
             };
             scriptWindow.CameraResultReported += OnCameraResultReported;
+            scriptWindow.ImageReceived += OnImageReceived;
             scriptWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
             scriptWindow.ShowInTaskbar = false;
             scriptWindow.Show();
@@ -133,6 +138,11 @@ namespace MyWPF1
             var stat = Stats[e.CameraIndex];
             if (e.IsOk) stat.OkCount++; else stat.NgCount++;
         }
+
+        private void OnImageReceived(object sender, ImageReceivedEventArgs e)
+        {
+
+        }
     }
 
     public class CameraStat : INotifyPropertyChanged
@@ -194,4 +204,32 @@ namespace MyWPF1
         private void OnPropertyChanged([CallerMemberName] string name = null!)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
-}
+
+        /**
+        private void ScriptWindow_ImageReceived(object? sender, ImageReceivedEventArgs e)
+        {
+            // Route to the corresponding HWindowControl
+            HWindowControl target = e.CameraIndex switch
+            {
+                1 => windowControl1,
+                2 => windowControl2,
+                3 => windowControl3,
+                4 => windowControl4,
+                5 => windowControl5,
+                6 => windowControl6,
+                _ => null
+            };
+
+            if (target != null)
+            {
+                // Make sure we clear or set the part to the image size
+                HOperatorSet.SetPart(
+                    target.HalconWindow,
+                    0, 0, e.Image.Height - 1, e.Image.Width - 1);
+
+                // Display the image
+                target.HalconWindow.DispImage(e.Image);
+            }
+        }
+        **/
+    }

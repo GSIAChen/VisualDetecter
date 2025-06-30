@@ -12,11 +12,13 @@ namespace MyWPF1
     public partial class ScriptWindow : Window
     {
         public event EventHandler<CameraResultEventArgs> CameraResultReported;
+        public event EventHandler<ImageReceivedEventArgs> ImageReceived;
         private readonly HDevEngine _engine;
         public ObservableCollection<string>[] Scripts { get; }
         private readonly Dictionary<int, ObjectState> _objectStates
             = new Dictionary<int, ObjectState>();
         private readonly TcpDuplexServer _tcpServer;
+
 
         public ScriptWindow()
         {
@@ -96,6 +98,20 @@ namespace MyWPF1
         /// </summary>
         public bool GetFinalOk()
             => Results.Any(r => r == false) ? false : true;
+    }
+
+    public class ImageReceivedEventArgs : EventArgs
+    {
+        public int CameraIndex { get; }
+        public HImage Image { get; }
+        public int ObjectId { get; }
+
+        public ImageReceivedEventArgs(int cameraIndex, int objectId, HImage image)
+        {
+            CameraIndex = cameraIndex;
+            ObjectId = objectId;
+            Image = image;
+        }
     }
 }
 

@@ -1,6 +1,7 @@
 ﻿<Window x:Class="MyWPF1.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:hc="http://schemas.mvtec.com/halcondotnet"
+        xmlns:winforms="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
         Title="Simple Interface" Height="800" Width="1200"
         Background="#FF0D1117">
     <Window.Resources>
@@ -457,6 +458,55 @@
                             </StackPanel>
                         </StackPanel>
                     </ScrollViewer>
+                </Border>
+                <Border Name="主视窗" Grid.Column="1">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <!-- Camera 1 -->
+                        <winforms:WindowsFormsHost x:Name="winFormsHost1"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Stretch" Grid.Row="0" Grid.Column="0">
+                            <hc:HWindowControl x:Name="windowControl1"/>
+                        </winforms:WindowsFormsHost>
+                        <!-- Camera 2 -->
+                        <winforms:WindowsFormsHost x:Name="winFormsHost2"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Stretch" Grid.Row="0" Grid.Column="1">
+                            <hc:HWindowControl x:Name="windowControl2"/>
+                        </winforms:WindowsFormsHost>
+                        <!-- Camera 3 -->
+                        <winforms:WindowsFormsHost x:Name="winFormsHost3"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Stretch" Grid.Row="0" Grid.Column="2">
+                            <hc:HWindowControl x:Name="windowControl3"/>
+                        </winforms:WindowsFormsHost>
+                        <!-- Camera 4 -->
+                        <winforms:WindowsFormsHost x:Name="winFormsHost4"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="0">
+                            <hc:HWindowControl x:Name="windowControl4"/>
+                        </winforms:WindowsFormsHost>
+                        <!-- Camera 5 -->
+                        <winforms:WindowsFormsHost x:Name="winFormsHost5"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="1">
+                            <hc:HWindowControl x:Name="windowControl5"/>
+                        </winforms:WindowsFormsHost>
+                        <!-- Camera 6 -->
+                        <winforms:WindowsFormsHost x:Name="winFormsHost6"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="2">
+                            <hc:HWindowControl x:Name="windowControl6"/>
+                        </winforms:WindowsFormsHost>
+                    </Grid>
                 </Border>
             </Grid>
         </Border>

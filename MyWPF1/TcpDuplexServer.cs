@@ -5,6 +5,8 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Text;
+using System.Windows;
 
 namespace MyWPF1
 {
@@ -19,6 +21,7 @@ namespace MyWPF1
         private HDevEngine engine;
         private ObservableCollection<string>[] scripts;
         private Dictionary<int, ObjectState> objectStates;
+        public event EventHandler<ImageReceivedEventArgs> ImageReceived;
 
         // Constructor parameter is named "port"
         public TcpDuplexServer(
@@ -52,7 +55,7 @@ namespace MyWPF1
         private async Task HandleClientAsync(TcpClient client, NetworkStream stream)
         {
             var recvBuffer = new List<byte>();
-            var tmp = new byte[4096];
+            var tmp = new byte[8192];
 
             try
             {
@@ -63,8 +66,9 @@ namespace MyWPF1
 
                     recvBuffer.AddRange(tmp.Take(n));
                     // 拆帧
-                    while (true)
+                    while (TryExtractFrame(ref recvBuffer, out var frame))
                     {
+                        /**
                         int idx = recvBuffer.IndexOf(FrameHead);
                         if (idx < 0) { recvBuffer.Clear(); break; }
                         if (idx > 0) recvBuffer.RemoveRange(0, idx);
@@ -76,7 +80,12 @@ namespace MyWPF1
 
                         var frame = recvBuffer.Skip(5).Take(payloadLen).ToArray();
                         recvBuffer.RemoveRange(0, frameLen);
-
+                        **/
+                        //Debug.WriteLine(recvBuffer.Count);
+                        if (BitConverter.ToString(frame) == "00")
+                        {
+                            continue;
+                        }
                         HandleImagePayload(frame);
                     }
                 }
@@ -94,6 +103,7 @@ namespace MyWPF1
             using var ms = new MemoryStream(buf);
             using var br = new BinaryReader(ms);
 
+            byte frameHead = br.ReadByte();
             byte cameraNo = br.ReadByte();
             int objectId = br.ReadInt32();
             ushort width = br.ReadUInt16();
@@ -124,6 +134,7 @@ namespace MyWPF1
             else
             {
                 // For interleaved RGB you still need a pointer:
+                Debug.WriteLine($"[TCP] Received RGB image: camNo:{cameraNo}, objID:{objectId}, {width}x{height}, Channels={channels}, bpl={bpl}");
                 var handle = GCHandle.Alloc(imgBuf, GCHandleType.Pinned);
                 try
                 {
@@ -148,7 +159,10 @@ namespace MyWPF1
 
             // ... now dispatch to UI thread as before:
             System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                ProcessScripts(cameraNo, objectId, image));
+            {
+                ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo, objectId, image));
+                ProcessScripts(cameraNo, objectId, image);
+            });
         }
 
         private void ProcessScripts(int cameraIndex, int objectId, HImage image)
@@ -160,6 +174,7 @@ namespace MyWPF1
                 try
                 {
                     // 设置搜索路径 & 加载脚本
+                    Debug.WriteLine("Running Scripts");
                     engine.SetProcedurePath(Path.GetDirectoryName(script));
                     var program = new HDevProgram(script);
                     var procedure = new HDevProcedure(program, "Defect");
@@ -191,7 +206,7 @@ namespace MyWPF1
                     allOk = false;
                 }
             }
-
+            SendResult(objectId, allOk);
             // 获取或创建该物件的状态
             if (!objectStates.TryGetValue(objectId, out var state))
             {
@@ -227,24 +242,61 @@ namespace MyWPF1
 
         private void SendResult(int objectId, bool isOk)
         {
-            if (_stream == null || !_client.Connected) return;
+            Debug.WriteLine("Sending Result");
+            if (_stream == null || !_client.Connected)
+                return;
 
-            using var ms1 = new MemoryStream();
-            using var bw1 = new BinaryWriter(ms1);
-            bw1.Write((byte)0x01);
-            bw1.Write(objectId);
-            bw1.Write(isOk ? (byte)1 : (byte)0);
-            var payload = ms1.ToArray();
+            using var bw = new BinaryWriter(_stream, Encoding.Default, leaveOpen: true);
+            Debug.WriteLine("Sending Result");
+            const byte FrameHead = 0xFF;
+            const int PayloadLen = 0x06;    // 1(type) + 4(objectId) + 1(result)
+            const byte ResultType = 0x01; // our “result” frame
 
-            using var ms2 = new MemoryStream();
-            using var bw2 = new BinaryWriter(ms2);
-            bw2.Write(FrameHead);
-            bw2.Write(payload.Length);
-            bw2.Write(payload);
-            var frame = ms2.ToArray();
+            // 1) header
+            bw.Write(FrameHead);
 
-            _stream.Write(frame, 0, frame.Length);
-            _stream.Flush();
+            // 2) payload length (fixed)
+            bw.Write(PayloadLen);
+
+            // 3) payload
+            bw.Write(ResultType);
+            bw.Write(objectId);                   // 4 bytes, little‑endian
+            bw.Write((byte)(isOk ? 1 : 0));       // 1 byte
+
+            bw.Flush();
+        }
+
+        private bool TryExtractFrame(ref List<byte> recvBuffer, out byte[] frame)
+        {
+            frame = null;
+            // 1) find header
+            int idx = recvBuffer.IndexOf(FrameHead);
+            if (idx < 0)
+            {
+                // no header at all, drop garbage
+                recvBuffer.Clear();
+                return false;
+            }
+            // discard anything before the header
+            if (idx > 0)
+                recvBuffer.RemoveRange(0, idx);
+
+            // 2) need at least 5 bytes (1 header + 4 length)
+            if (recvBuffer.Count < 5)
+                return false;
+
+            // 3) parse length (little‑endian)
+            int payloadLen = BitConverter.ToInt32(recvBuffer.Skip(1).Take(4).ToArray(), 0);
+            int fullLen = 1 + 4 + payloadLen;
+            if (payloadLen < 0 || fullLen > recvBuffer.Count)
+                return false;  // not enough yet, or bogus length
+
+            // 4) we have a full frame!
+            frame = recvBuffer.Skip(5).Take(payloadLen).ToArray();
+            // 5) consume it from buffer
+            recvBuffer.RemoveRange(0, fullLen);
+
+            return true;
         }
 
         public event EventHandler<CameraResultEventArgs> CameraResultReported;
