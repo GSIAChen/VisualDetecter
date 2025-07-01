@@ -148,7 +148,7 @@ namespace MyWPF1
             System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
                 ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo, objectId, image));
-                ProcessScripts(cameraNo, objectId, image);
+                ProcessScripts(cameraNo-1, objectId, image);
             });
         }
 

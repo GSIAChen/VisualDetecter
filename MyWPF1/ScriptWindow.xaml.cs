@@ -32,8 +32,8 @@ namespace MyWPF1
             _engine.SetEngineAttribute("execute_procedures_jit_compiled", "true");
 
             // —— 3. 初始化脚本列表 —— 
-            Scripts = new ObservableCollection<string>[8];
-            for (int i = 1; i < 8; i++)
+            Scripts = new ObservableCollection<string>[7];
+            for (int i = 0; i < 7; i++)
                 Scripts[i] = new ObservableCollection<string>();
 
             Debug.WriteLine("Opening TCP Server!");
@@ -63,9 +63,8 @@ namespace MyWPF1
                 Multiselect = false
             };
             if (dlg.ShowDialog() == true)
+            { 
                 Scripts[index].Add(dlg.FileName);
-                ExecutionStatus[index] = "已加载";
-                OnPropertyChanged(nameof(ExecutionStatus));
             }
         }
 
@@ -82,8 +81,6 @@ namespace MyWPF1
                         Scripts[i].Remove(scriptPath);
                         if (Scripts[i].Count == 0)
                         {
-                            ExecutionStatus[i] = "就绪";
-                            OnPropertyChanged(nameof(ExecutionStatus));
                         }
                         break;
                     }
