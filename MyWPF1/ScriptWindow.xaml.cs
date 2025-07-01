@@ -64,6 +64,31 @@ namespace MyWPF1
             };
             if (dlg.ShowDialog() == true)
                 Scripts[index].Add(dlg.FileName);
+                ExecutionStatus[index] = "已加载";
+                OnPropertyChanged(nameof(ExecutionStatus));
+            }
+        }
+
+        // 新增删除脚本功能
+        private void DeleteScript_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is string scriptPath)
+            {
+                // 找到对应的相机索引
+                for (int i = 0; i < Scripts.Length; i++)
+                {
+                    if (Scripts[i].Contains(scriptPath))
+                    {
+                        Scripts[i].Remove(scriptPath);
+                        if (Scripts[i].Count == 0)
+                        {
+                            ExecutionStatus[i] = "就绪";
+                            OnPropertyChanged(nameof(ExecutionStatus));
+                        }
+                        break;
+                    }
+                }
+            }
         }
 
         private void RunScripts_Click(object sender, RoutedEventArgs e)
