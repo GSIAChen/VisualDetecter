@@ -58,15 +58,19 @@ namespace MyWPF1
 
         private void ScriptButton_Click(object sender, RoutedEventArgs e)
         {
-            var scriptWindow = new ScriptWindow
+            if (_scriptWindow == null)
             {
-                Owner = this,
-            };
-            scriptWindow.CameraResultReported += OnCameraResultReported;
-            scriptWindow.ImageReceived += OnImageReceived;
-            scriptWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-            scriptWindow.ShowInTaskbar = false;
-            scriptWindow.Show();
+                _scriptWindow = new ScriptWindow();
+                _scriptWindow._tcpServer.CameraResultReported += OnCameraResultReported;
+                _scriptWindow._tcpServer.ImageReceived += OnImageReceived;
+                _scriptWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                _scriptWindow.ShowInTaskbar = false;
+                _scriptWindow.Show();
+            }
+            else
+            {
+                _scriptWindow.Activate();
+            }
         }
 
         private void AlgorithmButton_Click(object sender, RoutedEventArgs e)
@@ -133,15 +137,48 @@ namespace MyWPF1
             // 停止按钮逻辑
         }
 
-        private void OnCameraResultReported(object sender, CameraResultEventArgs e)
+        private void OnCameraResultReported(object? sender, CameraResultEventArgs e)
         {
-            var stat = Stats[e.CameraIndex];
-            if (e.IsOk) stat.OkCount++; else stat.NgCount++;
+            // Must marshal back onto UI thread
+            Dispatcher.Invoke(() =>
+            {
+                Debug.WriteLine($"Updating result {e.CameraIndex} Result: {(e.IsOk ? "OK" : "NG")}");
+                var stat = Stats[e.CameraIndex];
+                if (e.IsOk) stat.OkCount++;
+                else stat.NgCount++;
+                // ReCount or others if needed
+            });
         }
 
-        private void OnImageReceived(object sender, ImageReceivedEventArgs e)
+        private void OnImageReceived(object? sender, ImageReceivedEventArgs e)
         {
+            Dispatcher.Invoke(() =>
+            {
+                // Route to the corresponding HWindowControl
+                HWindowControl target = e.CameraIndex switch
+                {
+                    1 => windowControl1,
+                    2 => windowControl2,
+                    3 => windowControl3,
+                    4 => windowControl4,
+                    5 => windowControl5,
+                    6 => windowControl6,
+                    _ => null
+                };
+                if (target == null) { return; }
 
+                HOperatorSet.GetImageSize(e.Image, out HTuple imgWidth, out HTuple imgHeight);
+                int w = imgWidth.I;
+                int h = imgHeight.I;
+                HOperatorSet.SetPart(
+                    target.HalconWindow,
+                    0,
+                    0,
+                    h - 1,
+                    w - 1
+                );
+                target.HalconWindow.DispImage(e.Image);
+            });
         }
     }
 
@@ -204,32 +241,4 @@ namespace MyWPF1
         private void OnPropertyChanged([CallerMemberName] string name = null!)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
-
-        /**
-        private void ScriptWindow_ImageReceived(object? sender, ImageReceivedEventArgs e)
-        {
-            // Route to the corresponding HWindowControl
-            HWindowControl target = e.CameraIndex switch
-            {
-                1 => windowControl1,
-                2 => windowControl2,
-                3 => windowControl3,
-                4 => windowControl4,
-                5 => windowControl5,
-                6 => windowControl6,
-                _ => null
-            };
-
-            if (target != null)
-            {
-                // Make sure we clear or set the part to the image size
-                HOperatorSet.SetPart(
-                    target.HalconWindow,
-                    0, 0, e.Image.Height - 1, e.Image.Width - 1);
-
-                // Display the image
-                target.HalconWindow.DispImage(e.Image);
-            }
-        }
-        **/
-    }
+}

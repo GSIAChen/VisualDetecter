@@ -14,6 +14,7 @@ namespace MyWPF1
     {
         private int Port;
         private const byte FrameHead = 0xFF;
+        public event EventHandler<CameraResultEventArgs> CameraResultReported;
 
         // 这里只保存单个客户端连接；如果要多个并行，可以用 ConcurrentDictionary<int, TcpClient> 等
         private TcpClient _client;
@@ -68,20 +69,6 @@ namespace MyWPF1
                     // 拆帧
                     while (TryExtractFrame(ref recvBuffer, out var frame))
                     {
-                        /**
-                        int idx = recvBuffer.IndexOf(FrameHead);
-                        if (idx < 0) { recvBuffer.Clear(); break; }
-                        if (idx > 0) recvBuffer.RemoveRange(0, idx);
-
-                        if (recvBuffer.Count < 5) break;
-                        int payloadLen = BitConverter.ToInt32(recvBuffer.Skip(1).Take(4).ToArray(), 0);
-                        int frameLen = 1 + 4 + payloadLen;
-                        if (recvBuffer.Count < frameLen) break;
-
-                        var frame = recvBuffer.Skip(5).Take(payloadLen).ToArray();
-                        recvBuffer.RemoveRange(0, frameLen);
-                        **/
-                        //Debug.WriteLine(recvBuffer.Count);
                         if (BitConverter.ToString(frame) == "00")
                         {
                             continue;
@@ -177,11 +164,11 @@ namespace MyWPF1
                     Debug.WriteLine("Running Scripts");
                     engine.SetProcedurePath(Path.GetDirectoryName(script));
                     var program = new HDevProgram(script);
-                    var procedure = new HDevProcedure(program, "Defect");
+                    var procedure = new HDevProcedure(program, "LargeDefect1");
                     var call = new HDevProcedureCall(procedure);
 
                     // 传入图像
-                    call.SetInputIconicParamObject("Image", image);
+                    call.SetInputIconicParamObject("ImagePath", image);
                     // 如果过程需要用 objectId/cameraIndex 也可传入：
                     // call.SetInputCtrlParamTuple("CameraIndex", new HTuple(cameraIndex));
                     // call.SetInputCtrlParamTuple("ObjectId", new HTuple(objectId));
@@ -194,6 +181,7 @@ namespace MyWPF1
                     if (isOk.I != 1)
                         allOk = false;
 
+                    Debug.WriteLine($"[Halcon] Camera {cameraIndex} result: {isOk}");
                     CameraResultReported?.Invoke(this, new CameraResultEventArgs
                     {
                         CameraIndex = cameraIndex,
@@ -242,7 +230,6 @@ namespace MyWPF1
 
         private void SendResult(int objectId, bool isOk)
         {
-            Debug.WriteLine("Sending Result");
             if (_stream == null || !_client.Connected)
                 return;
 
@@ -298,7 +285,5 @@ namespace MyWPF1
 
             return true;
         }
-
-        public event EventHandler<CameraResultEventArgs> CameraResultReported;
     }
 }

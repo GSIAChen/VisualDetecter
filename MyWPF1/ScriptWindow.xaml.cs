@@ -17,7 +17,7 @@ namespace MyWPF1
         public ObservableCollection<string>[] Scripts { get; }
         private readonly Dictionary<int, ObjectState> _objectStates
             = new Dictionary<int, ObjectState>();
-        private readonly TcpDuplexServer _tcpServer;
+        public readonly TcpDuplexServer _tcpServer;
 
 
         public ScriptWindow()
@@ -32,16 +32,23 @@ namespace MyWPF1
             _engine.SetEngineAttribute("execute_procedures_jit_compiled", "true");
 
             // —— 3. 初始化脚本列表 —— 
-            Scripts = new ObservableCollection<string>[7];
-            for (int i = 0; i < 7; i++)
+            Scripts = new ObservableCollection<string>[8];
+            for (int i = 1; i < 8; i++)
                 Scripts[i] = new ObservableCollection<string>();
 
             Debug.WriteLine("Opening TCP Server!");
             // —— 4. 启动 TCP 双工服务器 —— 
             _tcpServer = new TcpDuplexServer(_engine, Scripts, _objectStates, 8001);
+            // ** Wire server → window propagation **
+            _tcpServer.CameraResultReported += (s, e) =>
+            {
+                CameraResultReported?.Invoke(this, e);
+            };
+            _tcpServer.ImageReceived += (s, e) =>
+            {
+                ImageReceived?.Invoke(this, e);
+            };
             _ = _tcpServer.StartAsync(); // 异步启动，不阻塞 UI
-
-            // （可选）如果你还想在界面上显示一个“正在等待图像”的提示，可以在这里写
         }
 
         // 下面是“加载脚本”按钮的逻辑，保持不变：
@@ -62,12 +69,6 @@ namespace MyWPF1
         private void RunScripts_Click(object sender, RoutedEventArgs e)
         {
         }
-    }
-
-    public class CameraResultEventArgs : EventArgs
-    {
-        public int CameraIndex { get; set; }
-        public bool IsOk { get; set; }
     }
 
     public class ObjectState
@@ -98,6 +99,12 @@ namespace MyWPF1
         /// </summary>
         public bool GetFinalOk()
             => Results.Any(r => r == false) ? false : true;
+    }
+
+    public class CameraResultEventArgs : EventArgs
+    {
+        public int CameraIndex { get; set; }
+        public bool IsOk { get; set; }
     }
 
     public class ImageReceivedEventArgs : EventArgs
