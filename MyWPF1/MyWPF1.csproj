@@ -24,10 +24,10 @@
 
   <ItemGroup>
     <Reference Include="hdevenginedotnet">
-      <HintPath>C:\Users\gsia\AppData\Local\Programs\MVTec\HALCON-24.11-Progress-Steady\bin\dotnet35\hdevenginedotnet.dll</HintPath>
+      <HintPath>..\hdevenginedotnet.dll</HintPath>
     </Reference>
     <Reference Include="halcondotnet">
-      <HintPath>C:\Users\gsia\AppData\Local\Programs\MVTec\HALCON-24.11-Progress-Steady\bin\dotnet35\halcondotnet.dll</HintPath>
+      <HintPath>..\halcondotnet.dll</HintPath>
     </Reference>
   </ItemGroup>
 

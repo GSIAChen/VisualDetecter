@@ -164,11 +164,11 @@ namespace MyWPF1
                     Debug.WriteLine("Running Scripts");
                     engine.SetProcedurePath(Path.GetDirectoryName(script));
                     var program = new HDevProgram(script);
-                    var procedure = new HDevProcedure(program, "LargeDefect1");
+                    var procedure = new HDevProcedure(program, "Defect");
                     var call = new HDevProcedureCall(procedure);
 
                     // 传入图像
-                    call.SetInputIconicParamObject("ImagePath", image);
+                    call.SetInputIconicParamObject("Image", image);
                     // 如果过程需要用 objectId/cameraIndex 也可传入：
                     // call.SetInputCtrlParamTuple("CameraIndex", new HTuple(cameraIndex));
                     // call.SetInputCtrlParamTuple("ObjectId", new HTuple(objectId));
@@ -181,7 +181,7 @@ namespace MyWPF1
                     if (isOk.I != 1)
                         allOk = false;
 
-                    Debug.WriteLine($"[Halcon] Camera {cameraIndex} result: {isOk}");
+                    Debug.WriteLine($"[Halcon] Camera {cameraIndex+1} result: {isOk}");
                     CameraResultReported?.Invoke(this, new CameraResultEventArgs
                     {
                         CameraIndex = cameraIndex,

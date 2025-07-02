@@ -180,6 +180,28 @@ namespace MyWPF1
                 target.HalconWindow.DispImage(e.Image);
             });
         }
+
+        private void NoopWindowControlMouseMove(object sender, MouseEventArgs e)
+        {
+            // Intentionally empty — avoids the built‑in MouseMove logic
+        }
+    }
+
+    public class NoMouseHWindowControl : HWindowControl
+    {
+        protected override void OnMouseMove(MouseEventArgs e)
+        {
+            // Intentionally do *nothing* here.
+            // Do *not* call base.OnMouseMove(e);
+            // This prevents the internal ConvertCoordinatesWindowToImage call.
+        }
+
+        protected override void OnMouseClick(MouseEventArgs e)
+        {
+            // Intentionally do *nothing* here.
+            // Do *not* call base.OnMouseDown(e);
+            // This prevents the internal ConvertCoordinatesWindowToImage call.
+        }
     }
 
     public class CameraStat : INotifyPropertyChanged
