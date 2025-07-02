@@ -18,7 +18,7 @@ namespace MyWPF1.ViewModels
             {
                 HOperatorSet.SelectObj(ConnectedRegions, out HObject region, i + 1);
                 HOperatorSet.AreaCenter(region, out HTuple area, out HTuple row, out HTuple column);
-                Debug.WriteLine(area);
+                Trace.WriteLine(area);
                 if (area > 100) // 只保留面积大于100的区域
                 {
                     //HOperatorSet.SetColor(_hWindowControl, "green");

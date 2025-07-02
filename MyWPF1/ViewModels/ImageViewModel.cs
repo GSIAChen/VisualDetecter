@@ -43,7 +43,7 @@ public class ImageViewModel : INotifyPropertyChanged
 
     private void OnToolInstanceAdded(ToolInstance instance)
     {
-        Debug.WriteLine($"ToolInstance added: {instance.ToolKey}");
+        Trace.WriteLine($"ToolInstance added: {instance.ToolKey}");
         _currentToolInstance = instance;
         _currentTool = instance.ViewModel;
         if (_hWindowControl != null && _image != null)
@@ -54,7 +54,7 @@ public class ImageViewModel : INotifyPropertyChanged
 
     public void Initialize(HWindowControl hwin, HTuple imagePath)
     {
-        Debug.WriteLine("ImageViewModel Initialized");
+        Trace.WriteLine("ImageViewModel Initialized");
         _hWindowControl = hwin;
         HOperatorSet.ReadImage(out _image, imagePath);
         HOperatorSet.GetImageSize(_image, out HTuple width, out HTuple height);

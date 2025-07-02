@@ -110,7 +110,7 @@ public class ArrowViewModel : INotifyPropertyChanged
             DisplayName = $"{count + 1} {item.Text}",
             ViewModel = factory()
         };
-        Debug.WriteLine("New Tool Name: " + toolInstance.ToolKey);
+        Trace.WriteLine("New Tool Name: " + toolInstance.ToolKey);
         ToolInstances.Add(toolInstance);
         CurrentToolInstance = toolInstance;
         ToolInstanceAdded?.Invoke(toolInstance);

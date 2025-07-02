@@ -36,7 +36,7 @@ namespace MyWPF1
             for (int i = 0; i < 7; i++)
                 Scripts[i] = new ObservableCollection<string>();
 
-            Debug.WriteLine("Opening TCP Server!");
+            Trace.WriteLine("Opening TCP Server!");
             // —— 4. 启动 TCP 双工服务器 —— 
             _tcpServer = new TcpDuplexServer(_engine, Scripts, _objectStates, 8001);
             // ** Wire server → window propagation **

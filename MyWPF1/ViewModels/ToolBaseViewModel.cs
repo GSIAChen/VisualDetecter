@@ -16,7 +16,7 @@ public abstract class ToolBaseViewModel : INotifyPropertyChanged
         get => _selectedSourceIndex;
         set
         {
-            Debug.WriteLine($"SelectedSourceIndex changed to: {value}");
+            Trace.WriteLine($"SelectedSourceIndex changed to: {value}");
             _selectedSourceIndex = value;
             OnPropertyChanged();
         }
@@ -37,7 +37,7 @@ public abstract class ToolBaseViewModel : INotifyPropertyChanged
     {
         if (CurrentResultImage != null && CurrentResultImage.IsInitialized())
         {
-            Debug.WriteLine("Saving Result Image to: " + path);
+            Trace.WriteLine("Saving Result Image to: " + path);
             HOperatorSet.WriteImage(CurrentResultImage, "png", 0, path);
         }
     }

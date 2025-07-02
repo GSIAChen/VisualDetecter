@@ -103,52 +103,35 @@ namespace MyWPF1
 
             HImage image;
 
-            if (channels == 1)
+            // For interleaved RGB you still need a pointer:
+            Trace.WriteLine($"[TCP] Received RGB image: camNo:{cameraNo}, objID:{objectId}, {width}x{height}, Channels={channels}, bpl={bpl}");
+            var handle = GCHandle.Alloc(imgBuf, GCHandleType.Pinned);
+            try
             {
-                // Pin the managed array so its address is stable
-                var handle = GCHandle.Alloc(imgBuf, GCHandleType.Pinned);
-                try
-                {
-                    IntPtr ptr = handle.AddrOfPinnedObject();
-                    // Create a gray image from the raw bytes
-                    image = new HImage("byte", width, height, ptr);
-                }
-                finally
-                {
-                    handle.Free();
-                }
+                IntPtr ptr = handle.AddrOfPinnedObject();
+                // HALCON's GenImageInterleaved has an overload that takes IntPtr
+                image = new HImage();
+                image.GenImageInterleaved(
+                    ptr,       // pointer to R,G,BRGB... bytes
+                    "rgb",     // channel order
+                    width, height,
+                    -1,        // plugin
+                    "byte",    // pixel type
+                    width, height,
+                    0, 0, -1, 0
+                );
+                Trace.WriteLine($"RGB image to HImage success!");
             }
-            else
+            finally
             {
-                // For interleaved RGB you still need a pointer:
-                Debug.WriteLine($"[TCP] Received RGB image: camNo:{cameraNo}, objID:{objectId}, {width}x{height}, Channels={channels}, bpl={bpl}");
-                var handle = GCHandle.Alloc(imgBuf, GCHandleType.Pinned);
-                try
-                {
-                    IntPtr ptr = handle.AddrOfPinnedObject();
-                    // HALCON's GenImageInterleaved has an overload that takes IntPtr
-                    image = new HImage();
-                    image.GenImageInterleaved(
-                        ptr,       // pointer to R,G,BRGB... bytes
-                        "rgb",     // channel order
-                        width, height,
-                        -1,        // plugin
-                        "byte",    // pixel type
-                        width, height,
-                        0, 0, -1, 0
-                    );
-                }
-                finally
-                {
-                    handle.Free();
-                }
+                handle.Free();
             }
-
+            
             // ... now dispatch to UI thread as before:
             System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
-                ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo, objectId, image));
-                ProcessScripts(cameraNo-1, objectId, image);
+                ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo+1, objectId, image));
+                ProcessScripts(cameraNo, objectId, image);
             });
         }
 
@@ -161,7 +144,6 @@ namespace MyWPF1
                 try
                 {
                     // 设置搜索路径 & 加载脚本
-                    Debug.WriteLine("Running Scripts");
                     engine.SetProcedurePath(Path.GetDirectoryName(script));
                     var program = new HDevProgram(script);
                     var procedure = new HDevProcedure(program, "Defect");
@@ -181,7 +163,7 @@ namespace MyWPF1
                     if (isOk.I != 1)
                         allOk = false;
 
-                    Debug.WriteLine($"[Halcon] Camera {cameraIndex+1} result: {isOk}");
+                    Trace.WriteLine($"[Halcon] Camera {cameraIndex+1} result: {isOk}");
                     CameraResultReported?.Invoke(this, new CameraResultEventArgs
                     {
                         CameraIndex = cameraIndex,
@@ -190,7 +172,7 @@ namespace MyWPF1
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"[Halcon Error] {ex.Message}");
+                    Trace.WriteLine($"[Halcon Error] {ex.Message}");
                     allOk = false;
                 }
             }
@@ -223,7 +205,7 @@ namespace MyWPF1
                 // 3) 清理
                 objectStates.Remove(objectId);
             }
-            Debug.WriteLine(
+            Trace.WriteLine(
               $"[Done] Cam={cameraIndex}, Obj={objectId} => {(allOk ? "OK" : "NG")}"
             );
         }
@@ -234,7 +216,7 @@ namespace MyWPF1
                 return;
 
             using var bw = new BinaryWriter(_stream, Encoding.Default, leaveOpen: true);
-            Debug.WriteLine("Sending Result");
+            Trace.WriteLine("Sending Result for ObjectId:" +objectId+" the result is "+isOk);
             const byte FrameHead = 0xFF;
             const int PayloadLen = 0x06;    // 1(type) + 4(objectId) + 1(result)
             const byte ResultType = 0x01; // our “result” frame

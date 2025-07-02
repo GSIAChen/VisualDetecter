@@ -142,7 +142,7 @@ namespace MyWPF1
             // Must marshal back onto UI thread
             Dispatcher.Invoke(() =>
             {
-                Debug.WriteLine($"Updating result {e.CameraIndex} Result: {(e.IsOk ? "OK" : "NG")}");
+                Trace.WriteLine($"Updating result {e.CameraIndex} Result: {(e.IsOk ? "OK" : "NG")}");
                 var stat = Stats[e.CameraIndex];
                 if (e.IsOk) stat.OkCount++;
                 else stat.NgCount++;
