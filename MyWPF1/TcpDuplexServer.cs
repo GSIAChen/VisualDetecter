@@ -64,7 +64,6 @@ namespace MyWPF1
                 {
                     int n = await stream.ReadAsync(tmp, 0, tmp.Length);
                     if (n == 0) break;  // 客户端断开
-
                     recvBuffer.AddRange(tmp.Take(n));
                     // 拆帧
                     while (TryExtractFrame(ref recvBuffer, out var frame))
@@ -97,41 +96,38 @@ namespace MyWPF1
             ushort height = br.ReadUInt16();
             byte channels = br.ReadByte();
             ushort bpl = br.ReadUInt16();
+            int tail = br.ReadInt32();
 
             int imgLen = bpl * height;
             byte[] imgBuf = br.ReadBytes(imgLen);
-
-            HImage image;
-
-            // For interleaved RGB you still need a pointer:
-            Trace.WriteLine($"[TCP] Received RGB image: camNo:{cameraNo}, objID:{objectId}, {width}x{height}, Channels={channels}, bpl={bpl}");
             var handle = GCHandle.Alloc(imgBuf, GCHandleType.Pinned);
+            // 1) Create the three single‐channel planes from the same buffer
+            Trace.WriteLine($"[TCP] Received RGB image: camNo:{cameraNo}, objID:{objectId}, {width}x{height}, Channels={channels}, bpl={bpl}");
+            HObject image;
             try
             {
                 IntPtr ptr = handle.AddrOfPinnedObject();
                 // HALCON's GenImageInterleaved has an overload that takes IntPtr
-                image = new HImage();
-                image.GenImageInterleaved(
+                HOperatorSet.GenImageInterleaved(
+                    out image,
                     ptr,       // pointer to R,G,BRGB... bytes
                     "rgb",     // channel order
                     width, height,
-                    -1,        // plugin
+                    bpl,        // plugin
                     "byte",    // pixel type
                     width, height,
                     0, 0, -1, 0
                 );
-                Trace.WriteLine($"RGB image to HImage success!");
             }
             finally
             {
                 handle.Free();
             }
-            
-            // ... now dispatch to UI thread as before:
+            HImage rgbImage = new HImage(image);
             System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
-                ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo+1, objectId, image));
-                ProcessScripts(cameraNo, objectId, image);
+                ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo + 1, objectId, rgbImage));
+                ProcessScripts(cameraNo, objectId, rgbImage);
             });
         }
 
@@ -161,9 +157,46 @@ namespace MyWPF1
                     // 读取输出
                     HTuple isOk = call.GetOutputCtrlParamTuple("IsOk");
                     if (isOk.I != 1)
+                    {
                         allOk = false;
+                        // 1) retrieve global batch info from MainWindow
+                        if (System.Windows.Application.Current.MainWindow is not MainWindow main)
+                            continue;   // or break, as you prefer
 
-                    Trace.WriteLine($"[Halcon] Camera {cameraIndex+1} result: {isOk}");
+                        string material = main.MaterialName ?? "UnknownMaterial";
+                        string batch = main.BatchNumber ?? "UnknownBatch";
+                        int objId = objectId;  // from your parameters
+
+                        // 2) date folder
+                        string date = DateTime.Now.ToString("yyyy_MM_dd");
+                        string baseDir = Path.Combine(@"D:\images", material, date);
+
+                        // 3) ensure it exists
+                        Directory.CreateDirectory(baseDir);
+
+                        // 4) script name without path or extension
+                        string scriptName = Path.GetFileNameWithoutExtension(script);
+
+                        // 5) build full file name
+                        string filename = $"{batch}_{objId}_{scriptName}.bmp";
+                        string fullPath = Path.Combine(baseDir, filename);
+
+                        // 6) write the image
+                        try
+                        {
+                            // Using the static operator:
+                            HOperatorSet.WriteImage(
+                                image,           // the HImage you just ran the script on
+                                "bmp",           // format
+                                0,               // no compression
+                                fullPath         // full filename
+                            );
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"Failed to save failed‐result image: {ex}");
+                        }
+                    }
                     CameraResultReported?.Invoke(this, new CameraResultEventArgs
                     {
                         CameraIndex = cameraIndex,

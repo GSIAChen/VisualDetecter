@@ -5,15 +5,17 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
-using Xceed.Wpf.Toolkit.Primitives;
+using MessageBox = System.Windows.MessageBox;
 
 namespace MyWPF1
 {
     // MainWindow.xaml.cs
     public partial class MainWindow : Window
     {
+        public string MaterialName { get; private set; }
+        public string BatchNumber { get; private set; }
+        public int BatchQuantity { get; private set; }
         private ScriptWindow _scriptWindow;
-
         public ObservableCollection<CameraStat> Stats { get; } =
             new ObservableCollection<CameraStat>(
                 Enumerable.Range(1, 7).Select(i => new CameraStat(i))
@@ -31,8 +33,26 @@ namespace MyWPF1
         // 示例事件处理（需要时添加）
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
-            // 开始按钮逻辑
-            System.Windows.MessageBox.Show("开始检测", "提示");
+            // 弹出我们准备好的对话框
+            var dlg = new BatchInfoDialog
+            {
+                Owner = this,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner
+            };
+
+            if (dlg.ShowDialog() == true)
+            {
+                // 用户点 OK，读取它暴露的属性
+                MaterialName = dlg.MaterialName;
+                BatchNumber = dlg.BatchNumber;
+                BatchQuantity = dlg.BatchQuantity;
+
+                // 你可以在这儿触发其它逻辑，比如开始生产……
+                MessageBox.Show(
+                  $"物料：{MaterialName}\n批次号：{BatchNumber}\n批次数量：{BatchQuantity}",
+                  "已接收参数"
+                );
+            }
         }
 
         private void StopButton_Click(object sender, RoutedEventArgs e)
@@ -196,7 +216,7 @@ namespace MyWPF1
             // This prevents the internal ConvertCoordinatesWindowToImage call.
         }
 
-        protected override void OnMouseClick(MouseEventArgs e)
+        protected override void OnMouseDown(MouseEventArgs e)
         {
             // Intentionally do *nothing* here.
             // Do *not* call base.OnMouseDown(e);

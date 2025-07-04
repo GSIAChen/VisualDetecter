@@ -1,10 +1,16 @@
 ﻿// ScriptWindow.xaml.cs
 using HalconDotNet;
+using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
+using System.Text.Json;
 using System.Windows;
-using System.Windows.Threading;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
+using MessageBox = System.Windows.MessageBox;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 
 namespace MyWPF1
@@ -18,12 +24,23 @@ namespace MyWPF1
         private readonly Dictionary<int, ObjectState> _objectStates
             = new Dictionary<int, ObjectState>();
         public readonly TcpDuplexServer _tcpServer;
+        public ICommand DeleteScriptCommand { get; }
 
+        public static T? FindAncestor<T>(DependencyObject child) where T : DependencyObject
+        {
+            DependencyObject? current = child;
+            while (current != null)
+            {
+                if (current is T typed)
+                    return typed;
+                current = VisualTreeHelper.GetParent(current);
+            }
+            return null;
+        }
 
         public ScriptWindow()
         {
             InitializeComponent();
-
             // —— 1. WPF 绑定上下文 —— 
             DataContext = this;
 
@@ -68,28 +85,104 @@ namespace MyWPF1
             }
         }
 
-        // 新增删除脚本功能
         private void DeleteScript_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button button && button.Tag is string scriptPath)
+            // 1) Which script path?
+            if (sender is not MenuItem mi || mi.CommandParameter is not string scriptPath)
+                return;
+
+            // 2) Which TextBlock was right‑clicked?
+            if (mi.Parent is not ContextMenu cm ||
+                cm.PlacementTarget is not DependencyObject placed)
+                return;
+
+            // 3) Find the ListBoxItem container
+            var lbi = FindAncestor<ListBoxItem>(placed);
+            if (lbi == null)
+                return;
+
+            // 4) Which ListBox contains this item?
+            if (ItemsControl.ItemsControlFromItemContainer(lbi) is not System.Windows.Controls.ListBox listBox)
+                return;
+
+            // 5) Get the camera index from the Tag
+            if (listBox.Tag is not string tagString || !int.TryParse(tagString, out var camIndex))
+                return;
+
+            // 6) Remove from exactly that Scripts[camIndex]
+            var scripts = Scripts[camIndex];
+            if (scripts.Contains(scriptPath))
+                scripts.Remove(scriptPath);
+        }
+
+        /// 把 Scripts 保存到一个 JSON 文件里
+        private void SaveConfig_Click(object sender, RoutedEventArgs e)
+        {
+            // 1. 弹出文件保存对话框
+            var dlg = new Microsoft.Win32.SaveFileDialog
             {
-                // 找到对应的相机索引
-                for (int i = 0; i < Scripts.Length; i++)
-                {
-                    if (Scripts[i].Contains(scriptPath))
-                    {
-                        Scripts[i].Remove(scriptPath);
-                        if (Scripts[i].Count == 0)
-                        {
-                        }
-                        break;
-                    }
-                }
+                Filter = "脚本配置 (*.json)|*.json",
+                FileName = "scripts_config.json"
+            };
+            if (dlg.ShowDialog() != true) return;
+
+            try
+            {
+                // 2. 把 Scripts 转成 List<List<string>>
+                var data = Scripts
+                    .Select(obs => obs.ToList())
+                    .ToList();
+
+                // 3. 序列化并写文件
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                var json = JsonSerializer.Serialize(data, options);
+                File.WriteAllText(dlg.FileName, json, Encoding.UTF8);
+
+                MessageBox.Show("保存成功！", "提示",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"保存失败：{ex.Message}", "错误",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        private void RunScripts_Click(object sender, RoutedEventArgs e)
+        /// 从 JSON 文件加载 Scripts 配置
+        private void LoadConfig_Click(object sender, RoutedEventArgs e)
         {
+            var dlg = new OpenFileDialog
+            {
+                Filter = "脚本配置 (*.json)|*.json",
+                Multiselect = false
+            };
+            if (dlg.ShowDialog() != true) return;
+
+            try
+            {
+                // 1. 读文件并反序列化
+                var json = File.ReadAllText(dlg.FileName, Encoding.UTF8);
+                var data = JsonSerializer.Deserialize<List<List<string>>>(json);
+
+                if (data == null || data.Count != Scripts.Length)
+                    throw new InvalidDataException("脚本配置格式不正确。");
+
+                // 2. 清空现有列表并依序填回
+                for (int i = 0; i < Scripts.Length; i++)
+                {
+                    Scripts[i].Clear();
+                    foreach (var scriptPath in data[i])
+                        Scripts[i].Add(scriptPath);
+                }
+
+                MessageBox.Show("加载成功！", "提示",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"加载失败：{ex.Message}", "错误",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 
