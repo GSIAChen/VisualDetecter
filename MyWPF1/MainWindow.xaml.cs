@@ -209,18 +209,17 @@ namespace MyWPF1
 
     public class NoMouseHWindowControl : HWindowControl
     {
+        // 以下函数特意留空，避免 HWindowControl 的默认鼠标事件处理逻辑
         protected override void OnMouseMove(MouseEventArgs e)
         {
-            // Intentionally do *nothing* here.
-            // Do *not* call base.OnMouseMove(e);
-            // This prevents the internal ConvertCoordinatesWindowToImage call.
         }
 
         protected override void OnMouseDown(MouseEventArgs e)
         {
-            // Intentionally do *nothing* here.
-            // Do *not* call base.OnMouseDown(e);
-            // This prevents the internal ConvertCoordinatesWindowToImage call.
+        }
+
+        protected override void OnMouseUp(MouseEventArgs e)
+        {
         }
     }
 
