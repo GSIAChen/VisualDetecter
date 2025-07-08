@@ -96,7 +96,7 @@ namespace MyWPF1
             ushort height = br.ReadUInt16();
             byte channels = br.ReadByte();
             ushort bpl = br.ReadUInt16();
-            int tail = br.ReadInt32();
+            int length = br.ReadInt32();
 
             int imgLen = bpl * height;
             byte[] imgBuf = br.ReadBytes(imgLen);
@@ -110,13 +110,13 @@ namespace MyWPF1
                 // HALCON's GenImageInterleaved has an overload that takes IntPtr
                 HOperatorSet.GenImageInterleaved(
                     out image,
-                    ptr,       // pointer to R,G,BRGB... bytes
+                    ptr,       // pointer to R,G,B bytes
                     "rgb",     // channel order
                     width, height,
                     bpl,        // plugin
                     "byte",    // pixel type
                     width, height,
-                    0, 0, -1, 0
+                    0, 0, 8, 0
                 );
             }
             finally

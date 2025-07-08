@@ -58,7 +58,7 @@ namespace MyWPF1
         private void StopButton_Click(object sender, RoutedEventArgs e)
         {
             // 停止按钮逻辑
-            System.Windows.MessageBox.Show("停止检测", "提示");
+            MessageBox.Show("停止检测", "提示");
         }
 
         private void ClearButton_Click(object sender, RoutedEventArgs e)
@@ -73,7 +73,7 @@ namespace MyWPF1
             TotalStat.OkCount = 0;
             TotalStat.NgCount = 0;
             TotalStat.ReCount = 0;
-            System.Windows.MessageBox.Show("统计数据已清空", "提示");
+            MessageBox.Show("统计数据已清空", "提示");
         }
 
         private void ScriptButton_Click(object sender, RoutedEventArgs e)
@@ -119,11 +119,11 @@ namespace MyWPF1
                 string exeDir = AppDomain.CurrentDomain.BaseDirectory;
 
                 // 2. 拼出目标程序的完整路径
-                string labelerExe = System.IO.Path.Combine(exeDir, "X-AnyLabeling-CPU.exe");
+                string labelerExe = Path.Combine(exeDir, "X-AnyLabeling-CPU.exe");
 
                 if (!File.Exists(labelerExe))
                 {
-                    System.Windows.MessageBox.Show($"找不到：{labelerExe}", "启动失败", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"找不到：{labelerExe}", "启动失败", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
@@ -138,7 +138,7 @@ namespace MyWPF1
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"启动失败：\n{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"启动失败：\n{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -197,7 +197,7 @@ namespace MyWPF1
                     h - 1,
                     w - 1
                 );
-                target.HalconWindow.DispImage(e.Image);
+                target.HalconWindow.DispColor(e.Image);
             });
         }
 
