@@ -189,7 +189,8 @@ namespace MyWPF1
     public class ObjectState
     {
         // 7 个机位的检测结果，初始化为 null/未填
-        public bool?[] Results { get; } = new bool?[7];
+        static int camNo = 5;
+        public bool?[] Results { get; } = new bool?[camNo];
 
         // 已收到结果的机位数
         public int CountCompleted { get; private set; } = 0;
@@ -203,7 +204,7 @@ namespace MyWPF1
             {
                 Results[cameraIndex] = isOk;
                 CountCompleted++;
-                return CountCompleted == 7;
+                return CountCompleted == camNo;
             }
             // 如果已经有过结果（重复回调）就忽略，不算第二次
             return false;

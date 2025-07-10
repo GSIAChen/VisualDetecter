@@ -40,7 +40,7 @@ namespace MyWPF1
                 Dispatcher.BeginInvoke(() =>
                 {
                     // ① 初始化主图
-                    string imagePath = @"C:\Users\huanxiangpeng\Desktop\001.png";
+                    string imagePath = @"F:\钽电容\测试图像\Image_20250612170358985.bmp";
                     _imageVM.Initialize(imgPage.hWindowControl, imagePath);
 
                     // ② 初始化每个 CCDVM

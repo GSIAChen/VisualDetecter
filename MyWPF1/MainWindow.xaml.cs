@@ -47,18 +47,13 @@ namespace MyWPF1
                 BatchNumber = dlg.BatchNumber;
                 BatchQuantity = dlg.BatchQuantity;
 
-                // 你可以在这儿触发其它逻辑，比如开始生产……
-                MessageBox.Show(
-                  $"物料：{MaterialName}\n批次号：{BatchNumber}\n批次数量：{BatchQuantity}",
-                  "已接收参数"
-                );
+                _scriptWindow._tcpServer.SendStartSignal();
             }
         }
 
         private void StopButton_Click(object sender, RoutedEventArgs e)
         {
-            // 停止按钮逻辑
-            MessageBox.Show("停止检测", "提示");
+            _scriptWindow._tcpServer.SendStopSignal();
         }
 
         private void ClearButton_Click(object sender, RoutedEventArgs e)
@@ -163,10 +158,16 @@ namespace MyWPF1
             Dispatcher.Invoke(() =>
             {
                 Trace.WriteLine($"Updating result {e.CameraIndex} Result: {(e.IsOk ? "OK" : "NG")}");
-                var stat = Stats[e.CameraIndex];
-                if (e.IsOk) stat.OkCount++;
-                else stat.NgCount++;
-                // ReCount or others if needed
+                if (e.CameraIndex != 8) { 
+                    var stat = Stats[e.CameraIndex];
+                    if (e.IsOk) stat.OkCount++;
+                    else stat.NgCount++;
+                }
+                else
+                {
+                    if (e.IsOk) TotalStat.OkCount++;
+                    else TotalStat.NgCount++;
+                }
             });
         }
 
@@ -199,11 +200,6 @@ namespace MyWPF1
                 );
                 target.HalconWindow.DispColor(e.Image);
             });
-        }
-
-        private void NoopWindowControlMouseMove(object sender, MouseEventArgs e)
-        {
-            // Intentionally empty — avoids the built‑in MouseMove logic
         }
     }
 

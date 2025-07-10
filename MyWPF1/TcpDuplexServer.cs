@@ -43,7 +43,13 @@ namespace MyWPF1
             var listener = new TcpListener(IPAddress.Parse("127.0.0.1"), Port);
             listener.Start();
             Console.WriteLine($"[TCP] Listening on port {Port}");
-
+            var Ctrl = new ProcessStartInfo
+            {
+                FileName = "2控制软件",
+                WorkingDirectory = @"F:/desktop",
+                UseShellExecute = true
+            };
+            Process.Start(Ctrl);
             while (true)
             {
                 _client = await listener.AcceptTcpClientAsync();
@@ -134,7 +140,7 @@ namespace MyWPF1
         private void ProcessScripts(int cameraIndex, int objectId, HImage image)
         {
             bool allOk = true;
-
+            Trace.WriteLine("Processing scripts for Camera: " + cameraIndex + "Object" + objectId);
             foreach (var script in scripts[cameraIndex])
             {
                 try
@@ -156,9 +162,11 @@ namespace MyWPF1
 
                     // 读取输出
                     HTuple isOk = call.GetOutputCtrlParamTuple("IsOk");
+
                     if (isOk.I != 1)
                     {
                         allOk = false;
+                        /**
                         // 1) retrieve global batch info from MainWindow
                         if (System.Windows.Application.Current.MainWindow is not MainWindow main)
                             continue;   // or break, as you prefer
@@ -169,7 +177,7 @@ namespace MyWPF1
 
                         // 2) date folder
                         string date = DateTime.Now.ToString("yyyy_MM_dd");
-                        string baseDir = Path.Combine(@"D:\images", material, date);
+                        string baseDir = Path.Combine(@"D:\images", material, date, batch);
 
                         // 3) ensure it exists
                         Directory.CreateDirectory(baseDir);
@@ -178,30 +186,21 @@ namespace MyWPF1
                         string scriptName = Path.GetFileNameWithoutExtension(script);
 
                         // 5) build full file name
-                        string filename = $"{batch}_{objId}_{scriptName}.bmp";
+                        string filename = $"{objId}_{scriptName}.bmp";
                         string fullPath = Path.Combine(baseDir, filename);
-
+                        Trace.WriteLine(fullPath);
                         // 6) write the image
                         try
                         {
-                            // Using the static operator:
-                            HOperatorSet.WriteImage(
-                                image,           // the HImage you just ran the script on
-                                "bmp",           // format
-                                0,               // no compression
-                                fullPath         // full filename
-                            );
+                            HOperatorSet.WriteImage(image, "bmp", 0, fullPath);
                         }
                         catch (Exception ex)
                         {
-                            Debug.WriteLine($"Failed to save failed‐result image: {ex}");
+                            Trace.WriteLine($"[ERROR] Save failed: {ex}");
                         }
+                        **/
                     }
-                    CameraResultReported?.Invoke(this, new CameraResultEventArgs
-                    {
-                        CameraIndex = cameraIndex,
-                        IsOk = isOk
-                    });
+
                 }
                 catch (Exception ex)
                 {
@@ -209,7 +208,11 @@ namespace MyWPF1
                     allOk = false;
                 }
             }
-            SendResult(objectId, allOk);
+            CameraResultReported?.Invoke(this, new CameraResultEventArgs
+            {
+                CameraIndex = cameraIndex,
+                IsOk = allOk
+            });
             // 获取或创建该物件的状态
             if (!objectStates.TryGetValue(objectId, out var state))
             {
@@ -231,7 +234,6 @@ namespace MyWPF1
                     CameraIndex = 8,
                     IsOk = finalOk
                 });
-
                 // 2) 同步发回 C++：只带 objectId 和 finalOk
                 SendResult(objectId, finalOk);
 
@@ -249,10 +251,9 @@ namespace MyWPF1
                 return;
 
             using var bw = new BinaryWriter(_stream, Encoding.Default, leaveOpen: true);
-            Trace.WriteLine("Sending Result for ObjectId:" +objectId+" the result is "+isOk);
-            const byte FrameHead = 0xFF;
+            Trace.WriteLine("Sending Result for ObjectId:" + objectId + " the result is " + isOk);
             const int PayloadLen = 0x06;    // 1(type) + 4(objectId) + 1(result)
-            const byte ResultType = 0x01; // our “result” frame
+            const byte ResultType = 0x01;   // our “result” frame
 
             // 1) header
             bw.Write(FrameHead);
@@ -299,6 +300,25 @@ namespace MyWPF1
             recvBuffer.RemoveRange(0, fullLen);
 
             return true;
+        }
+
+        public void SendStartSignal() => SendControlSignal(0x03);
+        public void SendStopSignal() => SendControlSignal(0x04);
+        private void SendControlSignal(byte code)
+        {
+            if (_stream == null || !_client?.Connected == true)
+                return;
+
+            // build frame in one go
+            // head(1) + length(4, little‑endian) + payload(1)
+            var buf = new byte[6] {
+            FrameHead,
+            1, 0, 0, 0,    // payload length = 1
+            code           // your actual command byte
+        };
+
+            _stream.Write(buf, 0, buf.Length);
+            _stream.Flush();
         }
     }
 }
