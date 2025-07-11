@@ -306,9 +306,9 @@ namespace MyWPF1
         public void SendStopSignal() => SendControlSignal(0x04);
         private void SendControlSignal(byte code)
         {
-            if (_stream == null || !_client?.Connected == true)
+            if (_stream == null || !_client?.Connected == true) { 
                 return;
-
+            }
             // build frame in one go
             // head(1) + length(4, little‑endian) + payload(1)
             var buf = new byte[6] {
@@ -316,9 +316,9 @@ namespace MyWPF1
             1, 0, 0, 0,    // payload length = 1
             code           // your actual command byte
         };
-
-            _stream.Write(buf, 0, buf.Length);
-            _stream.Flush();
+            using var bw = new BinaryWriter(_stream, Encoding.Default, leaveOpen: true);
+            bw.Write(buf, 0, buf.Length);
+            bw.Flush();
         }
     }
 }
