@@ -19,6 +19,7 @@ namespace MyWPF1
     {
         public event EventHandler<CameraResultEventArgs> CameraResultReported;
         public event EventHandler<ImageReceivedEventArgs> ImageReceived;
+        public event EventHandler<AllStatsEventArgs> AllStatsReported;
         private readonly HDevEngine _engine;
         public ObservableCollection<string>[] Scripts { get; }
         private readonly Dictionary<int, ObjectState> _objectStates
@@ -55,11 +56,11 @@ namespace MyWPF1
 
             Trace.WriteLine("Opening TCP Server!");
             // —— 4. 启动 TCP 双工服务器 —— 
-            _tcpServer = new TcpDuplexServer(_engine, Scripts, _objectStates, 8001);
+            _tcpServer = new TcpDuplexServer(Scripts, _objectStates, 8001);
             // ** Wire server → window propagation **
-            _tcpServer.CameraResultReported += (s, e) =>
+            _tcpServer.AllStatsReported += (s, e) =>
             {
-                CameraResultReported?.Invoke(this, e);
+                AllStatsReported?.Invoke(this, e);
             };
             _tcpServer.ImageReceived += (s, e) =>
             {

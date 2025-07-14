@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
+using System.Windows.Media.Media3D;
 
 namespace MyWPF1
 {
@@ -14,25 +15,27 @@ namespace MyWPF1
     {
         private int Port;
         private const byte FrameHead = 0xFF;
-        public event EventHandler<CameraResultEventArgs> CameraResultReported;
+        private System.Timers.Timer _reportTimer;
+        public event EventHandler<AllStatsEventArgs>? AllStatsReported;
 
         // 这里只保存单个客户端连接；如果要多个并行，可以用 ConcurrentDictionary<int, TcpClient> 等
         private TcpClient _client;
         private NetworkStream _stream;
-        private HDevEngine engine;
         private ObservableCollection<string>[] scripts;
         private Dictionary<int, ObjectState> objectStates;
         public event EventHandler<ImageReceivedEventArgs> ImageReceived;
+        private readonly CameraStat[] _stats = Enumerable
+                                               .Range(1, 8)
+                                               .Select(_ => new CameraStat(_))
+                                               .ToArray();
 
         // Constructor parameter is named "port"
         public TcpDuplexServer(
-            HDevEngine engine,
             ObservableCollection<string>[] scripts,
             Dictionary<int, ObjectState> objectStates,
             int port
         )
         {
-            this.engine = engine;
             this.scripts = scripts;
             this.objectStates = objectStates;
             this.Port = port;
@@ -42,7 +45,10 @@ namespace MyWPF1
         {
             var listener = new TcpListener(IPAddress.Parse("127.0.0.1"), Port);
             listener.Start();
-            Console.WriteLine($"[TCP] Listening on port {Port}");
+            _reportTimer = new System.Timers.Timer(5000);
+            _reportTimer.Elapsed += (_, __) => RaiseAllStats();
+            _reportTimer.AutoReset = true;
+            _reportTimer.Start();
             var Ctrl = new ProcessStartInfo
             {
                 FileName = "2控制软件",
@@ -54,7 +60,6 @@ namespace MyWPF1
             {
                 _client = await listener.AcceptTcpClientAsync();
                 _stream = _client.GetStream();
-                Console.WriteLine("[TCP] Client connected");
                 _ = HandleClientAsync(_client, _stream);
             }
         }
@@ -119,7 +124,7 @@ namespace MyWPF1
                     ptr,       // pointer to R,G,B bytes
                     "rgb",     // channel order
                     width, height,
-                    bpl,        // plugin
+                    bpl,       // plugin
                     "byte",    // pixel type
                     width, height,
                     0, 0, 8, 0
@@ -130,38 +135,37 @@ namespace MyWPF1
                 handle.Free();
             }
             HImage rgbImage = new HImage(image);
+            image.Dispose();
             System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
                 ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo + 1, objectId, rgbImage));
-                ProcessScripts(cameraNo, objectId, rgbImage);
             });
+            _ = Task.Run(() => ProcessScripts(cameraNo, objectId, rgbImage));
         }
 
         private void ProcessScripts(int cameraIndex, int objectId, HImage image)
         {
-            bool allOk = true;
             Trace.WriteLine("Processing scripts for Camera: " + cameraIndex + "Object" + objectId);
+            bool allOk = true;
+            using var localEngine = new HDevEngine();
+            localEngine.SetEngineAttribute("execute_procedures_jit_compiled", "true");
             foreach (var script in scripts[cameraIndex])
             {
                 try
                 {
-                    // 设置搜索路径 & 加载脚本
-                    engine.SetProcedurePath(Path.GetDirectoryName(script));
-                    var program = new HDevProgram(script);
-                    var procedure = new HDevProcedure(program, "Defect");
-                    var call = new HDevProcedureCall(procedure);
+                    localEngine.SetProcedurePath(Path.GetDirectoryName(script));
+                    using var program = new HDevProgram(script);
+                    using var procedure = new HDevProcedure(program, "Defect");
+                    using var call = new HDevProcedureCall(procedure);
 
                     // 传入图像
                     call.SetInputIconicParamObject("Image", image);
-                    // 如果过程需要用 objectId/cameraIndex 也可传入：
-                    // call.SetInputCtrlParamTuple("CameraIndex", new HTuple(cameraIndex));
-                    // call.SetInputCtrlParamTuple("ObjectId", new HTuple(objectId));
 
                     // 执行
                     call.Execute();
 
                     // 读取输出
-                    HTuple isOk = call.GetOutputCtrlParamTuple("IsOk");
+                    using HTuple isOk = call.GetOutputCtrlParamTuple("IsOk");
 
                     if (isOk.I != 1)
                     {
@@ -208,41 +212,28 @@ namespace MyWPF1
                     allOk = false;
                 }
             }
-            CameraResultReported?.Invoke(this, new CameraResultEventArgs
-            {
-                CameraIndex = cameraIndex,
-                IsOk = allOk
-            });
-            // 获取或创建该物件的状态
+            image.Dispose();
+            var idx = cameraIndex;
+            if (allOk) _stats[idx].OkCount++;
+            else _stats[idx].NgCount++;
+            Trace.WriteLine("The OkCount of Cam: "+idx+" is "+_stats[idx].OkCount+", NgCount is " + _stats[idx].NgCount);
+            // 更新 objectStates 并在最后一个相机时发 final result
             if (!objectStates.TryGetValue(objectId, out var state))
             {
                 state = new ObjectState();
                 objectStates[objectId] = state;
             }
 
-            // 填入本机位结果；如果返回 true，说明现在刚好收齐 7 个机位
             bool isLast = state.SetResult(cameraIndex, allOk);
-
             if (isLast)
             {
-                // 累积完毕，计算最终结果
                 bool finalOk = state.GetFinalOk();
-
-                // 1) 通知主界面
-                CameraResultReported?.Invoke(this, new CameraResultEventArgs
-                {
-                    CameraIndex = 8,
-                    IsOk = finalOk
-                });
-                // 2) 同步发回 C++：只带 objectId 和 finalOk
+                idx = 8;
+                if (finalOk) _stats[idx].OkCount++;
+                else _stats[idx].NgCount++;
                 SendResult(objectId, finalOk);
-
-                // 3) 清理
                 objectStates.Remove(objectId);
             }
-            Trace.WriteLine(
-              $"[Done] Cam={cameraIndex}, Obj={objectId} => {(allOk ? "OK" : "NG")}"
-            );
         }
 
         private void SendResult(int objectId, bool isOk)
@@ -304,6 +295,7 @@ namespace MyWPF1
 
         public void SendStartSignal() => SendControlSignal(0x03);
         public void SendStopSignal() => SendControlSignal(0x04);
+        public void SendClearSignal() => SendControlSignal(0x05);
         private void SendControlSignal(byte code)
         {
             if (_stream == null || !_client?.Connected == true) { 
@@ -320,5 +312,18 @@ namespace MyWPF1
             bw.Write(buf, 0, buf.Length);
             bw.Flush();
         }
+
+        private void RaiseAllStats()
+        {
+            // 发一个深拷贝，避免 UI 拿到后继续用原数组修改
+            var snapshot = _stats.Select(s => new CameraStat(s.CameraIndex)
+            {
+                OkCount = s.OkCount,
+                NgCount = s.NgCount,
+                ReCount = s.ReCount
+            }).ToArray();
+            AllStatsReported?.Invoke(this, new AllStatsEventArgs(snapshot));
+        }
     }
+
 }

@@ -16,13 +16,16 @@ namespace MyWPF1
         public string BatchNumber { get; private set; }
         public int BatchQuantity { get; private set; }
         private ScriptWindow _scriptWindow;
-        public ObservableCollection<CameraStat> Stats { get; } =
-            new ObservableCollection<CameraStat>(
-                Enumerable.Range(1, 7).Select(i => new CameraStat(i))
+
+        // 你原来的 7 个机位 Stats
+        public ObservableCollection<CameraStat> Stats { get; }
+            = new ObservableCollection<CameraStat>(
+                Enumerable.Range(0, 7).Select(i => new CameraStat(i + 1))
             );
 
-        // 还可以给一个总计项放在索引 7
-        public CameraStat TotalStat { get; } = new CameraStat(8);
+        // 你原来的 TotalStat
+        public CameraStat TotalStat { get; }
+            = new CameraStat(0) {};
 
         public MainWindow()
         {
@@ -58,17 +61,7 @@ namespace MyWPF1
 
         private void ClearButton_Click(object sender, RoutedEventArgs e)
         {
-            // 清料按钮逻辑 - 清空所有统计数据
-            foreach (var stat in Stats)
-            {
-                stat.OkCount = 0;
-                stat.NgCount = 0;
-                stat.ReCount = 0;
-            }
-            TotalStat.OkCount = 0;
-            TotalStat.NgCount = 0;
-            TotalStat.ReCount = 0;
-            MessageBox.Show("统计数据已清空", "提示");
+
         }
 
         private void ScriptButton_Click(object sender, RoutedEventArgs e)
@@ -76,7 +69,7 @@ namespace MyWPF1
             if (_scriptWindow == null)
             {
                 _scriptWindow = new ScriptWindow();
-                _scriptWindow._tcpServer.CameraResultReported += OnCameraResultReported;
+                _scriptWindow._tcpServer.AllStatsReported += OnAllStatsReported;
                 _scriptWindow._tcpServer.ImageReceived += OnImageReceived;
                 _scriptWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
                 _scriptWindow.ShowInTaskbar = false;
@@ -152,6 +145,7 @@ namespace MyWPF1
             // 停止按钮逻辑
         }
 
+        /**
         private void OnCameraResultReported(object? sender, CameraResultEventArgs e)
         {
             // Must marshal back onto UI thread
@@ -168,6 +162,27 @@ namespace MyWPF1
                     if (e.IsOk) TotalStat.OkCount++;
                     else TotalStat.NgCount++;
                 }
+            });
+        }**/
+
+        private void OnAllStatsReported(object sender, AllStatsEventArgs e)
+        {
+            // e.Stats 长度 8：0–6 = 相机 1–7，7 = 总计
+            var arr = e.Stats;
+            Dispatcher.Invoke(() =>
+            {
+                // 更新前 7 个
+                for (int i = 0; i < 7; i++)
+                {
+                    Stats[i].OkCount = arr[i].OkCount;
+                    Stats[i].NgCount = arr[i].NgCount;
+                    Stats[i].ReCount = arr[i].ReCount;
+                    // TotalCount、Accuracy 在 VM 里是只读自动计算的
+                }
+                // 更新总计（index 7）
+                TotalStat.OkCount = arr[7].OkCount;
+                TotalStat.NgCount = arr[7].NgCount;
+                TotalStat.ReCount = arr[7].ReCount;
             });
         }
 
@@ -186,7 +201,7 @@ namespace MyWPF1
                     6 => windowControl6,
                     _ => null
                 };
-                if (target == null) { return; }
+                if (target == null || e == null) { return; }
 
                 HOperatorSet.GetImageSize(e.Image, out HTuple imgWidth, out HTuple imgHeight);
                 int w = imgWidth.I;
@@ -221,61 +236,75 @@ namespace MyWPF1
 
     public class CameraStat : INotifyPropertyChanged
     {
-        public int CameraIndex { get; }
-        public string DisplayHeader => CameraIndex == -1 ? "全部机位统计" : $"相机{CameraIndex}统计";
-
-        private int _okCount = 0;
+        public int CameraIndex { get; set; } // 0–7 对应 Camera1…Camera7，8 用于总计
+        private int _okCount;
         public int OkCount
         {
             get => _okCount;
-            set 
-            { 
-                _okCount = value; 
-                OnPropertyChanged(); 
-                OnPropertyChanged(nameof(TotalCount)); 
-                OnPropertyChanged(nameof(Accuracy)); 
+            set
+            {
+                if (_okCount == value) return;
+                _okCount = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(TotalCount));
+                OnPropertyChanged(nameof(Accuracy));
             }
         }
 
-        private int _ngCount = 0;
+        private int _ngCount;
         public int NgCount
         {
             get => _ngCount;
-            set 
-            { 
-                _ngCount = value; 
-                OnPropertyChanged(); 
-                OnPropertyChanged(nameof(TotalCount)); 
-                OnPropertyChanged(nameof(Accuracy)); 
+            set
+            {
+                if (_ngCount == value) return;
+                _ngCount = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(TotalCount));
+                OnPropertyChanged(nameof(Accuracy));
             }
         }
 
-        private int _reCount = 0;
+        private int _reCount;
         public int ReCount
         {
             get => _reCount;
-            set 
-            { 
-                _reCount = value; 
-                OnPropertyChanged(); 
-                OnPropertyChanged(nameof(TotalCount)); 
-                OnPropertyChanged(nameof(Accuracy)); 
+            set
+            {
+                if (_reCount == value) return;
+                _reCount = value;
+                OnPropertyChanged();
             }
         }
-
-        // 通过 OkCount + NgCount 自动计算总数
         public int TotalCount => OkCount + NgCount;
-
-        // 精度 = OK/(OK+NG)
         public double Accuracy => TotalCount == 0 ? 0 : (double)OkCount / TotalCount;
+        public String DisplayHeader { get; set; }
 
-        public CameraStat(int index)
+        public CameraStat(int cameraIndex)
         {
-            CameraIndex = index;
+            CameraIndex = cameraIndex;
+            DisplayHeader = cameraIndex switch
+            {
+                1 => "相机1统计",
+                2 => "相机2统计",
+                3 => "相机3统计",
+                4 => "相机4统计",
+                5 => "相机5统计",
+                6 => "相机6统计",
+                7 => "相机7统计",
+                _ => $"Camera{cameraIndex}"
+            };
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
-        private void OnPropertyChanged([CallerMemberName] string name = null!)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    }
+
+    public class AllStatsEventArgs : EventArgs
+    {
+        // 索引 0–6 对应 Camera1…Camera7，索引 7 用作“总计”
+        public CameraStat[] Stats { get; }
+        public AllStatsEventArgs(CameraStat[] stats) => Stats = stats;
     }
 }
