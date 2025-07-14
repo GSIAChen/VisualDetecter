@@ -24,7 +24,7 @@ namespace MyWPF1
         public ObservableCollection<string>[] Scripts { get; }
         private readonly Dictionary<int, ObjectState> _objectStates
             = new Dictionary<int, ObjectState>();
-        public readonly TcpDuplexServer _tcpServer;
+        public TcpDuplexServer _tcpServer;
         public ICommand DeleteScriptCommand { get; }
 
         public static T? FindAncestor<T>(DependencyObject child) where T : DependencyObject
@@ -58,14 +58,7 @@ namespace MyWPF1
             // —— 4. 启动 TCP 双工服务器 —— 
             _tcpServer = new TcpDuplexServer(Scripts, _objectStates, 8001);
             // ** Wire server → window propagation **
-            _tcpServer.AllStatsReported += (s, e) =>
-            {
-                AllStatsReported?.Invoke(this, e);
-            };
-            _tcpServer.ImageReceived += (s, e) =>
-            {
-                ImageReceived?.Invoke(this, e);
-            };
+
             _ = _tcpServer.StartAsync(); // 异步启动，不阻塞 UI
         }
 
@@ -189,7 +182,7 @@ namespace MyWPF1
 
     public class ObjectState
     {
-        // 7 个机位的检测结果，初始化为 null/未填
+        // 初始机位数量，初始化为 null/未填
         static int camNo = 5;
         public bool?[] Results { get; } = new bool?[camNo];
 
@@ -235,6 +228,16 @@ namespace MyWPF1
             CameraIndex = cameraIndex;
             ObjectId = objectId;
             Image = image;
+        }
+    }
+
+    public class AllStatsEventArgs : EventArgs
+    {
+        public IReadOnlyList<CameraStat> Stats { get; }
+
+        public AllStatsEventArgs(IReadOnlyList<CameraStat> stats)
+        {
+            Stats = stats;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using HalconDotNet;
+using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -6,8 +7,11 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks.Dataflow;
 using System.Windows;
 using System.Windows.Media.Media3D;
+using System.Windows.Threading;
+using Application = System.Windows.Application;
 
 namespace MyWPF1
 {
@@ -15,8 +19,6 @@ namespace MyWPF1
     {
         private int Port;
         private const byte FrameHead = 0xFF;
-        private System.Timers.Timer _reportTimer;
-        public event EventHandler<AllStatsEventArgs>? AllStatsReported;
 
         // 这里只保存单个客户端连接；如果要多个并行，可以用 ConcurrentDictionary<int, TcpClient> 等
         private TcpClient _client;
@@ -24,10 +26,16 @@ namespace MyWPF1
         private ObservableCollection<string>[] scripts;
         private Dictionary<int, ObjectState> objectStates;
         public event EventHandler<ImageReceivedEventArgs> ImageReceived;
+        public event EventHandler<CameraResultEventArgs> CameraResultReported;
+        private readonly ActionBlock<byte[]> _frameProcessor;
+        private readonly DispatcherTimer _reportTimer;
+        private readonly ConcurrentDictionary<string, HDevProgram> _programCache = new();
+        private readonly HDevEngine _engine;
+        public event EventHandler<AllStatsEventArgs>? AllStatsReported;
         private readonly CameraStat[] _stats = Enumerable
-                                               .Range(1, 8)
-                                               .Select(_ => new CameraStat(_))
-                                               .ToArray();
+                                       .Range(1, 8)
+                                       .Select(_ => new CameraStat(_))
+                                       .ToArray();
 
         // Constructor parameter is named "port"
         public TcpDuplexServer(
@@ -39,16 +47,29 @@ namespace MyWPF1
             this.scripts = scripts;
             this.objectStates = objectStates;
             this.Port = port;
+            _engine = new HDevEngine();
+            _engine.SetEngineAttribute("execute_procedures_jit_compiled", "true");
+            HTuple devs;
+            HTuple handle;
+            HOperatorSet.QueryAvailableComputeDevices(out devs);
+            // 2) 打开第一个 OpenCL 设备
+            //    （如果你想指定平台、设备，也可以从 devs 里挑更合适的 index）
+            HOperatorSet.OpenComputeDevice(devs, out handle);
+            HOperatorSet.ActivateComputeDevice(handle);
+            // 3) 确保并行算子已开启（默认就是 true）
+            HOperatorSet.SetSystem("parallelize_operators", "true");
+            _reportTimer = new DispatcherTimer(
+            TimeSpan.FromSeconds(5),
+            DispatcherPriority.Normal,
+            (s, e) => RaiseAllStats(),
+            Application.Current.Dispatcher);
+            _reportTimer.Start();
         }
 
         public async Task StartAsync()
         {
             var listener = new TcpListener(IPAddress.Parse("127.0.0.1"), Port);
             listener.Start();
-            _reportTimer = new System.Timers.Timer(5000);
-            _reportTimer.Elapsed += (_, __) => RaiseAllStats();
-            _reportTimer.AutoReset = true;
-            _reportTimer.Start();
             var Ctrl = new ProcessStartInfo
             {
                 FileName = "2控制软件",
@@ -136,25 +157,25 @@ namespace MyWPF1
             }
             HImage rgbImage = new HImage(image);
             image.Dispose();
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
-            {
-                ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo + 1, objectId, rgbImage));
-            });
+            //Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+            //{
+            //    ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo + 1, objectId, rgbImage));
+            //}), DispatcherPriority.Background);
             _ = Task.Run(() => ProcessScripts(cameraNo, objectId, rgbImage));
         }
 
+        private HDevProgram GetOrLoadProgram(string path)
+        => _programCache.GetOrAdd(path, p => new HDevProgram(p));
+
         private void ProcessScripts(int cameraIndex, int objectId, HImage image)
         {
-            Trace.WriteLine("Processing scripts for Camera: " + cameraIndex + "Object" + objectId);
             bool allOk = true;
-            using var localEngine = new HDevEngine();
-            localEngine.SetEngineAttribute("execute_procedures_jit_compiled", "true");
             foreach (var script in scripts[cameraIndex])
             {
                 try
                 {
-                    localEngine.SetProcedurePath(Path.GetDirectoryName(script));
-                    using var program = new HDevProgram(script);
+                    _engine.SetProcedurePath(Path.GetDirectoryName(script));
+                    using var program = GetOrLoadProgram(script);
                     using var procedure = new HDevProcedure(program, "Defect");
                     using var call = new HDevProcedureCall(procedure);
 
@@ -212,11 +233,30 @@ namespace MyWPF1
                     allOk = false;
                 }
             }
-            image.Dispose();
+
             var idx = cameraIndex;
             if (allOk) _stats[idx].OkCount++;
             else _stats[idx].NgCount++;
-            Trace.WriteLine("The OkCount of Cam: "+idx+" is "+_stats[idx].OkCount+", NgCount is " + _stats[idx].NgCount);
+            if (!allOk)
+            {
+                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraIndex + 1, objectId, image));
+                }), DispatcherPriority.Render);
+            }
+            // 后续如果需要回调Ng图的缺陷位置时使用
+            //else
+            //{
+            //    Application.Current.Dispatcher.Invoke(() =>
+            //    {
+            //        ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraIndex + 1, objectId, image));
+            //    });
+            //}
+            //CameraResultReported?.Invoke(this, new CameraResultEventArgs
+            //{
+            //    CameraIndex = cameraIndex,
+            //    IsOk = allOk
+            //});
             // 更新 objectStates 并在最后一个相机时发 final result
             if (!objectStates.TryGetValue(objectId, out var state))
             {
@@ -228,12 +268,18 @@ namespace MyWPF1
             if (isLast)
             {
                 bool finalOk = state.GetFinalOk();
-                idx = 8;
+                //CameraResultReported?.Invoke(this, new CameraResultEventArgs
+                //{
+                //    CameraIndex = 8,
+                //    IsOk = finalOk
+                //});
+                idx = 7;
                 if (finalOk) _stats[idx].OkCount++;
                 else _stats[idx].NgCount++;
                 SendResult(objectId, finalOk);
                 objectStates.Remove(objectId);
             }
+            image.Dispose();
         }
 
         private void SendResult(int objectId, bool isOk)
@@ -315,15 +361,13 @@ namespace MyWPF1
 
         private void RaiseAllStats()
         {
-            // 发一个深拷贝，避免 UI 拿到后继续用原数组修改
-            var snapshot = _stats.Select(s => new CameraStat(s.CameraIndex)
+            // Shallow copy of the *list*, not the items
+            var snapshot = _stats.ToArray();
+            Application.Current.Dispatcher.BeginInvoke(new Action(() =>
             {
-                OkCount = s.OkCount,
-                NgCount = s.NgCount,
-                ReCount = s.ReCount
-            }).ToArray();
-            AllStatsReported?.Invoke(this, new AllStatsEventArgs(snapshot));
+                AllStatsReported?.Invoke(this,
+                    new AllStatsEventArgs(snapshot));
+            }), DispatcherPriority.Render);
         }
     }
-
 }
