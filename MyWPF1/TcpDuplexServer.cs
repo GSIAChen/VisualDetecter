@@ -245,13 +245,13 @@ namespace MyWPF1
                 }), DispatcherPriority.Render);
             }
             // 后续如果需要回调Ng图的缺陷位置时使用
-            //else
-            //{
-            //    Application.Current.Dispatcher.Invoke(() =>
-            //    {
-            //        ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraIndex + 1, objectId, image));
-            //    });
-            //}
+            else
+            {
+                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraIndex + 1, objectId, image));
+                }), DispatcherPriority.Render);
+            }
             //CameraResultReported?.Invoke(this, new CameraResultEventArgs
             //{
             //    CameraIndex = cameraIndex,
