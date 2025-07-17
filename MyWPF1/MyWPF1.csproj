@@ -20,6 +20,9 @@
     <PackageReference Include="HandyControl" Version="3.5.1" />
     <PackageReference Include="Microsoft.Windows.Compatibility" Version="9.0.6" />
     <PackageReference Include="MvvmLight" Version="5.4.1.1" />
+    <PackageReference Include="NLog" Version="6.0.1" />
+    <PackageReference Include="NLog.Config" Version="4.7.15" />
+    <PackageReference Include="NLog.Schema" Version="6.0.1" />
   </ItemGroup>
 
   <ItemGroup>

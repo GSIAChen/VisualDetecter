@@ -4,6 +4,7 @@ using System.Windows;
 using System.Diagnostics;
 using System.Windows.Threading;
 using Application = System.Windows.Application;
+using NLog;
 
 namespace MyWPF1
 {
@@ -13,6 +14,12 @@ namespace MyWPF1
     public partial class App : Application
     {
         private static string _logFile;
+
+        public App()
+        {
+            // 初始化NLog
+            LogManager.LoadConfiguration("NLog.config");
+        }
 
         protected override void OnStartup(StartupEventArgs e)
         {
