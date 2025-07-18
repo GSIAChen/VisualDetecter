@@ -12,6 +12,7 @@ using System.Windows;
 using System.Windows.Media.Media3D;
 using System.Windows.Threading;
 using Application = System.Windows.Application;
+using System.Threading.Tasks.Dataflow;
 using NLog;
 using System.Threading;
 
@@ -44,8 +45,6 @@ namespace MyWPF1
                                        .Range(1, 8)
                                        .Select(_ => new CameraStat(_))
                                        .ToArray();
-        // 性能监控定时器
-        private readonly DispatcherTimer _perfStatTimer;
 
         // Constructor parameter is named "port"
         public TcpDuplexServer(
@@ -57,17 +56,31 @@ namespace MyWPF1
             this.scripts = scripts;
             this.objectStates = objectStates;
             this.Port = port;
+
             _engine = new HDevEngine();
             _engine.SetEngineAttribute("execute_procedures_jit_compiled", "true");
             HTuple devs;
             HTuple handle;
             HOperatorSet.QueryAvailableComputeDevices(out devs);
-            // 2) 打开第一个 OpenCL 设备
-            //    （如果你想指定平台、设备，也可以从 devs 里挑更合适的 index）
-            HOperatorSet.OpenComputeDevice(devs, out handle);
+            HOperatorSet.OpenComputeDevice(devs[0], out handle);
             HOperatorSet.ActivateComputeDevice(handle);
-            // 3) 确保并行算子已开启（默认就是 true）
+            HTuple useInfo;
+            HOperatorSet.GetSystem("parallelize_operators", out useInfo);
+            Trace.WriteLine($"AOP on: {useInfo}");
+            HTuple cudaInfo;
+            HOperatorSet.GetSystem("cuda_devices", out cudaInfo);
+            Trace.WriteLine($"Cuda devices: {cudaInfo}");
             HOperatorSet.SetSystem("parallelize_operators", "true");
+            var parallelism = Environment.ProcessorCount;
+            var options = new ExecutionDataflowBlockOptions
+            {
+                MaxDegreeOfParallelism = parallelism,
+                BoundedCapacity = parallelism * 2   // 限流：队列不至于无限增长
+            };
+            _frameProcessor = new ActionBlock<byte[]>(frame =>
+            {
+                ProcessFrame(frame);
+            }, options);
             _reportTimer = new DispatcherTimer(
             TimeSpan.FromSeconds(5),
             DispatcherPriority.Normal,
@@ -75,26 +88,25 @@ namespace MyWPF1
             Application.Current.Dispatcher);
             _reportTimer.Start();
             // 通信速率统计定时器
-            _commStatTimer = new DispatcherTimer(
-                TimeSpan.FromSeconds(1),
-                DispatcherPriority.Normal,
-                (s, e) => LogCommStats(),
-                Application.Current.Dispatcher);
-            _commStatTimer.Start();
-            // 性能监控定时器，每5秒输出一次内存和线程池状态
-            _perfStatTimer = new DispatcherTimer(
-                TimeSpan.FromSeconds(5),
-                DispatcherPriority.Normal,
-                (s, e) => LogPerfStats(),
-                Application.Current.Dispatcher);
-            _perfStatTimer.Start();
+            //_commStatTimer = new DispatcherTimer(
+            //    TimeSpan.FromSeconds(1),
+            //    DispatcherPriority.Normal,
+            //    (s, e) => LogCommStats(),
+            //    Application.Current.Dispatcher);
+            //_commStatTimer.Start();
+            //// 性能监控定时器，每5秒输出一次内存和线程池状态
+            //_perfStatTimer = new DispatcherTimer(
+            //    TimeSpan.FromSeconds(5),
+            //    DispatcherPriority.Normal,
+            //    (s, e) => LogPerfStats(),
+            //    Application.Current.Dispatcher);
+            //_perfStatTimer.Start();
         }
 
         public async Task StartAsync()
         {
             var listener = new TcpListener(IPAddress.Parse("127.0.0.1"), Port);
             listener.Start();
-            logger.Info($"[硬件交互] TCP监听启动，端口: {Port}");
             var Ctrl = new ProcessStartInfo
             {
                 FileName = "2控制软件",
@@ -106,57 +118,167 @@ namespace MyWPF1
             {
                 _client = await listener.AcceptTcpClientAsync();
                 _stream = _client.GetStream();
-                logger.Info("[硬件交互] TCP客户端已连接");
                 _ = HandleClientAsync(_client, _stream);
             }
         }
+
+        //private async Task HandleClientAsync(TcpClient client, NetworkStream stream)
+        //{
+        //    var recvBuffer = new List<byte>();
+        //    var tmp = new byte[8192];
+
+        //    try
+        //    {
+        //        while (client.Connected)
+        //        {
+        //            int n = await stream.ReadAsync(tmp, 0, tmp.Length);
+        //            if (n == 0) break;  // 客户端断开
+        //            recvBuffer.AddRange(tmp.Take(n));
+        //            // 拆帧
+        //            while (TryExtractFrame(ref recvBuffer, out var frame))
+        //            {
+        //                if (BitConverter.ToString(frame) == "00")
+        //                {
+        //                    continue;
+        //                }
+        //                HandleImagePayload(frame);
+        //            }
+        //        }
+        //    }
+        //    catch (IOException ex)
+        //    {
+        //        logger.Error(ex, "[硬件交互] TCP连接异常");
+        //    }
+        //    finally
+        //    {
+        //        logger.Info("[硬件交互] TCP客户端已断开");
+        //        client.Close();
+        //    }
+        //}
 
         private async Task HandleClientAsync(TcpClient client, NetworkStream stream)
         {
             var recvBuffer = new List<byte>();
             var tmp = new byte[8192];
 
-            try
+            while (client.Connected)
             {
-                while (client.Connected)
+                int n = await stream.ReadAsync(tmp, 0, tmp.Length);
+                if (n == 0) break;
+                recvBuffer.AddRange(tmp.Take(n));
+
+                while (TryExtractFrame(ref recvBuffer, out var frame))
                 {
-                    int n = await stream.ReadAsync(tmp, 0, tmp.Length);
-                    if (n == 0) break;  // 客户端断开
-                    logger.Info($"[硬件交互] 接收到原始数据: 字节数={n}，当前待处理帧队列长度: {recvBuffer.Count}");
-                    recvBuffer.AddRange(tmp.Take(n));
-                    // 拆帧
-                    while (TryExtractFrame(ref recvBuffer, out var frame))
+                    // **不** 直接 HandleImagePayload(frame);
+                    // 而是交给 _frameProcessor：
+                    if (BitConverter.ToString(frame) == "00")
                     {
-                        if (BitConverter.ToString(frame) == "00")
-                        {
-                            logger.Warn("[丢帧] 收到无效帧，已丢弃");
-                            continue;
-                        }
-                        HandleImagePayload(frame);
+                        continue;
+                    }
+                    if (!_frameProcessor.Post(frame))
+                    {
+                        // 如果队列满了，你可以选择丢帧 或 阻塞一下：
+                        await _frameProcessor.SendAsync(frame);
                     }
                 }
             }
-            catch (IOException ex)
+            client.Close();
+        }
+
+        private void ProcessFrame(byte[] buf)
+        {
+            // 1. 解包（跟你原来 HandleImagePayload 一模一样）
+            using var ms = new MemoryStream(buf);
+            using var br = new BinaryReader(ms);
+            br.ReadByte();               // frameHead
+            byte cameraNo = br.ReadByte();
+            int objectId = br.ReadInt32();
+            ushort width = br.ReadUInt16();
+            ushort height = br.ReadUInt16();
+            br.ReadByte();               // channels
+            ushort bpl = br.ReadUInt16();
+            br.ReadInt32();              // length
+            int imgLen = bpl * height;
+            byte[] imgBuf = br.ReadBytes(imgLen);
+
+            // 2. GenImageInterleaved → HImage rgbImage
+            var handle = GCHandle.Alloc(imgBuf, GCHandleType.Pinned);
+            bool allOk = true;
+            HOperatorSet.GenImageInterleaved(
+            out HObject imgObj,
+            handle.AddrOfPinnedObject(),
+            "rgb", width, height,
+            bpl, "byte",
+            width, height,
+            0, 0, 8, 0
+            );
+            var rgbImage = new HImage(imgObj);
+            try
             {
-                logger.Error(ex, "[硬件交互] TCP连接异常");
+                // 3. 并行执行所有脚本（你原来那段 ProcessScripts 逻辑）
+                Parallel.ForEach(
+                    scripts[cameraNo],
+                    new ParallelOptions { MaxDegreeOfParallelism = 30 }, // 或者分配更多线程
+                    script =>
+                    {
+                        try
+                        {
+                            var program = GetOrLoadProgram(script);
+                            using var proc = new HDevProcedure(program, "Defect");
+                            using var call = new HDevProcedureCall(proc);
+                            call.SetInputIconicParamObject("Image", rgbImage);
+                            call.Execute();
+                            if (call.GetOutputCtrlParamTuple("IsOk").I != 1)
+                                allOk = false;
+                        }
+                        catch { allOk = false; }
+                    });
             }
-            finally
+            finally { handle.Free(); }
+            var idx = cameraNo;
+            if (allOk) _stats[idx].OkCount++;
+            else _stats[idx].NgCount++;
+            if (!allOk)
             {
-                logger.Info("[硬件交互] TCP客户端已断开");
-                client.Close();
+                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo + 1, objectId, rgbImage));
+                }), DispatcherPriority.Background);
+            }
+            //后续如果需要回调Ng图的缺陷位置时使用
+            else
+            {
+                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo + 1, objectId, rgbImage));
+                }), DispatcherPriority.Background);
+            }
+            // 更新 objectStates 并在最后一个相机时发 final result
+            if (!objectStates.TryGetValue(objectId, out var state))
+            {
+                state = new ObjectState();
+                objectStates[objectId] = state;
+            }
+
+            bool isLast = state.SetResult(cameraNo, allOk);
+            if (isLast)
+            {
+                bool finalOk = state.GetFinalOk();
+                //CameraResultReported?.Invoke(this, new CameraResultEventArgs
+                //{
+                //    CameraIndex = 8,
+                //    IsOk = finalOk
+                //});
+                idx = 7;
+                if (finalOk) _stats[idx].OkCount++;
+                else _stats[idx].NgCount++;
+                SendResult(objectId, finalOk);
+                objectStates.Remove(objectId);
             }
         }
 
         private void HandleImagePayload(byte[] buf)
         {
-            // 统计帧数和字节数
-            lock (_statLock)
-            {
-                _frameCount++;
-                _byteCount += buf.Length;
-            }
-            logger.Info($"收到新帧: 长度={buf.Length}");
-            logger.Info($"[性能] 当前待处理帧队列长度: {buf.Length}");
             using var ms = new MemoryStream(buf);
             using var br = new BinaryReader(ms);
 
@@ -174,7 +296,6 @@ namespace MyWPF1
             var handle = GCHandle.Alloc(imgBuf, GCHandleType.Pinned);
             // 1) Create the three single‐channel planes from the same buffer
             Trace.WriteLine($"[TCP] Received RGB image: camNo:{cameraNo}, objID:{objectId}, {width}x{height}, Channels={channels}, bpl={bpl}");
-            logger.Info($"[TCP] Received RGB image: camNo:{cameraNo}, objID:{objectId}, {width}x{height}, Channels={channels}, bpl={bpl}");
             HObject image;
             try
             {
@@ -210,18 +331,14 @@ namespace MyWPF1
         private void ProcessScripts(int cameraIndex, int objectId, HImage image)
         {
             var sw = Stopwatch.StartNew();
-            logger.Info($"开始处理: ObjectId={objectId}, Camera={cameraIndex}");
-            // 线程池状态
-            int workerThreads, completionPortThreads;
-            ThreadPool.GetAvailableThreads(out workerThreads, out completionPortThreads);
-            logger.Info($"[性能] 线程池可用工作线程: {workerThreads}, IO线程: {completionPortThreads}");
+            //using var engine = _threadEngine.Value;
             bool allOk = true;
             foreach (var script in scripts[cameraIndex])
             {
                 try
                 {
-                    _engine.SetProcedurePath(Path.GetDirectoryName(script));
-                    using var program = GetOrLoadProgram(script);
+                    //_engine.SetProcedurePath(Path.GetDirectoryName(script));
+                    var program = GetOrLoadProgram(script);
                     using var procedure = new HDevProcedure(program, "Defect");
                     using var call = new HDevProcedureCall(procedure);
 
@@ -233,7 +350,6 @@ namespace MyWPF1
 
                     // 读取输出
                     using HTuple isOk = call.GetOutputCtrlParamTuple("IsOk");
-
                     if (isOk.I != 1)
                     {
                         allOk = false;
@@ -276,7 +392,6 @@ namespace MyWPF1
                 catch (Exception ex)
                 {
                     Trace.WriteLine($"[Halcon Error] {ex.Message}");
-                    logger.Error(ex, $"处理异常: ObjectId={objectId}, Camera={cameraIndex}");
                     allOk = false;
                 }
             }
@@ -288,23 +403,22 @@ namespace MyWPF1
             {
                 Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    logger.Warn($"处理结果NG: ObjectId={objectId}, Camera={cameraIndex}");
                     ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraIndex + 1, objectId, image));
-                }), DispatcherPriority.Render);
+                }), DispatcherPriority.Background);
             }
-            // 后续如果需要回调Ng图的缺陷位置时使用
+            //后续如果需要回调Ng图的缺陷位置时使用
             else
             {
                 Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                 {
                     ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraIndex + 1, objectId, image));
-                }), DispatcherPriority.Render);
+                }), DispatcherPriority.Background);
             }
-            //CameraResultReported?.Invoke(this, new CameraResultEventArgs
-            //{
-            //    CameraIndex = cameraIndex,
-            //    IsOk = allOk
-            //});
+            CameraResultReported?.Invoke(this, new CameraResultEventArgs
+            {
+                CameraIndex = cameraIndex,
+                IsOk = allOk
+            });
             // 更新 objectStates 并在最后一个相机时发 final result
             if (!objectStates.TryGetValue(objectId, out var state))
             {
@@ -327,9 +441,8 @@ namespace MyWPF1
                 SendResult(objectId, finalOk);
                 objectStates.Remove(objectId);
             }
-            image.Dispose();
             sw.Stop();
-            logger.Info($"处理结束: ObjectId={objectId}, Camera={cameraIndex}, 耗时={sw.ElapsedMilliseconds}ms");
+            Trace.WriteLine("Time cost for Scripts: "+sw.ElapsedMilliseconds);
         }
 
         private void SendResult(int objectId, bool isOk)
@@ -395,7 +508,6 @@ namespace MyWPF1
         private void SendControlSignal(byte code)
         {
             if (_stream == null || !_client?.Connected == true) { 
-                logger.Warn("[硬件交互] 发送控制信号失败：未连接");
                 return;
             }
             // build frame in one go
@@ -408,7 +520,6 @@ namespace MyWPF1
             using var bw = new BinaryWriter(_stream, Encoding.Default, leaveOpen: true);
             bw.Write(buf, 0, buf.Length);
             bw.Flush();
-            logger.Info($"[硬件交互] 发送控制信号: code=0x{code:X2}");
         }
 
         private void RaiseAllStats()
@@ -420,27 +531,6 @@ namespace MyWPF1
                 AllStatsReported?.Invoke(this,
                     new AllStatsEventArgs(snapshot));
             }), DispatcherPriority.Render);
-        }
-
-        private void LogCommStats()
-        {
-            long frames, bytes;
-            lock (_statLock)
-            {
-                frames = _frameCount;
-                bytes = _byteCount;
-                _frameCount = 0;
-                _byteCount = 0;
-            }
-            logger.Info($"[实时通信速率] 1秒内收到帧数: {frames}，字节数: {bytes}，平均每帧: {(frames > 0 ? bytes / frames : 0)} 字节");
-        }
-
-        private void LogPerfStats()
-        {
-            long memory = GC.GetTotalMemory(false);
-            int workerThreads, completionPortThreads;
-            ThreadPool.GetAvailableThreads(out workerThreads, out completionPortThreads);
-            logger.Info($"[性能] 当前进程内存占用: {memory / 1024 / 1024} MB，线程池可用工作线程: {workerThreads}, IO线程: {completionPortThreads}");
         }
     }
 }

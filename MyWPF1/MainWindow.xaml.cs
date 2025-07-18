@@ -192,6 +192,7 @@ namespace MyWPF1
                     w - 1
                 );
                 target.HalconWindow.DispColor(e.Image);
+                e.Image.Dispose();
             });
         }
 
