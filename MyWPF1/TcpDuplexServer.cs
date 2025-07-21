@@ -8,6 +8,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks.Dataflow;
+using System.Windows.Media.Media3D;
 using System.Windows.Threading;
 using Application = System.Windows.Application;
 
@@ -18,6 +20,7 @@ namespace MyWPF1
         // 通信速率统计字段
         private int Port;
         private const byte FrameHead = 0xFF;
+        private readonly ActionBlock<byte[]> _frameProcessor;
 
         // 这里只保存单个客户端连接；如果要多个并行，可以用 ConcurrentDictionary<int, TcpClient> 等
         private TcpClient _client;
@@ -28,13 +31,20 @@ namespace MyWPF1
         public event EventHandler<CameraResultEventArgs> CameraResultReported;
         private readonly DispatcherTimer _reportTimer;
         private readonly ConcurrentDictionary<string, HDevProgram> _programCache = new();
-        private readonly HDevEngine _engine;
+        private HDevEngine _engine;
+        private readonly HDevEngine[] _engines;
         public event EventHandler<AllStatsEventArgs>? AllStatsReported;
         private readonly CameraStat[] _stats = Enumerable
                                        .Range(1, 8)
                                        .Select(_ => new CameraStat(_))
                                        .ToArray();
-
+        // 线程引擎池（初始化）
+        private readonly ThreadLocal<HDevEngine> _threadEngine = new(() =>
+        {
+            var engine = new HDevEngine();
+            engine.SetEngineAttribute("execute_procedures_jit_compiled", "true");
+            return engine;
+        });
         private readonly byte[] _buffer = new byte[8 * 1024 * 1024]; // 8 MB 循环缓冲区
         private int _head = 0, _tail = 0;
         private int width = 1280, height = 1024, channels = 3;
@@ -66,16 +76,17 @@ namespace MyWPF1
             HOperatorSet.GetSystem("cuda_devices", out cudaInfo);
             Trace.WriteLine($"Cuda devices: {cudaInfo}");
             HOperatorSet.SetSystem("parallelize_operators", "true");
-            //Trace.WriteLine("CPU num = "+Environment.ProcessorCount);
-            //var parallelism = Environment.ProcessorCount;
-            //var options = new ExecutionDataflowBlockOptions
-            //{
-            //    MaxDegreeOfParallelism = parallelism * 2,
-            //};
-            //_frameProcessor = new ActionBlock<byte[]>(frame =>
-            //{
-            //    ProcessFrame(frame);
-            //}, options);
+            HOperatorSet.SetSystem("thread_num", Environment.ProcessorCount);
+            Trace.WriteLine("CPU num = "+Environment.ProcessorCount);
+            var parallelism = Environment.ProcessorCount;
+            var options = new ExecutionDataflowBlockOptions
+            {
+                MaxDegreeOfParallelism = 24,
+            };
+            _frameProcessor = new ActionBlock<byte[]>(frame =>
+            {
+                ProcessFrame(frame);
+            }, options);
             _reportTimer = new DispatcherTimer(
             TimeSpan.FromSeconds(5),
             DispatcherPriority.Normal,
@@ -187,7 +198,8 @@ namespace MyWPF1
                             continue;
 
                         // 处理图像帧
-                        HandleImagePayload(frame);
+                        await _frameProcessor.SendAsync(frame);
+                        //_frameProcessor.Post(frame);
                     }
 
                     // 3) 如果剩余区间很小，就搬家一次
@@ -230,94 +242,91 @@ namespace MyWPF1
         //    client.Close();
         //}
 
-        //private void ProcessFrame(byte[] buf)
-        //{
-        //    // 1. 解包
-        //    var sw = Stopwatch.StartNew();
-        //    using var ms = new MemoryStream(buf);
-        //    using var br = new BinaryReader(ms);
-        //    br.ReadByte();               // frameHead
-        //    byte cameraNo = br.ReadByte();
-        //    int objectId = br.ReadInt32();
-        //    ushort width = br.ReadUInt16();
-        //    ushort height = br.ReadUInt16();
-        //    br.ReadByte();               // channels
-        //    ushort bpl = br.ReadUInt16();
-        //    br.ReadInt32();              // length
-        //    int imgLen = bpl * height;
-        //    byte[] imgBuf = br.ReadBytes(imgLen);
+        private void ProcessFrame(byte[] buf)
+        {
+            // 1. 解包
+            var sw = Stopwatch.StartNew();
+            using var ms = new MemoryStream(buf);
+            using var br = new BinaryReader(ms);
+            br.ReadByte();               // frameHead
+            byte cameraNo = br.ReadByte();
+            int objectId = br.ReadInt32();
+            ushort width = br.ReadUInt16();
+            ushort height = br.ReadUInt16();
+            br.ReadByte();               // channels
+            ushort bpl = br.ReadUInt16();
+            br.ReadInt32();              // length
+            int imgLen = bpl * height;
+            byte[] imgBuf = br.ReadBytes(imgLen);
 
-        //    // 2. GenImageInterleaved → HImage rgbImage
-        //    var handle = GCHandle.Alloc(imgBuf, GCHandleType.Pinned);
-        //    bool allOk = true;
-        //    HOperatorSet.GenImageInterleaved(
-        //    out HObject imgObj,
-        //    handle.AddrOfPinnedObject(),
-        //    "rgb", width, height,
-        //    bpl, "byte",
-        //    width, height,
-        //    0, 0, 8, 0
-        //    );
-        //    var rgbImage = new HImage(imgObj);
-        //    try
-        //    {
-        //        Parallel.ForEach(
-        //            scripts[cameraNo],
-        //            new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, // 分配线程数
-        //            script =>
-        //            {
-        //                try
-        //                {
-        //                    var program = GetOrLoadProgram(script);
-        //                    using var proc = new HDevProcedure(program, "Defect");
-        //                    using var call = new HDevProcedureCall(proc);
-        //                    call.SetInputIconicParamObject("Image", rgbImage);
-        //                    call.Execute();
-        //                    if (call.GetOutputCtrlParamTuple("IsOk").I != 1)
-        //                        allOk = false;
-        //                }
-        //                catch { allOk = false; }
-        //            });
-        //    }
-        //    finally { handle.Free(); }
-        //    var idx = cameraNo;
-        //    if (allOk) _stats[idx].OkCount++;
-        //    else _stats[idx].NgCount++;
-        //    if (!allOk)
-        //    {
-        //        Application.Current.Dispatcher.BeginInvoke(new Action(() =>
-        //        {
-        //            ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo + 1, objectId, rgbImage));
-        //        }), DispatcherPriority.Background);
-        //    }
-        //    //后续如果需要回调Ng图的缺陷位置时使用
-        //    else
-        //    {
-        //        Application.Current.Dispatcher.BeginInvoke(new Action(() =>
-        //        {
-        //            ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo + 1, objectId, rgbImage));
-        //        }), DispatcherPriority.Background);
-        //    }
-        //    // 更新 objectStates 并在最后一个相机时发 final result
-        //    if (!objectStates.TryGetValue(objectId, out var state))
-        //    {
-        //        state = new ObjectState();
-        //        objectStates[objectId] = state;
-        //    }
+            // 2. GenImageInterleaved → HImage rgbImage
+            var handle = GCHandle.Alloc(imgBuf, GCHandleType.Pinned);
+            bool allOk = true;
+            HOperatorSet.GenImageInterleaved(
+            out HObject imgObj,
+            handle.AddrOfPinnedObject(),
+            "rgb", width, height,
+            bpl, "byte",
+            width, height,
+            0, 0, 8, 0
+            );
+            var rgbImage = new HImage(imgObj);
+            imgObj.Dispose();
+            //var engine = _engines[cameraNo];
+            //var engine = _threadEngine.Value;
+            foreach (var script in scripts[cameraNo])
+            {
+                try
+                {
+                    var program = GetOrLoadProgram(script);
+                    using var proc = new HDevProcedure(program, "Defect");
+                    using var call = new HDevProcedureCall(proc);
+                    call.SetInputIconicParamObject("Image", rgbImage);
+                    call.Execute();
+                    if (call.GetOutputCtrlParamTuple("IsOk").I != 1)
+                        allOk = false;
+                }
+                catch { allOk = false; }
+            }
+            handle.Free();
+            var idx = cameraNo;
+            if (allOk) _stats[idx].OkCount++;
+            else _stats[idx].NgCount++;
+            //if (!allOk)
+            //{
+            //    Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+            //    {
+            //        ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo + 1, objectId, rgbImage));
+            //    }), DispatcherPriority.Background);
+            //}
+            ////后续如果需要回调Ng图的缺陷位置时使用
+            //else
+            //{
+            //    Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+            //    {
+            //        ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo + 1, objectId, rgbImage));
+            //    }), DispatcherPriority.Background);
+            //}
+            //更新 objectStates 并在最后一个相机时发 final result
+            if (!objectStates.TryGetValue(objectId, out var state))
+            {
+                state = new ObjectState();
+                objectStates[objectId] = state;
+            }
 
-        //    bool isLast = state.SetResult(cameraNo, allOk);
-        //    if (isLast)
-        //    {
-        //        bool finalOk = state.GetFinalOk();
-        //        idx = 7;
-        //        if (finalOk) _stats[idx].OkCount++;
-        //        else _stats[idx].NgCount++;
-        //        SendResult(objectId, finalOk);
-        //        objectStates.Remove(objectId);
-        //    }
-        //    sw.Stop();
-        //    Trace.WriteLine($"[TCP] Processed RGB image: camNo:{cameraNo}, objID:{objectId}, {width}x{height}, Time: {sw.ElapsedMilliseconds}ms");
-        //}
+            bool isLast = state.SetResult(cameraNo, allOk);
+            if (isLast)
+            {
+                bool finalOk = state.GetFinalOk();
+                idx = 7;
+                if (finalOk) _stats[idx].OkCount++;
+                else _stats[idx].NgCount++;
+                SendResult(objectId, finalOk);
+                objectStates.Remove(objectId);
+            }
+            sw.Stop();
+            Trace.WriteLine($"Processed in {sw.ElapsedMilliseconds}ms");
+        }
 
         private void HandleImagePayload(byte[] buf)
         {
@@ -431,7 +440,7 @@ namespace MyWPF1
                     allOk = false;
                 }
             }
-
+            sw.Stop();
             var idx = cameraIndex;
             if (allOk) _stats[idx].OkCount++;
             else _stats[idx].NgCount++;
@@ -467,7 +476,6 @@ namespace MyWPF1
                 SendResult(objectId, finalOk);
                 objectStates.Remove(objectId);
             }
-            sw.Stop();
             Trace.WriteLine("Time cost for Scripts: " + sw.ElapsedMilliseconds);
         }
 
@@ -532,7 +540,8 @@ namespace MyWPF1
         public void SendClearSignal() => SendControlSignal(0x05);
         private void SendControlSignal(byte code)
         {
-            if (_stream == null || !_client?.Connected == true) { 
+            if (_stream == null || !_client?.Connected == true)
+            {
                 return;
             }
             // build frame in one go
