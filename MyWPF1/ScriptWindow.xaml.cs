@@ -50,8 +50,8 @@ namespace MyWPF1
             _engine.SetEngineAttribute("execute_procedures_jit_compiled", "true");
 
             // —— 3. 初始化脚本列表 —— 
-            Scripts = new ObservableCollection<string>[7];
-            for (int i = 0; i < 7; i++)
+            Scripts = new ObservableCollection<string>[12];
+            for (int i = 0; i < 12; i++)
                 Scripts[i] = new ObservableCollection<string>();
 
             Trace.WriteLine("Opening TCP Server!");
@@ -183,7 +183,7 @@ namespace MyWPF1
     public class ObjectState
     {
         // 初始机位数量，初始化为 null/未填
-        static int camNo = 5;
+        static int camNo = 10;
         public bool?[] Results { get; } = new bool?[camNo];
 
         // 已收到结果的机位数

@@ -19,6 +19,7 @@ namespace MyWPF1
 {
     public class TcpDuplexServer
     {
+        static SieveDll.CaptureCallbackFunc _callback = OnCapture;
         // 通信速率统计字段
         private int Port;
         private const byte FrameHead = 0xFF;
@@ -36,7 +37,7 @@ namespace MyWPF1
         ConcurrentDictionary<string, ThreadLocal<ScriptRunner>> _runners = new();
         public event EventHandler<AllStatsEventArgs>? AllStatsReported;
         private readonly CameraStat[] _stats = Enumerable
-                                       .Range(1, 8)
+                                       .Range(1, 13)
                                        .Select(_ => new CameraStat(_))
                                        .ToArray();
         // 线程引擎池（初始化）
@@ -54,6 +55,25 @@ namespace MyWPF1
         private int _searchStart = 0;
         private int _frameCount;
         private System.Timers.Timer _fpsTimer;
+        //[DllImport("kernel32.dll", SetLastError = true)]
+        //static extern IntPtr LoadLibrary(string lpFileName);
+
+        //[DllImport("kernel32.dll", SetLastError = true)]
+        //static extern bool SetDllDirectory(string lpPathName);
+
+        //public static void TryLoadDll()
+        //{
+        //    var handle = LoadLibrary(@"F:\tandianrong\TestEc3224l\TestEc3224l.dll");
+        //    if (handle == IntPtr.Zero)
+        //    {
+        //        int error = Marshal.GetLastWin32Error();
+        //        Trace.WriteLine("LoadLibrary failed: " + error);
+        //    }
+        //    else
+        //    {
+        //        Trace.WriteLine("DLL Loaded Successfully");
+        //    }
+        //}
 
         public void InitMonitor()
         {
@@ -84,6 +104,25 @@ namespace MyWPF1
             this.Port = port;
             _imgLen = width * height * channels;
             //InitMonitor();
+            //Console.WriteLine(Environment.GetEnvironmentVariable("Path"));
+
+            // 设置搜索路径为 DLL 根目录
+            //var h = SieveDll.testEc3224l_CreateProjectAgent("F:/tandianrong/TestEc3224l/TestEc3224l.js");
+
+            //if (!SieveDll.testEc3224l_HandleValid(h))
+            //{
+            //    Console.WriteLine("Handle invalid");
+            //    return;
+            //}
+
+            //SieveDll.testEc3224l_RegisterCaptrueCallBack(h, _callback, IntPtr.Zero);
+
+            //Console.ReadKey();
+
+            //SieveDll.testEc3224l_UnRegisterCaptrueCallBack(h);
+            //SieveDll.testEc3224l_DestroyProjectAgent(h);
+
+            // 设置Halcon引擎
             _engine = new HDevEngine();
             _engine.SetEngineAttribute("execute_procedures_jit_compiled", "true");
             HTuple devs;
@@ -100,6 +139,8 @@ namespace MyWPF1
             HOperatorSet.SetSystem("parallelize_operators", "true");
             HOperatorSet.SetSystem("thread_num", Environment.ProcessorCount);
             Trace.WriteLine("CPU num = " + Environment.ProcessorCount);
+
+            // 设置 ActionBlock 的并行度和缓冲区
             var parallelism = Environment.ProcessorCount;
             var options = new ExecutionDataflowBlockOptions
             {
@@ -111,6 +152,8 @@ namespace MyWPF1
             {
                 ProcessFrame(frame);
             }, options);
+
+            // 定时上报统计信息
             _reportTimer = new DispatcherTimer(
             TimeSpan.FromSeconds(5),
             DispatcherPriority.Normal,
@@ -145,10 +188,7 @@ namespace MyWPF1
             {
                 while (client.Connected)
                 {
-                    var tcpSw = Stopwatch.StartNew();
-                    int n = await stream.ReadAsync(tmp, 0, tmp.Length);
-                    tcpSw.Stop();
-                    Trace.WriteLine($"[NET] TCP Read {n} bytes in {tcpSw.ElapsedMilliseconds}ms");
+                    int n = await stream.ReadAsync(tmp);
                     if (n == 0) break;  // 客户端断开
 
                     // 1) 把新数据拷贝到 _buffer[_tail..]
@@ -237,7 +277,6 @@ namespace MyWPF1
             // 2. GenImageInterleaved → HImage rgbImage
             var sw = Stopwatch.StartNew();
             var handle = GCHandle.Alloc(imgBuf, GCHandleType.Pinned);
-            Trace.WriteLine($"[PERF] GenImage Buffer Prep: {sw.ElapsedMilliseconds}ms");
             HOperatorSet.GenImageInterleaved(
             out HObject imgObj,
             handle.AddrOfPinnedObject(),
@@ -248,9 +287,31 @@ namespace MyWPF1
             );
             var rgbImage = new HImage(imgObj);
             imgObj.Dispose();
-            Trace.WriteLine($"[PERF] GenImageInterleaved: {sw.ElapsedMilliseconds}ms");
             var engine = _threadEngine.Value;
             bool allOk = true;
+            switch (cameraNo)
+            {
+                case 64:
+                    cameraNo = 6;
+                    break;
+                case 65:
+                    cameraNo = 7;
+                    break;
+                case 66:
+                    cameraNo = 8;
+                    break;
+                case 67:
+                    cameraNo = 9;
+                    break;
+                case 68:
+                    cameraNo = 10;
+                    break;
+                case 69:
+                    cameraNo = 11;
+                    break;
+                default:
+                    break;
+            }
             foreach (var script in scripts[cameraNo])
             {
                 try
@@ -265,39 +326,40 @@ namespace MyWPF1
             var idx = cameraNo;
             if (allOk) _stats[idx].OkCount++;
             else _stats[idx].NgCount++;
-            if (!allOk)
-            {
-                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo + 1, objectId, rgbImage));
-                }), DispatcherPriority.Background);
-            }
+            //if (!allOk)
+            //{
+            //    Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+            //    {
+            //        ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo + 1, objectId, rgbImage));
+            //    }), DispatcherPriority.Background);
+            //}
             //后续如果需要回调Ng图的缺陷位置时使用
-            else
-            {
-                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo + 1, objectId, rgbImage));
-                }), DispatcherPriority.Background);
-            }
+            //else
+            //{
+            //    Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+            //    {
+            //        ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo + 1, objectId, rgbImage));
+            //    }), DispatcherPriority.Background);
+            //}
             //更新 objectStates 并在最后一个相机时发 final result
             if (!objectStates.TryGetValue(objectId, out var state))
             {
                 state = new ObjectState();
                 objectStates[objectId] = state;
             }
-
             bool isLast = state.SetResult(cameraNo, allOk);
             if (isLast)
             {
+                Trace.WriteLine("Object " + objectId + "'s final result");
                 bool finalOk = state.GetFinalOk();
-                idx = 7;
+                idx = 12;
                 if (finalOk) _stats[idx].OkCount++;
                 else _stats[idx].NgCount++;
                 SendResult(objectId, finalOk);
                 objectStates.Remove(objectId);
             }
             _pool.Return(buf, clearArray: false);
+            rgbImage.Dispose();
             sw.Stop();
             Trace.WriteLine($"Processed in {sw.ElapsedMilliseconds}ms");
         }
@@ -307,6 +369,7 @@ namespace MyWPF1
             if (_stream == null || !_client.Connected)
                 return;
 
+            Trace.WriteLine("Sending result: " + objectId + " " + (isOk ? "OK" : "NG"));
             using var bw = new BinaryWriter(_stream, Encoding.Default, leaveOpen: true);
             const int PayloadLen = 0x06;    // 1(type) + 4(objectId) + 1(result)
             const byte ResultType = 0x01;   // our “result” frame
@@ -355,6 +418,15 @@ namespace MyWPF1
                 AllStatsReported?.Invoke(this,
                     new AllStatsEventArgs(snapshot));
             }), DispatcherPriority.Render);
+        }
+
+        static void OnCapture(IntPtr pData, ref SieveDll.SieveCaptureEx captureInfo, IntPtr userData)
+        {
+            var img = Marshal.PtrToStructure<SieveDll.GzsiaImage>(captureInfo.image);
+            int len = img.height * img.bytePerLine;
+            var buf = new byte[len];
+            Marshal.Copy(pData, buf, 0, len);
+            Console.WriteLine($"Got image: {img.width}x{img.height} from camera {captureInfo.camerId}");
         }
     }
     class ScriptRunner

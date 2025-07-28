@@ -20,11 +20,11 @@ namespace MyWPF1
 
         public ObservableCollection<CameraStat> Stats { get; } =
             new ObservableCollection<CameraStat>(
-                Enumerable.Range(1, 7).Select(i => new CameraStat(i))
+                Enumerable.Range(1, 12).Select(i => new CameraStat(i))
             );
 
-        // 还可以给一个总计项放在索引 7
-        public CameraStat TotalStat { get; } = new CameraStat(8);
+        // 还可以给一个总计项放在索引 11
+        public CameraStat TotalStat { get; } = new CameraStat(13);
 
         public MainWindow()
         {
@@ -151,7 +151,7 @@ namespace MyWPF1
             Dispatcher.Invoke(() =>
             {
                 Trace.WriteLine($"Updating result {e.CameraIndex} Result: {(e.IsOk ? "OK" : "NG")}");
-                if (e.CameraIndex != 8) { 
+                if (e.CameraIndex != 11) { 
                     var stat = Stats[e.CameraIndex];
                     if (e.IsOk) stat.OkCount++;
                     else stat.NgCount++;
@@ -201,15 +201,15 @@ namespace MyWPF1
             var arr = e.Stats;  // now just a shallow array of your real CameraStat objects
             Dispatcher.BeginInvoke(() =>
             {
-                for (int i = 0; i < 7; i++)
+                for (int i = 0; i < 12; i++)
                 {
                     Stats[i].OkCount = arr[i].OkCount;
                     Stats[i].NgCount = arr[i].NgCount;
                     Stats[i].ReCount = arr[i].ReCount;
                 }
-                TotalStat.OkCount = arr[7].OkCount;
-                TotalStat.NgCount = arr[7].NgCount;
-                TotalStat.ReCount = arr[7].ReCount;
+                TotalStat.OkCount = arr[12].OkCount;
+                TotalStat.NgCount = arr[12].NgCount;
+                TotalStat.ReCount = arr[12].ReCount;
             }, DispatcherPriority.Render);
         }
     }

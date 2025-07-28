@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:MyWPF1"
         xmlns:converters="clr-namespace:MyWPF1.Converters"
         mc:Ignorable="d"
-        Title="脚本管理" Height="600" Width="1000"
+        Title="脚本管理" Height="600" Width="1300"
         Background="#FF0D1117">
     <Window.Resources>
         <!-- 连接状态转换器 -->
@@ -238,6 +238,11 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -252,6 +257,11 @@
                 <TextBlock Grid.Row="0" Grid.Column="4" Text="5号相机" FontWeight="Bold" HorizontalAlignment="Center"/>
                 <TextBlock Grid.Row="0" Grid.Column="5" Text="6号相机" FontWeight="Bold" HorizontalAlignment="Center"/>
                 <TextBlock Grid.Row="0" Grid.Column="6" Text="7号相机" FontWeight="Bold" HorizontalAlignment="Center"/>
+                <TextBlock Grid.Row="0" Grid.Column="7" Text="8号相机" FontWeight="Bold" HorizontalAlignment="Center"/>
+                <TextBlock Grid.Row="0" Grid.Column="8" Text="9号相机" FontWeight="Bold" HorizontalAlignment="Center"/>
+                <TextBlock Grid.Row="0" Grid.Column="9" Text="10号相机" FontWeight="Bold" HorizontalAlignment="Center"/>
+                <TextBlock Grid.Row="0" Grid.Column="10" Text="11号相机" FontWeight="Bold" HorizontalAlignment="Center"/>
+                <TextBlock Grid.Row="0" Grid.Column="11" Text="12号相机" FontWeight="Bold" HorizontalAlignment="Center"/>
 
                 <!-- 加载脚本按钮 -->
                 <Button Grid.Row="1" Grid.Column="0" Content="加载脚本" Style="{StaticResource LoadButtonStyle}" Click="LoadScript_Click" Tag="0" />
@@ -261,6 +271,11 @@
                 <Button Grid.Row="1" Grid.Column="4" Content="加载脚本" Style="{StaticResource LoadButtonStyle}" Click="LoadScript_Click" Tag="4" />
                 <Button Grid.Row="1" Grid.Column="5" Content="加载脚本" Style="{StaticResource LoadButtonStyle}" Click="LoadScript_Click" Tag="5" />
                 <Button Grid.Row="1" Grid.Column="6" Content="加载脚本" Style="{StaticResource LoadButtonStyle}" Click="LoadScript_Click" Tag="6" />
+                <Button Grid.Row="1" Grid.Column="7" Content="加载脚本" Style="{StaticResource LoadButtonStyle}" Click="LoadScript_Click" Tag="7" />
+                <Button Grid.Row="1" Grid.Column="8" Content="加载脚本" Style="{StaticResource LoadButtonStyle}" Click="LoadScript_Click" Tag="8" />
+                <Button Grid.Row="1" Grid.Column="9" Content="加载脚本" Style="{StaticResource LoadButtonStyle}" Click="LoadScript_Click" Tag="9" />
+                <Button Grid.Row="1" Grid.Column="10" Content="加载脚本" Style="{StaticResource LoadButtonStyle}" Click="LoadScript_Click" Tag="10" />
+                <Button Grid.Row="1" Grid.Column="11" Content="加载脚本" Style="{StaticResource LoadButtonStyle}" Click="LoadScript_Click" Tag="11" />
 
                 <!-- 脚本列表 -->
                 <ListBox Grid.Row="2" Grid.Column="0" Tag="0" ItemsSource="{Binding Scripts[0]}">
@@ -354,6 +369,81 @@
                     </ListBox.ItemTemplate>
                 </ListBox>
                 <ListBox Grid.Row="2" Grid.Column="6" Tag="6" ItemsSource="{Binding Scripts[6]}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" Padding="4">
+                                <TextBlock.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="删除"
+                                                  Click="DeleteScript_Click"
+                                                  CommandParameter="{Binding}" />
+                                    </ContextMenu>
+                                </TextBlock.ContextMenu>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <ListBox Grid.Row="2" Grid.Column="7" Tag="7" ItemsSource="{Binding Scripts[7]}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" Padding="4">
+                                <TextBlock.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="删除"
+                                                  Click="DeleteScript_Click"
+                                                  CommandParameter="{Binding}" />
+                                    </ContextMenu>
+                                </TextBlock.ContextMenu>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <ListBox Grid.Row="2" Grid.Column="8" Tag="8" ItemsSource="{Binding Scripts[8]}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" Padding="4">
+                                <TextBlock.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="删除"
+                                                  Click="DeleteScript_Click"
+                                                  CommandParameter="{Binding}" />
+                                    </ContextMenu>
+                                </TextBlock.ContextMenu>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <ListBox Grid.Row="2" Grid.Column="9" Tag="9" ItemsSource="{Binding Scripts[9]}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" Padding="4">
+                                <TextBlock.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="删除"
+                                                  Click="DeleteScript_Click"
+                                                  CommandParameter="{Binding}" />
+                                    </ContextMenu>
+                                </TextBlock.ContextMenu>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <ListBox Grid.Row="2" Grid.Column="10" Tag="10" ItemsSource="{Binding Scripts[10]}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" Padding="4">
+                                <TextBlock.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="删除"
+                                                  Click="DeleteScript_Click"
+                                                  CommandParameter="{Binding}" />
+                                    </ContextMenu>
+                                </TextBlock.ContextMenu>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <ListBox Grid.Row="2" Grid.Column="11" Tag="11" ItemsSource="{Binding Scripts[11]}">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding}" Padding="4">
