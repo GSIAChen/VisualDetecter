@@ -207,6 +207,9 @@
             <Setter Property="HorizontalAlignment" Value="Center"/>
             <Setter Property="Margin" Value="18,0,0,0"/>
         </Style>
+        <DataTemplate x:Key="BlackComboBoxItemTemplate">
+            <TextBlock Text="{Binding}" Foreground="#000000" FontWeight="Bold" FontSize="15"/>
+        </DataTemplate>
     </Window.Resources>
 
     <Grid Background="{StaticResource DarkBackgroundBrush}">
@@ -467,13 +470,26 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Button Content="全部保存" Style="{StaticResource RunButtonStyle}" Click="SaveConfig_Click" 
+                <Button Content="保存配置" Style="{StaticResource RunButtonStyle}" Click="SaveConfig_Click" 
                         Margin="0,0,10,0" Grid.Column="0"
                         HorizontalAlignment="Center"/>
                 <Button Content="加载配置" Style="{StaticResource RunButtonStyle}" Click="LoadConfig_Click"
                         Margin="0,0,10,0" Grid.Column="1"
                         HorizontalAlignment="Center"/>
+                <Grid Grid.Column="2" Margin="0,0,10,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="相机数量：" FontSize="15" Style="{StaticResource StatusText}" 
+                               VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                    <ComboBox Grid.Column="1" Width="80" Height="30" HorizontalAlignment="Left" 
+                              VerticalContentAlignment="Center"
+                              ItemTemplate="{StaticResource BlackComboBoxItemTemplate}"
+                              ItemsSource="{Binding CamNoOptions}" SelectedItem="{x:Static local:ScriptWindow.CameraNo}"/>
+                </Grid>
             </Grid>
         </Border>
     </Grid>

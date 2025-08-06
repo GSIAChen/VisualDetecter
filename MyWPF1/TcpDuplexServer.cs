@@ -24,12 +24,24 @@ namespace MyWPF1
         private int Port;
         private const byte FrameHead = 0xFF;
         private readonly ActionBlock<byte[]> _frameProcessor;
+        private int _cameraCount;
+        public int CameraCount
+        {
+            get => _cameraCount;
+            set
+            {
+                if (value <= 0) throw new ArgumentOutOfRangeException();
+                _cameraCount = value;
+                // （可选）当相机数量变动时，可以把所有半成品状态清空
+                objectStates.Clear();
+            }
+        }
 
         // 这里只保存单个客户端连接；如果要多个并行，可以用 ConcurrentDictionary<int, TcpClient> 等
         private TcpClient _client;
         private NetworkStream _stream;
         private ObservableCollection<string>[] scripts;
-        private Dictionary<int, ObjectState> objectStates;
+        private ConcurrentDictionary<int, ObjectState> objectStates;
         public event EventHandler<ImageReceivedEventArgs> ImageReceived;
         public event EventHandler<CameraResultEventArgs> CameraResultReported;
         private readonly DispatcherTimer _reportTimer;
@@ -37,7 +49,7 @@ namespace MyWPF1
         ConcurrentDictionary<string, ThreadLocal<ScriptRunner>> _runners = new();
         public event EventHandler<AllStatsEventArgs>? AllStatsReported;
         private readonly CameraStat[] _stats = Enumerable
-                                       .Range(1, 13)
+                                       .Range(1, MainWindow.CameraCount+1)
                                        .Select(_ => new CameraStat(_))
                                        .ToArray();
         // 线程引擎池（初始化）
@@ -95,13 +107,14 @@ namespace MyWPF1
         // Constructor parameter is named "port"
         public TcpDuplexServer(
             ObservableCollection<string>[] scripts,
-            Dictionary<int, ObjectState> objectStates,
-            int port
+            int port,
+            int initialCameraCount
         )
         {
             this.scripts = scripts;
-            this.objectStates = objectStates;
             this.Port = port;
+            this.CameraCount = initialCameraCount;
+            this.objectStates = new ConcurrentDictionary<int, ObjectState>();
             _imgLen = width * height * channels;
             //InitMonitor();
             //Console.WriteLine(Environment.GetEnvironmentVariable("Path"));
@@ -145,7 +158,6 @@ namespace MyWPF1
             var options = new ExecutionDataflowBlockOptions
             {
                 MaxDegreeOfParallelism = parallelism,
-                BoundedCapacity = 80,
                 EnsureOrdered = false
             };
             _frameProcessor = new ActionBlock<byte[]>(frame =>
@@ -183,7 +195,7 @@ namespace MyWPF1
 
         private async Task HandleClientAsync(TcpClient client, NetworkStream stream)
         {
-            var tmp = new byte[8 * 1024 * 1024];
+            var tmp = new byte[4 * 1024 * 1024];
             try
             {
                 while (client.Connected)
@@ -234,10 +246,7 @@ namespace MyWPF1
                         // 处理图像帧
                         //await _frameProcessor.SendAsync(frame);
                         //Trace.WriteLine($"[FRAME_QUEUE] Pending: {_frameProcessor.InputCount}");
-                        var unpackSw = Stopwatch.StartNew();
                         _frameProcessor.Post(frame);
-                        unpackSw.Stop();
-                        Trace.WriteLine($"[FRAME] Frame unpack + post: {unpackSw.ElapsedMilliseconds}ms, Queue: {_frameProcessor.InputCount}");
                     }
 
                     // 3) 如果剩余区间很小，就搬家一次
@@ -323,43 +332,31 @@ namespace MyWPF1
                 catch { allOk = false; }
             }
             handle.Free();
-            var idx = cameraNo;
+            int idx = cameraNo;
             if (allOk) _stats[idx].OkCount++;
             else _stats[idx].NgCount++;
-            //if (!allOk)
-            //{
-            //    Application.Current.Dispatcher.BeginInvoke(new Action(() =>
-            //    {
-            //        ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo + 1, objectId, rgbImage));
-            //    }), DispatcherPriority.Background);
-            //}
-            //后续如果需要回调Ng图的缺陷位置时使用
-            //else
-            //{
-            //    Application.Current.Dispatcher.BeginInvoke(new Action(() =>
-            //    {
-            //        ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo + 1, objectId, rgbImage));
-            //    }), DispatcherPriority.Background);
-            //}
-            //更新 objectStates 并在最后一个相机时发 final result
-            if (!objectStates.TryGetValue(objectId, out var state))
+            if (cameraNo < 6)
             {
-                state = new ObjectState();
-                objectStates[objectId] = state;
+                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo + 1, objectId, rgbImage));
+                }), DispatcherPriority.Background);
             }
-            bool isLast = state.SetResult(cameraNo, allOk);
+            else { rgbImage.Dispose(); }
+            //更新 objectStates 并在最后一个相机时发 final result
+            var state = objectStates.GetOrAdd(objectId, _ => new ObjectState());
+            bool isLast = state.SetResult(cameraNo, allOk, CameraCount);
+            Trace.WriteLine("" + objectId + " " + cameraNo + " " + allOk);
             if (isLast)
             {
-                Trace.WriteLine("Object " + objectId + "'s final result");
                 bool finalOk = state.GetFinalOk();
-                idx = 12;
+                idx = MainWindow.CameraCount;
                 if (finalOk) _stats[idx].OkCount++;
                 else _stats[idx].NgCount++;
                 SendResult(objectId, finalOk);
-                objectStates.Remove(objectId);
+                objectStates.TryRemove(objectId, out _);
             }
             _pool.Return(buf, clearArray: false);
-            rgbImage.Dispose();
             sw.Stop();
             Trace.WriteLine($"Processed in {sw.ElapsedMilliseconds}ms");
         }
@@ -369,7 +366,7 @@ namespace MyWPF1
             if (_stream == null || !_client.Connected)
                 return;
 
-            Trace.WriteLine("Sending result: " + objectId + " " + (isOk ? "OK" : "NG"));
+            Trace.WriteLine($"Sending result for object {objectId}: {(isOk ? "OK" : "NG")}");
             using var bw = new BinaryWriter(_stream, Encoding.Default, leaveOpen: true);
             const int PayloadLen = 0x06;    // 1(type) + 4(objectId) + 1(result)
             const byte ResultType = 0x01;   // our “result” frame

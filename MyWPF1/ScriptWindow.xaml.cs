@@ -2,28 +2,32 @@
 using HalconDotNet;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Media3D;
 using MessageBox = System.Windows.MessageBox;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 
 namespace MyWPF1
 {
-    public partial class ScriptWindow : Window
+    public partial class ScriptWindow : Window, INotifyPropertyChanged
     {
         public event EventHandler<CameraResultEventArgs> CameraResultReported;
         public event EventHandler<ImageReceivedEventArgs> ImageReceived;
         public event EventHandler<AllStatsEventArgs> AllStatsReported;
+        public static int CameraNo = 5;
+        public static ObservableCollection<int> CamNoOptions { get; } =
+            new ObservableCollection<int> { 5, 6, 10, 12 };
         private readonly HDevEngine _engine;
         public ObservableCollection<string>[] Scripts { get; }
-        private readonly Dictionary<int, ObjectState> _objectStates
-            = new Dictionary<int, ObjectState>();
         public TcpDuplexServer _tcpServer;
         public ICommand DeleteScriptCommand { get; }
 
@@ -39,6 +43,8 @@ namespace MyWPF1
             return null;
         }
 
+        public int getCameraNo() { return CameraNo; }
+
         public ScriptWindow()
         {
             InitializeComponent();
@@ -50,13 +56,13 @@ namespace MyWPF1
             _engine.SetEngineAttribute("execute_procedures_jit_compiled", "true");
 
             // —— 3. 初始化脚本列表 —— 
-            Scripts = new ObservableCollection<string>[12];
-            for (int i = 0; i < 12; i++)
+            Scripts = new ObservableCollection<string>[MainWindow.CameraCount];
+            for (int i = 0; i < MainWindow.CameraCount; i++)
                 Scripts[i] = new ObservableCollection<string>();
 
             Trace.WriteLine("Opening TCP Server!");
             // —— 4. 启动 TCP 双工服务器 —— 
-            _tcpServer = new TcpDuplexServer(Scripts, _objectStates, 8001);
+            _tcpServer = new TcpDuplexServer(Scripts, 8001, CameraNo);
             // ** Wire server → window propagation **
 
             _ = _tcpServer.StartAsync(); // 异步启动，不阻塞 UI
@@ -178,38 +184,40 @@ namespace MyWPF1
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string propName = null!)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
     }
 
     public class ObjectState
     {
-        // 初始机位数量，初始化为 null/未填
-        static int camNo = 10;
-        public bool?[] Results { get; } = new bool?[camNo];
+        private readonly Dictionary<int, bool> _results = new Dictionary<int, bool>();
+        private readonly object _locker = new();
 
-        // 已收到结果的机位数
-        public int CountCompleted { get; private set; } = 0;
-
-        /// <summary>
-        /// 设置某个机位的结果。返回 true 表示这是第7个（最后一个）填入，允许触发最终判断。
-        /// </summary>
-        public bool SetResult(int cameraIndex, bool isOk)
+        public bool SetResult(int cameraIndex, bool isOk, int requiredCount)
         {
-            if (Results[cameraIndex] == null)
+            lock (_locker)
             {
-                Results[cameraIndex] = isOk;
-                CountCompleted++;
-                return CountCompleted == camNo;
+                if (!_results.ContainsKey(cameraIndex))
+                {
+                    _results[cameraIndex] = isOk;
+                    return _results.Count == requiredCount;
+                }
+                return false;
             }
-            // 如果已经有过结果（重复回调）就忽略，不算第二次
-            return false;
         }
 
-        /// <summary>
-        /// 当 7 个机位都填完后，判断最终结果：只要有一个 false，就算 NG。
-        /// </summary>
         public bool GetFinalOk()
-            => Results.Any(r => r == false) ? false : true;
+        {
+            lock (_locker)
+            {
+                // 只要有一个 false 就 NG
+                return _results.Values.All(v => v);
+            }
+        }
     }
+
 
     public class CameraResultEventArgs : EventArgs
     {
