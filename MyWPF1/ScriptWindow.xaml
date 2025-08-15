@@ -488,7 +488,7 @@
                     <ComboBox Grid.Column="1" Width="80" Height="30" HorizontalAlignment="Left" 
                               VerticalContentAlignment="Center"
                               ItemTemplate="{StaticResource BlackComboBoxItemTemplate}"
-                              ItemsSource="{Binding CamNoOptions}" SelectedItem="{x:Static local:ScriptWindow.CameraNo}"/>
+                              ItemsSource="{Binding CamNoOptions}" SelectedItem="{Binding CameraNo, Mode=TwoWay}"/>
                 </Grid>
             </Grid>
         </Border>

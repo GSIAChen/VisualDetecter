@@ -1,17 +1,18 @@
 ﻿using HalconDotNet;
+using OpenCvSharp;
+//using OpenCvSharp.Extensions;
+using System.Drawing;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks.Dataflow;
-using System.Web.Services.Description;
-using System.Windows.Controls;
-using System.Windows.Media.Media3D;
 using System.Windows.Threading;
 using Application = System.Windows.Application;
 
@@ -32,8 +33,6 @@ namespace MyWPF1
             {
                 if (value <= 0) throw new ArgumentOutOfRangeException();
                 _cameraCount = value;
-                // （可选）当相机数量变动时，可以把所有半成品状态清空
-                objectStates.Clear();
             }
         }
 
@@ -331,6 +330,7 @@ namespace MyWPF1
                 }
                 catch { allOk = false; }
             }
+            HalconConverter.SaveImageWithDotNet(rgbImage, $@"D:\images\camera{cameraNo + 1}\{objectId}.bmp");
             handle.Free();
             int idx = cameraNo;
             if (allOk) _stats[idx].OkCount++;
@@ -443,6 +443,108 @@ namespace MyWPF1
             Call.SetInputIconicParamObject("Image", input);
             Call.Execute();
             return Call.GetOutputCtrlParamTuple("IsOk");
+        }
+    }
+
+    public class HalconConverter
+    {
+        /// <summary>
+        /// 将Halcon的HImage对象转换为.NET的Bitmap对象。
+        /// 支持灰度图和24位彩色图。
+        /// </summary>
+        /// <param name="ho_Image">输入的HImage对象</param>
+        /// <returns>转换后的Bitmap对象</returns>
+        public static Bitmap HImageToBitmap(HImage ho_Image)
+        {
+            if (ho_Image == null || !ho_Image.IsInitialized())
+            {
+                throw new ArgumentNullException("Halcon image is null or not initialized.");
+            }
+
+            HOperatorSet.GetImageSize(ho_Image, out HTuple width, out HTuple height);
+            HOperatorSet.GetImageType(ho_Image, out HTuple type);
+
+            int imageWidth = width.I;
+            int imageHeight = height.I;
+            Bitmap bmp = null;
+
+            if (type.S == "byte") // 8位灰度图
+            {
+                HOperatorSet.GetImagePointer1(ho_Image, out HTuple pointer, out _, out _, out _);
+                IntPtr ptr = new IntPtr(pointer.L);
+
+                // 创建一个8位索引格式的Bitmap
+                bmp = new Bitmap(imageWidth, imageHeight, imageWidth, PixelFormat.Format8bppIndexed, ptr);
+
+                // 设置灰度调色板
+                ColorPalette pal = bmp.Palette;
+                for (int i = 0; i < 256; i++)
+                {
+                    pal.Entries[i] = Color.FromArgb(i, i, i);
+                }
+                bmp.Palette = pal;
+            }
+            else if (type.S == "rgb" || type.S == "bgr") // 24位彩色图
+            {
+                HOperatorSet.GetImagePointer3(ho_Image, out HTuple pointerR, out HTuple pointerG, out HTuple pointerB, out _, out _, out _);
+                IntPtr ptrR = new IntPtr(pointerR.L);
+                IntPtr ptrG = new IntPtr(pointerG.L);
+                IntPtr ptrB = new IntPtr(pointerB.L);
+
+                bmp = new Bitmap(imageWidth, imageHeight, PixelFormat.Format24bppRgb);
+
+                // 锁定Bitmap的内存区域以便快速写入
+                BitmapData bmpData = bmp.LockBits(new Rectangle(0, 0, imageWidth, imageHeight), ImageLockMode.WriteOnly, bmp.PixelFormat);
+
+                unsafe
+                {
+                    byte* p = (byte*)bmpData.Scan0;
+                    byte* r = (byte*)ptrR;
+                    byte* g = (byte*)ptrG;
+                    byte* b = (byte*)ptrB;
+
+                    for (int i = 0; i < imageWidth * imageHeight; i++)
+                    {
+                        // Bitmap内存布局通常是 B, G, R
+                        p[i * 3] = *b++;
+                        p[i * 3 + 1] = *g++;
+                        p[i * 3 + 2] = *r++;
+                    }
+                }
+
+                bmp.UnlockBits(bmpData);
+            }
+            else
+            {
+                throw new NotSupportedException($"Image type '{type.S}' is not supported for conversion.");
+            }
+
+            // 由于Bitmap是基于Halcon的内存指针创建的，我们需要克隆一份，
+            // 以免在Halcon对象被释放后Bitmap失效。
+            Bitmap finalBmp = (Bitmap)bmp.Clone();
+            bmp.Dispose();
+
+            return finalBmp;
+        }
+
+        public static void SaveImageWithDotNet(HImage ho_Image, string filePath)
+        {
+            Bitmap bitmapToSave = null;
+            try
+            {
+                bitmapToSave = HImageToBitmap(ho_Image);
+                // 可以选择任意格式保存
+                bitmapToSave.Save(filePath, ImageFormat.Png);
+                Console.WriteLine($"Image saved successfully to {filePath} using .NET Bitmap.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving image: {ex.Message}");
+            }
+            finally
+            {
+                bitmapToSave?.Dispose();
+            }
         }
     }
 }

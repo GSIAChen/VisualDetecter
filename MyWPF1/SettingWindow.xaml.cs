@@ -1,5 +1,7 @@
-﻿using System;
+﻿using MCDLL_NET;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -21,8 +23,13 @@ namespace MyWPF1
     /// </summary>
     public partial class SettingWindow : Window
     {
+        private ushort stationNum = 0;
+        private ushort stationType = 0;
+
         public SettingWindow()
         {
+            CMCDLL_NET_Sorting.MCF_Sorting_Init_Net();
+            CMCDLL_NET_Sorting.MCF_Open_Net(2, ref stationNum, ref stationType);
             InitializeComponent();
             DataContext = new MyViewModel();
         }

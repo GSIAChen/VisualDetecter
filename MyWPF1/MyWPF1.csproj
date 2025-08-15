@@ -25,6 +25,8 @@
     <PackageReference Include="NLog" Version="6.0.1" />
     <PackageReference Include="NLog.Config" Version="4.7.15" />
     <PackageReference Include="NLog.Schema" Version="6.0.1" />
+    <PackageReference Include="OpenCvSharp4" Version="4.11.0.20250507" />
+    <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.11.0.20250507" />
   </ItemGroup>
 
   <ItemGroup>

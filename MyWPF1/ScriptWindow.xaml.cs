@@ -20,12 +20,24 @@ namespace MyWPF1
 {
     public partial class ScriptWindow : Window, INotifyPropertyChanged
     {
-        public event EventHandler<CameraResultEventArgs> CameraResultReported;
-        public event EventHandler<ImageReceivedEventArgs> ImageReceived;
-        public event EventHandler<AllStatsEventArgs> AllStatsReported;
-        public static int CameraNo = 5;
+        private int _cameraCount = 6;
+        public int CameraCount
+        {
+            get => _cameraCount;
+            set
+            {
+                if (_cameraCount != value)
+                {
+                    _cameraCount = value;
+                    OnPropertyChanged();
+
+                    // ** 把变化通知给 TcpDuplexServer **
+                    _tcpServer.CameraCount = value;
+                }
+            }
+        }
         public static ObservableCollection<int> CamNoOptions { get; } =
-            new ObservableCollection<int> { 5, 6, 10, 12 };
+            new ObservableCollection<int> { 6, 10, 12 };
         private readonly HDevEngine _engine;
         public ObservableCollection<string>[] Scripts { get; }
         public TcpDuplexServer _tcpServer;
@@ -42,8 +54,6 @@ namespace MyWPF1
             }
             return null;
         }
-
-        public int getCameraNo() { return CameraNo; }
 
         public ScriptWindow()
         {
@@ -62,7 +72,7 @@ namespace MyWPF1
 
             Trace.WriteLine("Opening TCP Server!");
             // —— 4. 启动 TCP 双工服务器 —— 
-            _tcpServer = new TcpDuplexServer(Scripts, 8001, CameraNo);
+            _tcpServer = new TcpDuplexServer(Scripts, 8001, _cameraCount);
             // ** Wire server → window propagation **
 
             _ = _tcpServer.StartAsync(); // 异步启动，不阻塞 UI
