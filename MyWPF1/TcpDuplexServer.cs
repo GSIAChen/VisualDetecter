@@ -330,7 +330,7 @@ namespace MyWPF1
                 }
                 catch { allOk = false; }
             }
-            HalconConverter.SaveImageWithDotNet(rgbImage, $@"D:\images\camera{cameraNo + 1}\{objectId}.bmp");
+            if (!allOk) HalconConverter.SaveImageWithDotNet(rgbImage, $@"D:\images\camera{cameraNo + 1}\{objectId}.bmp");
             handle.Free();
             int idx = cameraNo;
             if (allOk) _stats[idx].OkCount++;
@@ -468,56 +468,56 @@ namespace MyWPF1
             int imageHeight = height.I;
             Bitmap bmp = null;
 
-            if (type.S == "byte") // 8位灰度图
+            //if (type.S == "byte") // 8位灰度图
+            //{
+            //    HOperatorSet.GetImagePointer1(ho_Image, out HTuple pointer, out _, out _, out _);
+            //    IntPtr ptr = new IntPtr(pointer.L);
+
+            //    // 创建一个8位索引格式的Bitmap
+            //    bmp = new Bitmap(imageWidth, imageHeight, imageWidth, PixelFormat.Format8bppIndexed, ptr);
+
+            //    // 设置灰度调色板
+            //    ColorPalette pal = bmp.Palette;
+            //    for (int i = 0; i < 256; i++)
+            //    {
+            //        pal.Entries[i] = Color.FromArgb(i, i, i);
+            //    }
+            //    bmp.Palette = pal;
+            //}
+            //else if (type.S == "rgb" || type.S == "bgr") // 24位彩色图
+            //{
+            HOperatorSet.GetImagePointer3(ho_Image, out HTuple pointerR, out HTuple pointerG, out HTuple pointerB, out _, out _, out _);
+            IntPtr ptrR = new IntPtr(pointerR.L);
+            IntPtr ptrG = new IntPtr(pointerG.L);
+            IntPtr ptrB = new IntPtr(pointerB.L);
+
+            bmp = new Bitmap(imageWidth, imageHeight, PixelFormat.Format24bppRgb);
+
+            // 锁定Bitmap的内存区域以便快速写入
+            BitmapData bmpData = bmp.LockBits(new Rectangle(0, 0, imageWidth, imageHeight), ImageLockMode.WriteOnly, bmp.PixelFormat);
+
+            unsafe
             {
-                HOperatorSet.GetImagePointer1(ho_Image, out HTuple pointer, out _, out _, out _);
-                IntPtr ptr = new IntPtr(pointer.L);
+                byte* p = (byte*)bmpData.Scan0;
+                byte* r = (byte*)ptrR;
+                byte* g = (byte*)ptrG;
+                byte* b = (byte*)ptrB;
 
-                // 创建一个8位索引格式的Bitmap
-                bmp = new Bitmap(imageWidth, imageHeight, imageWidth, PixelFormat.Format8bppIndexed, ptr);
-
-                // 设置灰度调色板
-                ColorPalette pal = bmp.Palette;
-                for (int i = 0; i < 256; i++)
+                for (int i = 0; i < imageWidth * imageHeight; i++)
                 {
-                    pal.Entries[i] = Color.FromArgb(i, i, i);
+                    // Bitmap内存布局通常是 B, G, R
+                    p[i * 3] = *b++;
+                    p[i * 3 + 1] = *g++;
+                    p[i * 3 + 2] = *r++;
                 }
-                bmp.Palette = pal;
             }
-            else if (type.S == "rgb" || type.S == "bgr") // 24位彩色图
-            {
-                HOperatorSet.GetImagePointer3(ho_Image, out HTuple pointerR, out HTuple pointerG, out HTuple pointerB, out _, out _, out _);
-                IntPtr ptrR = new IntPtr(pointerR.L);
-                IntPtr ptrG = new IntPtr(pointerG.L);
-                IntPtr ptrB = new IntPtr(pointerB.L);
 
-                bmp = new Bitmap(imageWidth, imageHeight, PixelFormat.Format24bppRgb);
-
-                // 锁定Bitmap的内存区域以便快速写入
-                BitmapData bmpData = bmp.LockBits(new Rectangle(0, 0, imageWidth, imageHeight), ImageLockMode.WriteOnly, bmp.PixelFormat);
-
-                unsafe
-                {
-                    byte* p = (byte*)bmpData.Scan0;
-                    byte* r = (byte*)ptrR;
-                    byte* g = (byte*)ptrG;
-                    byte* b = (byte*)ptrB;
-
-                    for (int i = 0; i < imageWidth * imageHeight; i++)
-                    {
-                        // Bitmap内存布局通常是 B, G, R
-                        p[i * 3] = *b++;
-                        p[i * 3 + 1] = *g++;
-                        p[i * 3 + 2] = *r++;
-                    }
-                }
-
-                bmp.UnlockBits(bmpData);
-            }
-            else
-            {
-                throw new NotSupportedException($"Image type '{type.S}' is not supported for conversion.");
-            }
+            bmp.UnlockBits(bmpData);
+            //}
+            //else
+            //{
+            //    throw new NotSupportedException($"Image type '{type.S}' is not supported for conversion.");
+            //}
 
             // 由于Bitmap是基于Halcon的内存指针创建的，我们需要克隆一份，
             // 以免在Halcon对象被释放后Bitmap失效。
@@ -532,10 +532,14 @@ namespace MyWPF1
             Bitmap bitmapToSave = null;
             try
             {
+                string directoryPath = Path.GetDirectoryName(filePath);
+                if (!string.IsNullOrEmpty(directoryPath))
+                {
+                    Directory.CreateDirectory(directoryPath);
+                }
                 bitmapToSave = HImageToBitmap(ho_Image);
                 // 可以选择任意格式保存
                 bitmapToSave.Save(filePath, ImageFormat.Png);
-                Console.WriteLine($"Image saved successfully to {filePath} using .NET Bitmap.");
             }
             catch (Exception ex)
             {

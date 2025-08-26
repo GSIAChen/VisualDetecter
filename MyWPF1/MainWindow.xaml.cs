@@ -37,21 +37,21 @@ namespace MyWPF1
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
             // 弹出我们准备好的对话框
-            var dlg = new BatchInfoDialog
-            {
-                Owner = this,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner
-            };
+            //var dlg = new BatchInfoDialog
+            //{
+            //    Owner = this,
+            //    WindowStartupLocation = WindowStartupLocation.CenterOwner
+            //};
 
-            if (dlg.ShowDialog() == true)
-            {
-                // 用户点 OK，读取它暴露的属性
-                MaterialName = dlg.MaterialName;
-                BatchNumber = dlg.BatchNumber;
-                BatchQuantity = dlg.BatchQuantity;
+            //if (dlg.ShowDialog() == true)
+            //{
+            //    // 用户点 OK，读取它暴露的属性
+            //    MaterialName = dlg.MaterialName;
+            //    BatchNumber = dlg.BatchNumber;
+            //    BatchQuantity = dlg.BatchQuantity;
 
-                _scriptWindow._tcpServer.SendStartSignal();
-            }
+            _scriptWindow._tcpServer.SendStartSignal();
+            //}
         }
 
         private void StopButton_Click(object sender, RoutedEventArgs e)
