@@ -471,6 +471,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Button Content="保存配置" Style="{StaticResource RunButtonStyle}" Click="SaveConfig_Click" 
                         Margin="0,0,10,0" Grid.Column="0"
@@ -490,6 +491,11 @@
                               ItemTemplate="{StaticResource BlackComboBoxItemTemplate}"
                               ItemsSource="{Binding CamNoOptions}" SelectedItem="{Binding CameraNo, Mode=TwoWay}"/>
                 </Grid>
+                <CheckBox Grid.Column="3" IsChecked="{Binding SaveNGImage}"
+                          Content="保存NG图像" FontSize="15" 
+                          FontWeight="Bold" Foreground="White"
+                          HorizontalAlignment="Center" VerticalAlignment="Center">
+                </CheckBox>
             </Grid>
         </Border>
     </Grid>

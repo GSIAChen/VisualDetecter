@@ -20,7 +20,6 @@ namespace MyWPF1
 {
     public class TcpDuplexServer
     {
-        static SieveDll.CaptureCallbackFunc _callback = OnCapture;
         // 通信速率统计字段
         private int Port;
         private const byte FrameHead = 0xFF;
@@ -33,6 +32,15 @@ namespace MyWPF1
             {
                 if (value <= 0) throw new ArgumentOutOfRangeException();
                 _cameraCount = value;
+            }
+        }
+        private bool _saveNG;
+        public bool SaveNG
+        {
+            get => _saveNG;
+            set
+            {
+                _saveNG = value;
             }
         }
 
@@ -58,33 +66,15 @@ namespace MyWPF1
             engine.SetEngineAttribute("execute_procedures_jit_compiled", "true");
             return engine;
         });
-        private readonly byte[] _buffer = new byte[8 * 1024 * 1024]; // 8 MB 循环缓冲区
+        private readonly byte[] _buffer = ArrayPool<byte>.Shared.Rent(10 * 1024 * 1024); // 10 MB 循环缓冲区
         private int _head = 0, _tail = 0;
-        private int width = 1280, height = 1024, channels = 3;
+        private int width = 1440, height = 1080, channels = 3;
+        private const int ReadBufferSize = 8 * 1024 * 1024;
         private readonly ArrayPool<byte> _pool = ArrayPool<byte>.Shared;
         private readonly int _imgLen;
         private int _searchStart = 0;
         private int _frameCount;
         private System.Timers.Timer _fpsTimer;
-        //[DllImport("kernel32.dll", SetLastError = true)]
-        //static extern IntPtr LoadLibrary(string lpFileName);
-
-        //[DllImport("kernel32.dll", SetLastError = true)]
-        //static extern bool SetDllDirectory(string lpPathName);
-
-        //public static void TryLoadDll()
-        //{
-        //    var handle = LoadLibrary(@"F:\tandianrong\TestEc3224l\TestEc3224l.dll");
-        //    if (handle == IntPtr.Zero)
-        //    {
-        //        int error = Marshal.GetLastWin32Error();
-        //        Trace.WriteLine("LoadLibrary failed: " + error);
-        //    }
-        //    else
-        //    {
-        //        Trace.WriteLine("DLL Loaded Successfully");
-        //    }
-        //}
 
         public void InitMonitor()
         {
@@ -107,33 +97,17 @@ namespace MyWPF1
         public TcpDuplexServer(
             ObservableCollection<string>[] scripts,
             int port,
-            int initialCameraCount
+            int initialCameraCount,
+            bool saveNG
         )
         {
             this.scripts = scripts;
             this.Port = port;
             this.CameraCount = initialCameraCount;
+            this.SaveNG = saveNG;
             this.objectStates = new ConcurrentDictionary<int, ObjectState>();
             _imgLen = width * height * channels;
             //InitMonitor();
-            //Console.WriteLine(Environment.GetEnvironmentVariable("Path"));
-
-            // 设置搜索路径为 DLL 根目录
-            //var h = SieveDll.testEc3224l_CreateProjectAgent("F:/tandianrong/TestEc3224l/TestEc3224l.js");
-
-            //if (!SieveDll.testEc3224l_HandleValid(h))
-            //{
-            //    Console.WriteLine("Handle invalid");
-            //    return;
-            //}
-
-            //SieveDll.testEc3224l_RegisterCaptrueCallBack(h, _callback, IntPtr.Zero);
-
-            //Console.ReadKey();
-
-            //SieveDll.testEc3224l_UnRegisterCaptrueCallBack(h);
-            //SieveDll.testEc3224l_DestroyProjectAgent(h);
-
             // 设置Halcon引擎
             _engine = new HDevEngine();
             _engine.SetEngineAttribute("execute_procedures_jit_compiled", "true");
@@ -194,7 +168,7 @@ namespace MyWPF1
 
         private async Task HandleClientAsync(TcpClient client, NetworkStream stream)
         {
-            var tmp = new byte[4 * 1024 * 1024];
+            var tmp = ArrayPool<byte>.Shared.Rent(ReadBufferSize);
             try
             {
                 while (client.Connected)
@@ -330,7 +304,9 @@ namespace MyWPF1
                 }
                 catch { allOk = false; }
             }
-            if (!allOk) HalconConverter.SaveImageWithDotNet(rgbImage, $@"D:\images\camera{cameraNo + 1}\{objectId}.bmp");
+            if (SaveNG) { 
+                if (!allOk) HalconConverter.SaveImageWithDotNet(rgbImage, $@"D:\images\camera{cameraNo + 1}\{objectId}.bmp");
+            }
             handle.Free();
             int idx = cameraNo;
             if (allOk) _stats[idx].OkCount++;

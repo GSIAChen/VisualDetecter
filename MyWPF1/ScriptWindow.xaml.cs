@@ -1,6 +1,5 @@
 ﻿// ScriptWindow.xaml.cs
 using HalconDotNet;
-using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -12,7 +11,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Media3D;
 using MessageBox = System.Windows.MessageBox;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 
@@ -33,6 +31,22 @@ namespace MyWPF1
 
                     // ** 把变化通知给 TcpDuplexServer **
                     _tcpServer.CameraCount = value;
+                }
+            }
+        }
+        private bool _saveNG = false;
+        public bool SaveNGImage
+        {
+            get => _saveNG;
+            set
+            {
+                if (_saveNG != value)
+                {
+                    _saveNG = value;
+                    OnPropertyChanged();
+
+                    // ** 把变化通知给 TcpDuplexServer **
+                    _tcpServer.SaveNG = value;
                 }
             }
         }
@@ -72,7 +86,7 @@ namespace MyWPF1
 
             Trace.WriteLine("Opening TCP Server!");
             // —— 4. 启动 TCP 双工服务器 —— 
-            _tcpServer = new TcpDuplexServer(Scripts, 8001, _cameraCount);
+            _tcpServer = new TcpDuplexServer(Scripts, 8001, _cameraCount, _saveNG);
             // ** Wire server → window propagation **
 
             _ = _tcpServer.StartAsync(); // 异步启动，不阻塞 UI
