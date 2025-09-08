@@ -12,6 +12,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using MessageBox = System.Windows.MessageBox;
+using Application = System.Windows.Application;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 
 namespace MyWPF1
@@ -72,27 +73,40 @@ namespace MyWPF1
         public ScriptWindow()
         {
             InitializeComponent();
-            // —— 1. WPF 绑定上下文 —— 
             DataContext = this;
-
-            // —— 2. 初始化 HALCON 引擎 —— 
-            _engine = new HDevEngine();
-            _engine.SetEngineAttribute("execute_procedures_jit_compiled", "true");
-
-            // —— 3. 初始化脚本列表 —— 
             Scripts = new ObservableCollection<string>[MainWindow.CameraCount];
             for (int i = 0; i < MainWindow.CameraCount; i++)
                 Scripts[i] = new ObservableCollection<string>();
 
             Trace.WriteLine("Opening TCP Server!");
-            // —— 4. 启动 TCP 双工服务器 —— 
             _tcpServer = new TcpDuplexServer(Scripts, 8001, _cameraCount, _saveNG);
-            // ** Wire server → window propagation **
-
-            _ = _tcpServer.StartAsync(); // 异步启动，不阻塞 UI
+            //_ = StartListeningBackground();
+            _ = _tcpServer.StartAsync();
         }
 
-        // 下面是“加载脚本”按钮的逻辑，保持不变：
+        // 单独的后台方法：预热 + 启动服务器，并捕获异常
+        private async Task StartListeningBackground()
+        {
+            try
+            {
+                // 如果你希望在构造完成后立即预热并启动（脚本已准备好），则直接调用：
+                await _tcpServer.PrewarmAllScriptsAsync().ConfigureAwait(false);
+
+                // StartAsync 是长期运行的异步方法，await 它将让这个 Task 表示服务器的生命周期
+                await _tcpServer.StartAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                // 任何异常都在此记录，不会被吞掉
+                Trace.WriteLine($"[ScriptWindow] StartListeningBackground failed: {ex}");
+                // 你也可以在UI上通知用户：
+                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    MessageBox.Show($"启动失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                }));
+            }
+        }
+
         private void LoadScript_Click(object sender, RoutedEventArgs e)
         {
             if (!(sender is FrameworkElement fe)) return;
@@ -104,10 +118,37 @@ namespace MyWPF1
                 Multiselect = false
             };
             if (dlg.ShowDialog() == true)
-            { 
-                Scripts[index].Add(dlg.FileName);
+            {
+                var path = dlg.FileName;
+                Scripts[index].Add(path);
+
+                // fire-and-forget 地预热该脚本（不要阻塞 UI）
+                try
+                {
+                    _ = _tcpServer?.PrewarmScriptAsync(path);
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine("[LoadScript_Click] Prewarm call failed: " + ex);
+                }
             }
         }
+
+        //private void LoadScript_Click(object sender, RoutedEventArgs e)
+        //{
+        //    if (!(sender is FrameworkElement fe)) return;
+        //    int index = Convert.ToInt32(fe.Tag);
+
+        //    var dlg = new OpenFileDialog
+        //    {
+        //        Filter = "HDevelop 脚本 (*.hdev)|*.hdev",
+        //        Multiselect = false
+        //    };
+        //    if (dlg.ShowDialog() == true)
+        //    { 
+        //        Scripts[index].Add(dlg.FileName);
+        //    }
+        //}
 
         private void DeleteScript_Click(object sender, RoutedEventArgs e)
         {
@@ -173,7 +214,7 @@ namespace MyWPF1
         }
 
         /// 从 JSON 文件加载 Scripts 配置
-        private void LoadConfig_Click(object sender, RoutedEventArgs e)
+        private async void LoadConfig_Click(object sender, RoutedEventArgs e)
         {
             var dlg = new OpenFileDialog
             {
@@ -184,14 +225,12 @@ namespace MyWPF1
 
             try
             {
-                // 1. 读文件并反序列化
                 var json = File.ReadAllText(dlg.FileName, Encoding.UTF8);
                 var data = JsonSerializer.Deserialize<List<List<string>>>(json);
 
                 if (data == null || data.Count != Scripts.Length)
                     throw new InvalidDataException("脚本配置格式不正确。");
 
-                // 2. 清空现有列表并依序填回
                 for (int i = 0; i < Scripts.Length; i++)
                 {
                     Scripts[i].Clear();
@@ -199,13 +238,25 @@ namespace MyWPF1
                         Scripts[i].Add(scriptPath);
                 }
 
-                MessageBox.Show("加载成功！", "提示",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
+                // 统一预热（等待完成）
+                if (_tcpServer != null)
+                {
+                    // 可在 UI 上显示进度/禁用按钮等
+                    await _tcpServer.PrewarmAllScriptsAsync().ConfigureAwait(false);
+                }
+
+                // 回到 UI 线程显示提示
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    MessageBox.Show("加载并预热成功！", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                });
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"加载失败：{ex.Message}", "错误",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    MessageBox.Show($"加载失败：{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                });
             }
         }
 
@@ -214,19 +265,57 @@ namespace MyWPF1
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
     }
 
+    //public class ObjectState
+    //{
+    //    private readonly Dictionary<int, bool> _results = new Dictionary<int, bool>();
+    //    private readonly object _locker = new();
+
+    //    public bool SetResult(int cameraIndex, bool isOk, int requiredCount)
+    //    {
+    //        lock (_locker)
+    //        {
+    //            if (!_results.ContainsKey(cameraIndex))
+    //            {
+    //                _results[cameraIndex] = isOk;
+    //                return _results.Count == requiredCount;
+    //            }
+    //            return false;
+    //        }
+    //    }
+
+    //    public bool GetFinalOk()
+    //    {
+    //        lock (_locker)
+    //        {
+    //            // 只要有一个 false 就 NG
+    //            return _results.Values.All(v => v);
+    //        }
+    //    }
+    //}
+
     public class ObjectState
     {
         private readonly Dictionary<int, bool> _results = new Dictionary<int, bool>();
         private readonly object _locker = new();
+        public DateTime FirstSeenUtc { get; private set; } = DateTime.MinValue;
+
+        public int Count
+        {
+            get
+            {
+                lock (_locker) { return _results.Count; }
+            }
+        }
 
         public bool SetResult(int cameraIndex, bool isOk, int requiredCount)
         {
             lock (_locker)
             {
+                if (FirstSeenUtc == DateTime.MinValue) FirstSeenUtc = DateTime.UtcNow;
                 if (!_results.ContainsKey(cameraIndex))
                 {
                     _results[cameraIndex] = isOk;
-                    return _results.Count == requiredCount;
+                    return _results.Count >= requiredCount;
                 }
                 return false;
             }
@@ -236,9 +325,20 @@ namespace MyWPF1
         {
             lock (_locker)
             {
-                // 只要有一个 false 就 NG
+                if (_results.Count == 0) return false; // 没有结果默认 NG
                 return _results.Values.All(v => v);
             }
+        }
+
+        public bool IsStale(TimeSpan ttl)
+        {
+            if (FirstSeenUtc == DateTime.MinValue) return false;
+            return (DateTime.UtcNow - FirstSeenUtc) > ttl;
+        }
+
+        public int[] SeenCameras
+        {
+            get { lock (_locker) { return _results.Keys.ToArray(); } }
         }
     }
 
