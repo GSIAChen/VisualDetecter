@@ -552,7 +552,7 @@ namespace MyWPF1
                     else _stats[idx].NgCount++;
                 }
 
-                if (cameraNo < 6)
+                if (cameraNo < 6 && !allOk)
                 {
                     Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                     {

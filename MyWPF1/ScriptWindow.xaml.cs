@@ -19,6 +19,10 @@ namespace MyWPF1
 {
     public partial class ScriptWindow : Window, INotifyPropertyChanged
     {
+        // 脚本配置默认保存路径（用户本地应用数据）
+        private static readonly string AppFolder =
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MyWPF1");
+        private static readonly string DefaultScriptsFile = Path.Combine(AppFolder, "scripts_config.json");
         private int _cameraCount = 6;
         public int CameraCount
         {
@@ -82,29 +86,8 @@ namespace MyWPF1
             _tcpServer = new TcpDuplexServer(Scripts, 8001, _cameraCount, _saveNG);
             //_ = StartListeningBackground();
             _ = _tcpServer.StartAsync();
-        }
-
-        // 单独的后台方法：预热 + 启动服务器，并捕获异常
-        private async Task StartListeningBackground()
-        {
-            try
-            {
-                // 如果你希望在构造完成后立即预热并启动（脚本已准备好），则直接调用：
-                await _tcpServer.PrewarmAllScriptsAsync().ConfigureAwait(false);
-
-                // StartAsync 是长期运行的异步方法，await 它将让这个 Task 表示服务器的生命周期
-                await _tcpServer.StartAsync().ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                // 任何异常都在此记录，不会被吞掉
-                Trace.WriteLine($"[ScriptWindow] StartListeningBackground failed: {ex}");
-                // 你也可以在UI上通知用户：
-                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    MessageBox.Show($"启动失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                }));
-            }
+            this.Loaded += ScriptWindow_Loaded;
+            this.Closing += ScriptWindow_Closing;
         }
 
         private void LoadScript_Click(object sender, RoutedEventArgs e)
@@ -133,22 +116,6 @@ namespace MyWPF1
                 }
             }
         }
-
-        //private void LoadScript_Click(object sender, RoutedEventArgs e)
-        //{
-        //    if (!(sender is FrameworkElement fe)) return;
-        //    int index = Convert.ToInt32(fe.Tag);
-
-        //    var dlg = new OpenFileDialog
-        //    {
-        //        Filter = "HDevelop 脚本 (*.hdev)|*.hdev",
-        //        Multiselect = false
-        //    };
-        //    if (dlg.ShowDialog() == true)
-        //    { 
-        //        Scripts[index].Add(dlg.FileName);
-        //    }
-        //}
 
         private void DeleteScript_Click(object sender, RoutedEventArgs e)
         {
@@ -260,38 +227,89 @@ namespace MyWPF1
             }
         }
 
+        private async void ScriptWindow_Loaded(object? sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // 如果文件存在，尝试读取并加载
+                if (File.Exists(DefaultScriptsFile))
+                {
+                    string json = await File.ReadAllTextAsync(DefaultScriptsFile, Encoding.UTF8);
+                    var data = JsonSerializer.Deserialize<List<List<string>>>(json);
+                    if (data != null && data.Count == Scripts.Length)
+                    {
+                        // 更新 UI 上的 ObservableCollections（要在 UI 线程）
+                        for (int i = 0; i < Scripts.Length; i++)
+                        {
+                            Scripts[i].Clear();
+                            foreach (var p in data[i])
+                                Scripts[i].Add(p);
+                        }
+
+                        // 如果你希望在加载完成后自动预热（异步，不阻塞 UI）
+                        if (_tcpServer != null)
+                        {
+                            // 可在 UI 上显示状态或禁用某些按钮（可选）
+                            Trace.WriteLine("[ScriptWindow] Loaded scripts config, starting prewarm...");
+                            // 在后台开始预热并 await 完成（不会阻塞 UI，因为 this is async void）
+                            try
+                            {
+                                await _tcpServer.PrewarmAllScriptsAsync().ConfigureAwait(false);
+                                // 回到 UI 线程显示完成提示（如果需要）
+                                Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    Trace.WriteLine("[ScriptWindow] Prewarm complete.");
+                                    // 可选消息提示：
+                                    MessageBox.Show("脚本已加载并预热完成。");
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                Trace.WriteLine("[ScriptWindow] Prewarm failed: " + ex);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Trace.WriteLine("[ScriptWindow] scripts_config.json format mismatch or wrong length, skip autoload.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine("[ScriptWindow] Failed to load script config: " + ex);
+                // 不要打断用户界面；记录后平滑降级
+            }
+        }
+
+        private void ScriptWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
+        {
+            try
+            {
+                // 确保目录存在
+                Directory.CreateDirectory(AppFolder);
+
+                var data = Scripts
+                    .Select(obs => obs.ToList())
+                    .ToList();
+
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                string json = JsonSerializer.Serialize(data, options);
+
+                File.WriteAllText(DefaultScriptsFile, json, Encoding.UTF8);
+                Trace.WriteLine("[ScriptWindow] Scripts config saved to " + DefaultScriptsFile);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine("[ScriptWindow] Failed to save script config: " + ex);
+                // e.Cancel = true; // 仅当你想阻止关闭时取消注释
+            }
+        }
+
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propName = null!)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
     }
-
-    //public class ObjectState
-    //{
-    //    private readonly Dictionary<int, bool> _results = new Dictionary<int, bool>();
-    //    private readonly object _locker = new();
-
-    //    public bool SetResult(int cameraIndex, bool isOk, int requiredCount)
-    //    {
-    //        lock (_locker)
-    //        {
-    //            if (!_results.ContainsKey(cameraIndex))
-    //            {
-    //                _results[cameraIndex] = isOk;
-    //                return _results.Count == requiredCount;
-    //            }
-    //            return false;
-    //        }
-    //    }
-
-    //    public bool GetFinalOk()
-    //    {
-    //        lock (_locker)
-    //        {
-    //            // 只要有一个 false 就 NG
-    //            return _results.Values.All(v => v);
-    //        }
-    //    }
-    //}
 
     public class ObjectState
     {
