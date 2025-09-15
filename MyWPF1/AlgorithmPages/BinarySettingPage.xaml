@@ -1,0 +1,434 @@
+﻿<UserControl x:Class="MyWPF1.BinarySettingPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:MyWPF1" 
+      xmlns:models="clr-namespace:MyWPF1.Models"
+      xmlns:sys="clr-namespace:System;assembly=mscorlib"
+      xmlns:viewModels="clr-namespace:MyWPF1.ViewModels"
+      xmlns:winforms="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
+      xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
+      xmlns:ctrl="clr-namespace:MyWPF1.Controls"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      Background="#1E1E1E">
+
+    <UserControl.Resources>
+        <!-- 深色主题资源 -->
+        <SolidColorBrush x:Key="DarkBackground" Color="#1E1E1E"/>
+        <SolidColorBrush x:Key="MediumBackground" Color="#23272E"/>
+        <SolidColorBrush x:Key="LightBackground" Color="#2D2D30"/>
+        <SolidColorBrush x:Key="AccentColor" Color="#007ACC"/>
+        <SolidColorBrush x:Key="AccentHover" Color="#0086D1"/>
+        <SolidColorBrush x:Key="AccentPressed" Color="#005A9E"/>
+        <SolidColorBrush x:Key="TextColor" Color="#E0E0E0"/>
+        <SolidColorBrush x:Key="SubTextColor" Color="#A0A0A0"/>
+        <SolidColorBrush x:Key="BorderColor" Color="#3F3F46"/>
+        <SolidColorBrush x:Key="InputBackground" Color="#23272E"/>
+
+        <!-- 标题卡片样式 -->
+        <Style x:Key="TitleCard" TargetType="Border">
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="0,0,0,0"/>
+            <Setter Property="Margin" Value="0,0,0,18"/>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#2D8CF0" Offset="0"/>
+                        <GradientStop Color="#007ACC" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Color="#66000000"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- 内容卡片样式 -->
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Background" Value="{StaticResource LightBackground}"/>
+            <Setter Property="Margin" Value="0,0,0,18"/>
+            <Setter Property="Padding" Value="20,18"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Color="#33000000"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- 标题文本样式 -->
+        <Style x:Key="TitleText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="18,0,0,0"/>
+        </Style>
+        <!-- 标签文本样式 -->
+        <Style x:Key="LabelText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <!-- 复选框美化 -->
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="10,0,0,0"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <StackPanel Orientation="Horizontal">
+                            <Border x:Name="Border"
+                                    Width="20" Height="20"
+                                    CornerRadius="4"
+                                    BorderThickness="2"
+                                    BorderBrush="{StaticResource AccentColor}"
+                                    Background="{StaticResource InputBackground}"
+                                    VerticalAlignment="Center"
+                                    Margin="0,0,6,0">
+                                <Path x:Name="CheckMark"
+                                      Data="M 4 10 L 9 15 L 16 6"
+                                      Stroke="White"
+                                      StrokeThickness="2"
+                                      Visibility="Collapsed"/>
+                            </Border>
+                            <ContentPresenter VerticalAlignment="Center" Margin="8,0,0,0"/>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource AccentColor}"/>
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource AccentHover}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- 滑块美化 -->
+        <Style TargetType="Slider">
+            <Setter Property="Background" Value="{StaticResource LightBackground}"/>
+            <Setter Property="Foreground" Value="{StaticResource AccentColor}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Height" Value="25"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+        </Style>
+        <!-- 文本块美化 -->
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#F3F6FA"/>
+        </Style>
+        <!-- 文本框美化 -->
+        <Style TargetType="TextBox">
+            <Setter Property="Foreground" Value="#000000"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="BorderBrush" Value="#4A4A50"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="MinWidth" Value="120"/>
+            <Setter Property="Margin" Value="5,0,0,0"/>
+        </Style>
+        <!-- 组合框美化 -->
+        <Style TargetType="ComboBox">
+            <Setter Property="Foreground" Value="#000000"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Background" Value="{StaticResource InputBackground}"/>
+            <Setter Property="BorderBrush" Value="#4A4A50"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="5,0,0,0"/>
+        </Style>
+        <!-- 下拉项美化 -->
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Foreground" Value="#000000"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Background" Value="{StaticResource InputBackground}"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="8,2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#3A3F4B"/>
+                                <Setter Property="Foreground" Value="#4DACFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- 若无资源则直接内联： -->
+        <DataTemplate x:Key="BlackComboBoxItemTemplate">
+            <TextBlock Text="{Binding}" Foreground="#000000" FontWeight="Bold" FontSize="15"/>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid Margin="30" Background="{StaticResource MediumBackground}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="2*"/>
+        </Grid.RowDefinitions>
+        <ContentControl x:Name="SettingsContainer">
+            <ContentControl.ContentTemplate>
+                <DataTemplate>
+                    <ContentPresenter Content="{TemplateBinding Content}">
+                        <ContentPresenter.RenderTransform>
+                            <TranslateTransform X="300"/>
+                        </ContentPresenter.RenderTransform>
+                        <ContentPresenter.Triggers>
+                            <EventTrigger RoutedEvent="ContentPresenter.Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation 
+                                    Storyboard.TargetProperty="RenderTransform.X"
+                                    From="300" To="0" 
+                                    Duration="0:0:0.3"
+                                    DecelerationRatio="0.6"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </ContentPresenter.Triggers>
+                    </ContentPresenter>
+                </DataTemplate>
+            </ContentControl.ContentTemplate>
+        </ContentControl>
+        <!-- 二值阈 -->
+        <TextBlock Grid.Row="0" Text="全局阈值" FontWeight="Bold" FontSize="16"
+                       Margin="0,0" Height="20" Width="90"
+                       HorizontalAlignment="Left" VerticalAlignment="Top">
+            <TextBlock.Background>
+                <DrawingBrush>
+                    <DrawingBrush.Drawing>
+                        <GeometryDrawing>
+                            <GeometryDrawing.Geometry>
+                                <PathGeometry>
+                                    <PathFigure StartPoint="0,0" IsClosed="True">
+                                        <!-- 左侧直线 -->
+                                        <LineSegment Point="80,0"/>
+                                        <!-- 右侧弧线 -->
+                                        <ArcSegment Point="80,20"
+                                            Size="10,10"
+                                            SweepDirection="Clockwise"
+                                            RotationAngle="90"/>
+                                        <!-- 底部直线 -->
+                                        <LineSegment Point="0,20"/>
+                                    </PathFigure>
+                                </PathGeometry>
+                            </GeometryDrawing.Geometry>
+                            <GeometryDrawing.Brush>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#4DACFF" Offset="0"/>
+                                    <GradientStop Color="#0080FF" Offset="1"/>
+                                </LinearGradientBrush>
+                            </GeometryDrawing.Brush>
+                        </GeometryDrawing>
+                    </DrawingBrush.Drawing>
+                </DrawingBrush>
+            </TextBlock.Background>
+        </TextBlock>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <CheckBox Grid.Column="0" Content="启用全局阈值" IsChecked="{Binding EnableGlobalThreshold}"
+                      VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="15,5">
+                    <TextBlock Text="阈值下界：" Width="80" VerticalAlignment="Center"/>
+                    <Slider Minimum="0" Maximum="255" VerticalAlignment="Center"
+                        Width="120" TickFrequency="1" Value="{Binding LowerBound, 
+                        Mode=TwoWay, 
+                        UpdateSourceTrigger=PropertyChanged}"/>
+                    <ctrl:NumericUpDown Value="{Binding LowerBound, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    Minimum="0" Maximum="255" Increment="1" Width="55" Height="25"/>
+                </StackPanel>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="15,5">
+                    <TextBlock Text="阈值上界：" Width="80" VerticalAlignment="Center"/>
+                    <Slider Minimum="0" Maximum="255" VerticalAlignment="Center"
+                        Width="120" TickFrequency="1" Value="{Binding UpperBound, 
+                        Mode=TwoWay, 
+                        UpdateSourceTrigger=PropertyChanged}"/>
+                    <ctrl:NumericUpDown Value="{Binding UpperBound, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    Minimum="0" Maximum="255" Increment="1" Width="55" Height="25"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+        <TextBlock Grid.Row="1" Text="自动局部阈值" FontWeight="Bold" FontSize="16"
+                       Margin="0,0" Height="20" Width="110"
+                       HorizontalAlignment="Left" VerticalAlignment="Top">
+            <TextBlock.Background>
+                <DrawingBrush>
+                    <DrawingBrush.Drawing>
+                        <GeometryDrawing>
+                            <GeometryDrawing.Geometry>
+                                <PathGeometry>
+                                    <PathFigure StartPoint="0,0" IsClosed="True">
+                                        <!-- 左侧直线 -->
+                                        <LineSegment Point="80,0"/>
+                                        <!-- 右侧弧线 -->
+                                        <ArcSegment Point="80,20"
+                                            Size="10,10"
+                                            SweepDirection="Clockwise"
+                                            RotationAngle="90"/>
+                                        <!-- 底部直线 -->
+                                        <LineSegment Point="0,20"/>
+                                    </PathFigure>
+                                </PathGeometry>
+                            </GeometryDrawing.Geometry>
+                            <GeometryDrawing.Brush>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#4DACFF" Offset="0"/>
+                                    <GradientStop Color="#0080FF" Offset="1"/>
+                                </LinearGradientBrush>
+                            </GeometryDrawing.Brush>
+                        </GeometryDrawing>
+                    </DrawingBrush.Drawing>
+                </DrawingBrush>
+            </TextBlock.Background>
+        </TextBlock>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <CheckBox Grid.Row="0" Content="启用自动局部阈值" IsChecked="{Binding EnableLocalThreshold}"
+                      VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="15,5">
+                    <TextBlock Text="阈值类型：" Width="80" VerticalAlignment="Center" Margin="50,0"/>
+                    <ComboBox Width="120" Height="30" VerticalContentAlignment="Center"
+                              Margin="-50,0"
+                              ItemsSource="{Binding ColorOptions}"
+                              SelectedItem="{Binding LightDark}"
+                              FontWeight="Bold" FontSize="15" Foreground="#000000"
+                              ItemTemplate="{StaticResource BlackComboBoxItemTemplate}"/>
+                </StackPanel>
+            </Grid>
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="15,5">
+                    <TextBlock Text="局部核大小：" Width="80" VerticalAlignment="Center"/>
+                    <Slider Minimum="3" Maximum="51" TickFrequency="2" IsSnapToTickEnabled="True"
+                        VerticalAlignment="Center" Width="120"
+                        Value="{Binding MaskSize, 
+                        Mode=TwoWay, 
+                        UpdateSourceTrigger=PropertyChanged}"/>
+                    <ctrl:NumericUpDown Value="{Binding MaskSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Minimum="3" Maximum="51" Increment="1" Width="55" Height="25"/>
+                </StackPanel>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="15,5">
+                    <TextBlock Text="比例因子：" Width="80" VerticalAlignment="Center"/>
+                    <Slider Minimum="0.1" Maximum="2.0" TickFrequency="0.02" IsSnapToTickEnabled="True"
+                        VerticalAlignment="Center" Width="120"
+                        Value="{Binding Scale, 
+                        Mode=TwoWay, 
+                        UpdateSourceTrigger=PropertyChanged}"/>
+                    <ctrl:NumericUpDown Value="{Binding Scale, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Minimum="0.1" Maximum="2.0" Increment="0.02" Width="55" Height="25"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+        <TextBlock Grid.Row="2" Text="自动全局阈值" FontWeight="Bold" FontSize="16"
+                       Margin="0,0" Height="20" Width="110"
+                       HorizontalAlignment="Left" VerticalAlignment="Top">
+            <TextBlock.Background>
+                <DrawingBrush>
+                    <DrawingBrush.Drawing>
+                        <GeometryDrawing>
+                            <GeometryDrawing.Geometry>
+                                <PathGeometry>
+                                    <PathFigure StartPoint="0,0" IsClosed="True">
+                                        <!-- 左侧直线 -->
+                                        <LineSegment Point="80,0"/>
+                                        <!-- 右侧弧线 -->
+                                        <ArcSegment Point="80,20"
+                                            Size="10,10"
+                                            SweepDirection="Clockwise"
+                                            RotationAngle="90"/>
+                                        <!-- 底部直线 -->
+                                        <LineSegment Point="0,20"/>
+                                    </PathFigure>
+                                </PathGeometry>
+                            </GeometryDrawing.Geometry>
+                            <GeometryDrawing.Brush>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#4DACFF" Offset="0"/>
+                                    <GradientStop Color="#0080FF" Offset="1"/>
+                                </LinearGradientBrush>
+                            </GeometryDrawing.Brush>
+                        </GeometryDrawing>
+                    </DrawingBrush.Drawing>
+                </DrawingBrush>
+            </TextBlock.Background>
+        </TextBlock>
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <CheckBox Grid.Column="0" Content="启用自动全局阈值" IsChecked="{Binding EnableBinaryThreshold}"
+                      VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="15,5">
+                    <TextBlock Text="分割算法：" Width="80" VerticalAlignment="Center" Margin="50,0"/>
+                    <ComboBox Width="120" Height="30" VerticalContentAlignment="Center"
+                              Margin="-50,0"
+                              ItemsSource="{Binding MethodOptions}"
+                              SelectedItem="{Binding Method}"
+                              FontWeight="Bold" FontSize="15" Foreground="#000000"
+                              ItemTemplate="{StaticResource BlackComboBoxItemTemplate}"/>
+                </StackPanel>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="15,5">
+                    <TextBlock Text="阈值类型：" Width="80" VerticalAlignment="Center" Margin="50,0"/>
+                    <ComboBox Width="120" Height="30" VerticalContentAlignment="Center"
+                              Margin="-50,0"
+                              ItemsSource="{Binding ColorOptions}"
+                              SelectedItem="{Binding BinaryColor}"
+                              FontWeight="Bold" FontSize="15" Foreground="#000000"
+                              ItemTemplate="{StaticResource BlackComboBoxItemTemplate}"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

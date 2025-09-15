@@ -1,0 +1,1485 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:av="http://schemas.microsoft.com/expression/blend/2008" 
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        mc:Ignorable="av" 
+        x:Class="MyWPF1.SettingWindow"
+        Title="参数设置" Height="800" Width="1200"
+        WindowStartupLocation="CenterOwner"
+        Background="#FF0D1117">
+    <Window.Resources>
+        <!-- 深色主题颜色资源 -->
+        <SolidColorBrush x:Key="PrimaryBrush" Color="#FF1A73E8"/>
+        <SolidColorBrush x:Key="SecondaryBrush" Color="#FF34A853"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#FFF9AB00"/>
+        <SolidColorBrush x:Key="DangerBrush" Color="#FFEA4335"/>
+        <SolidColorBrush x:Key="DarkBackgroundBrush" Color="#FF0D1117"/>
+        <SolidColorBrush x:Key="CardBackgroundBrush" Color="#FF161B22"/>
+        <SolidColorBrush x:Key="LightTextBrush" Color="#FFE6EDF3"/>
+        <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="#FF1F2937"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#FF2D3748"/>
+        <SolidColorBrush x:Key="HoverBrush" Color="#30444d"/>
+
+        <!-- 卡片样式 -->
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
+            <Setter Property="Margin" Value="18,18,18,18"/>
+            <Setter Property="Padding" Value="18,18"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Color="#33000000"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- 标题卡片样式 -->
+        <Style x:Key="TitleCard" TargetType="Border">
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="0,0,0,0"/>
+            <Setter Property="Margin" Value="0,0,0,18"/>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#2D8CF0" Offset="0"/>
+                        <GradientStop Color="#007ACC" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Color="#66000000"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- 标题文本样式 -->
+        <Style x:Key="TitleText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="18,0,0,0"/>
+        </Style>
+
+        <!-- 数字输入框样式 -->
+        <Style x:Key="NumericInputStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="#FF252526"/>
+            <Setter Property="Foreground" Value="{StaticResource LightTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3">
+                            <ScrollViewer x:Name="PART_ContentHost"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="Validation.HasError" Value="true">
+                    <Setter Property="ToolTip"
+                            Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
+                    <Setter Property="BorderBrush" Value="#FFE53935"/>
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- 功能按钮通用样式 -->
+        <Style x:Key="FunctionButtonStyle" TargetType="{x:Type Button}">
+            <Setter Property="Background" Value="#252526"/>
+            <Setter Property="BorderBrush" Value="#3C3C40"/>
+            <Setter Property="Foreground" Value="{StaticResource LightTextBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="MinWidth" Value="80"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3"
+                                SnapsToDevicePixels="True">
+                            <Grid>
+                                <Border x:Name="hoverOverlay" 
+                                        Background="{StaticResource HoverBrush}" 
+                                        Opacity="0"
+                                        CornerRadius="3"/>
+                                <ContentPresenter
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Margin="{TemplateBinding Padding}"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="hoverOverlay" Property="Opacity" Value="1"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#353536"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 特殊按钮样式 -->
+        <Style x:Key="ActionButtonStyle" TargetType="Button" BasedOn="{StaticResource FunctionButtonStyle}">
+            <Setter Property="Background" Value="#201A73E8"/>
+            <Setter Property="BorderBrush" Value="#401A73E8"/>
+        </Style>
+
+        <Style x:Key="SaveButtonStyle" TargetType="Button" BasedOn="{StaticResource FunctionButtonStyle}">
+            <Setter Property="Background" Value="#2034A853"/>
+            <Setter Property="BorderBrush" Value="#4034A853"/>
+        </Style>
+
+        <Style x:Key="MoveButtonStyle" TargetType="Button" BasedOn="{StaticResource FunctionButtonStyle}">
+            <Setter Property="Background" Value="#20F9AB00"/>
+            <Setter Property="BorderBrush" Value="#40F9AB00"/>
+        </Style>
+
+        <!-- ComboBox样式 - 已修复 -->
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="#252526"/>
+            <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="BorderBrush" Value="#3C3C40"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="MinHeight" Value="30"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <!-- 修复：移除不存在的静态资源引用 -->
+                            <ToggleButton x:Name="ToggleButton" 
+                                          Grid.Column="2" 
+                                          Focusable="false"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          ClickMode="Press"/>
+                            <ContentPresenter x:Name="ContentSite" 
+                                              IsHitTestVisible="False" 
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                              Margin="3,3,23,3"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Left"/>
+                            <!-- 修复：移除不存在的静态资源引用 -->
+                            <TextBox x:Name="PART_EditableTextBox"
+                                     Style="{x:Null}" 
+                                     HorizontalAlignment="Left" 
+                                     VerticalAlignment="Center" 
+                                     Margin="3,3,23,3"
+                                     Focusable="True" 
+                                     Background="Transparent"
+                                     Visibility="Hidden"
+                                     IsReadOnly="{TemplateBinding IsReadOnly}"/>
+                            <Popup x:Name="Popup"
+                                   Placement="Bottom"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True" 
+                                   Focusable="False"
+                                   PopupAnimation="Slide">
+                                <Grid x:Name="DropDown"
+                                      SnapsToDevicePixels="True" 
+                                      MinWidth="{TemplateBinding ActualWidth}"
+                                      MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <Border x:Name="DropDownBorder"
+                                            Background="#252526"
+                                            BorderThickness="1"
+                                            BorderBrush="#3C3C40"/>
+                                    <ScrollViewer SnapsToDevicePixels="True">
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                    </ScrollViewer>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="#252526"/>
+            <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="Padding" Value="5,2"/>
+            <Style.Triggers>
+                <Trigger Property="IsHighlighted" Value="True">
+                    <Setter Property="Background" Value="#30444d"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#1A73E8"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- TabControl样式 -->
+        <Style TargetType="TabControl">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="Padding" Value="5"/>
+        </Style>
+
+        <Style TargetType="TabItem">
+            <Setter Property="Background" Value="{StaticResource HeaderBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource LightTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3,3,0,0">
+                            <ContentPresenter x:Name="ContentSite"
+                                              ContentSource="Header"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Margin="10,2"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#1A73E8"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#30444d"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 文本样式 -->
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource LightTextBrush}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+        </Style>
+
+        <Style TargetType="Label">
+            <Setter Property="Foreground" Value="{StaticResource LightTextBrush}"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+        </Style>
+
+        <!-- 位置框样式 -->
+        <Style x:Key="PositionBoxStyle" TargetType="Border">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="Padding" Value="10,2"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="MaxWidth" Value="150"/>
+            <Setter Property="MinHeight" Value="30"/>
+            <Setter Property="Background" Value="#252526"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Background="{StaticResource DarkBackgroundBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <!-- 顶部标题卡片 -->
+        <Border Style="{StaticResource TitleCard}" Grid.Row="0" Margin="30,30,30,0">
+            <TextBlock Text="参数设置" Style="{StaticResource TitleText}"/>
+        </Border>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="6*"/>
+                <ColumnDefinition Width="4*"/>
+            </Grid.ColumnDefinitions>
+            <!-- 左侧图片主卡片（只包裹一层Card） -->
+            <Border Style="{StaticResource Card}" Margin="30,30,15,30" Grid.Column="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <!-- 相机选择区（普通Border） -->
+                    <Border Background="{StaticResource HeaderBackgroundBrush}" CornerRadius="8" Margin="0,0,0,18" Padding="5">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Label Content="相机："
+                                   Width="70"
+                                   Height="30"
+                                   FontSize="16"
+                                   VerticalAlignment="Center"
+                                   HorizontalContentAlignment="Center"/>
+                            <ComboBox x:Name="LCCDSelector"
+                                      Width="100"
+                                      Height="30"
+                                      SelectedIndex="0"
+                                      VerticalContentAlignment="Center"
+                                      VerticalAlignment="Center">
+                                <ComboBoxItem Content="CCD1"/>
+                                <ComboBoxItem Content="CCD2"/>
+                                <ComboBoxItem Content="CCD3"/>
+                                <ComboBoxItem Content="CCD4"/>
+                                <ComboBoxItem Content="CCD5"/>
+                                <ComboBoxItem Content="CCD6"/>
+                                <ComboBoxItem Content="CCD7"/>
+                                <ComboBoxItem Content="CCD8"/>
+                            </ComboBox>
+                        </StackPanel>
+                    </Border>
+                    <!-- 图片显示区（普通Border） -->
+                    <Border Grid.Row="1" Background="#FF252526" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8">
+                        <Image x:Name="SPreviewImage"
+                               Source="/images/开始.png"
+                               Stretch="Uniform"/>
+                    </Border>
+                </Grid>
+            </Border>
+            <!-- 右侧设置主卡片（只包裹一层Card） -->
+            <Border Style="{StaticResource Card}" Margin="15,30,30,30" Grid.Column="1">
+                <TabControl>
+                    <!-- 分页1-5 -->
+                    <TabItem Header="点位设置">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="3*"/>
+                                <!-- 上部分30% -->
+                                <RowDefinition Height="7*"/>
+                                <!-- 下部分70% -->
+                            </Grid.RowDefinitions>
+
+                            <Grid Grid.Row="0" Margin="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- 当前位置 -->
+                                <Grid Grid.Column="0" 
+                                      HorizontalAlignment="Stretch" 
+                                      VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="当前位置：" 
+                                               Grid.Column="0"
+                                               FontSize="14"/>
+
+                                    <Border Grid.Column="1"
+                                            Style="{StaticResource PositionBoxStyle}">
+                                        <TextBlock x:Name="CurrentPositionBox"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Center"
+                                                   Text="1234"
+                                                   Foreground="{StaticResource LightTextBrush}"/>
+                                    </Border>
+                                </Grid>
+
+                                <Grid Grid.Column="1"
+                                      HorizontalAlignment="Stretch"
+                                      VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="1"
+                                            Content="激磁" 
+                                            Style="{StaticResource ActionButtonStyle}"
+                                            MinWidth="80"/>
+                                    <Button Grid.Column="2"
+                                            Content="开始定位" 
+                                            Style="{StaticResource MoveButtonStyle}"
+                                            MinWidth="80"
+                                            Margin="10,0"/>
+                                </Grid>
+
+                                <!-- 转速设置 -->
+                                <Grid Grid.Column="0" Grid.Row="1" HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="转速：" 
+                                               Grid.Column="0"
+                                               FontSize="14"/>
+
+                                    <Border Grid.Column="1"
+                                            Style="{StaticResource PositionBoxStyle}">
+                                        <TextBox Text="{Binding RotationSpeed, UpdateSourceTrigger=PropertyChanged}"
+                                                 Foreground="{StaticResource LightTextBrush}"
+                                                 VerticalAlignment="Center"
+                                                 HorizontalAlignment="Stretch"
+                                                 BorderThickness="0"
+                                                 Background="Transparent"
+                                                 Style="{StaticResource NumericInputStyle}">
+                                            <TextBox.InputBindings>
+                                                <KeyBinding Command="ApplicationCommands.NotACommand"
+                                                            Key="V"
+                                                            Modifiers="Ctrl"/>
+                                            </TextBox.InputBindings>
+                                        </TextBox>
+                                    </Border>
+                                </Grid>
+
+                                <!-- 移动控制 -->
+                                <Grid Grid.Column="0" Grid.Row="2"
+                                     HorizontalAlignment="Stretch"
+                                     VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Button Grid.Column="1"
+                                            Content="左移" 
+                                            Style="{StaticResource MoveButtonStyle}"
+                                            MinWidth="80"/>
+
+                                    <Button Grid.Column="2"
+                                            Content="右移" 
+                                            Style="{StaticResource MoveButtonStyle}"
+                                            MinWidth="80"
+                                            Margin="10,0"/>
+                                </Grid>
+
+                                <!-- 转盘控制 -->
+                                <Grid Grid.Column="1"
+                                  Grid.Row="2"
+                                      HorizontalAlignment="Stretch"
+                                      VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="1"
+                                            Content="转盘启动"
+                                            Style="{StaticResource ActionButtonStyle}"
+                                            MinWidth="80"
+                                            MinHeight="30"/>
+                                    <Button Grid.Column="2"
+                                            Content="转盘停止" 
+                                            Style="{StaticResource ActionButtonStyle}"
+                                            MinWidth="80"
+                                            MinHeight="30"
+                                            Margin="10,0"/>
+                                </Grid>
+                            </Grid>
+
+                            <!-- 相机位置设置 -->
+                            <Grid Grid.Row="1" Margin="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- 相机1设置 -->
+                                <Grid Grid.Column="0" Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="CCD1：" 
+                                               Grid.Column="0"
+                                               FontSize="14"/>
+
+                                    <Border Grid.Column="1"
+                                            Style="{StaticResource PositionBoxStyle}">
+                                        <TextBlock x:Name="Cam1PositionBox"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Center"
+                                                   Text="{Binding CCD1Pos}"
+                                                   Foreground="{StaticResource LightTextBrush}"/>
+                                    </Border>
+                                </Grid>
+
+                                <Grid Grid.Column="1" Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="1"
+                                            Click="ToCCD1_Click"
+                                            Content="移动到机位1" 
+                                            Style="{StaticResource MoveButtonStyle}"
+                                            MinWidth="100"/>
+                                    <Button Grid.Column="2"
+                                            Content="保存" 
+                                            Style="{StaticResource SaveButtonStyle}"
+                                            MinWidth="80"
+                                            Margin="10,0"/>
+                                </Grid>
+
+                                <!-- 其他相机设置（结构相同） -->
+                                <!-- 相机2 -->
+                                <Grid Grid.Column="0" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="CCD2：" 
+                                               Grid.Column="0"
+                                               FontSize="14"/>
+
+                                    <Border Grid.Column="1"
+                                            Style="{StaticResource PositionBoxStyle}">
+                                        <TextBlock x:Name="Cam2PositionBox"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Center"
+                                                   Text="1234"
+                                                   Foreground="{StaticResource LightTextBrush}"/>
+                                    </Border>
+                                </Grid>
+
+                                <Grid Grid.Column="1" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="1"
+                                            Content="移动到机位2" 
+                                            Style="{StaticResource MoveButtonStyle}"
+                                            MinWidth="100"/>
+                                    <Button Grid.Column="2"
+                                            Content="保存" 
+                                            Style="{StaticResource SaveButtonStyle}"
+                                            MinWidth="80"
+                                            Margin="10,0"/>
+                                </Grid>
+
+                                <!-- 相机3 -->
+                                <Grid Grid.Column="0" Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="CCD3：" 
+                                               Grid.Column="0"
+                                               FontSize="14"/>
+
+                                    <Border Grid.Column="1"
+                                            Style="{StaticResource PositionBoxStyle}">
+                                        <TextBlock x:Name="Cam3PositionBox"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Center"
+                                                   Text="1234"
+                                                   Foreground="{StaticResource LightTextBrush}"/>
+                                    </Border>
+                                </Grid>
+
+                                <Grid Grid.Column="1" Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="1"
+                                            Content="移动到机位3" 
+                                            Style="{StaticResource MoveButtonStyle}"
+                                            MinWidth="100"/>
+                                    <Button Grid.Column="2"
+                                            Content="保存" 
+                                            Style="{StaticResource SaveButtonStyle}"
+                                            MinWidth="80"
+                                            Margin="10,0"/>
+                                </Grid>
+
+                                <!-- 相机4 -->
+                                <Grid Grid.Column="0" Grid.Row="3" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="CCD4：" 
+                                               Grid.Column="0"
+                                               FontSize="14"/>
+
+                                    <Border Grid.Column="1"
+                                            Style="{StaticResource PositionBoxStyle}">
+                                        <TextBlock x:Name="Cam4PositionBox"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Center"
+                                                   Text="1234"
+                                                   Foreground="{StaticResource LightTextBrush}"/>
+                                    </Border>
+                                </Grid>
+
+                                <Grid Grid.Column="1" Grid.Row="3" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="1"
+                                            Content="移动到机位4" 
+                                            Style="{StaticResource MoveButtonStyle}"
+                                            MinWidth="100"/>
+                                    <Button Grid.Column="2"
+                                            Content="保存" 
+                                            Style="{StaticResource SaveButtonStyle}"
+                                            MinWidth="80"
+                                            Margin="10,0"/>
+                                </Grid>
+
+                                <!-- 相机5 -->
+                                <Grid Grid.Column="0" Grid.Row="4" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="CCD5：" 
+                                               Grid.Column="0"
+                                               FontSize="14"/>
+
+                                    <Border Grid.Column="1"
+                                            Style="{StaticResource PositionBoxStyle}">
+                                        <TextBlock x:Name="Cam5PositionBox"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Center"
+                                                   Text="1234"
+                                                   Foreground="{StaticResource LightTextBrush}"/>
+                                    </Border>
+                                </Grid>
+
+                                <Grid Grid.Column="1" Grid.Row="4" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="1"
+                                            Content="移动到机位5" 
+                                            Style="{StaticResource MoveButtonStyle}"
+                                            MinWidth="100"/>
+                                    <Button Grid.Column="2"
+                                            Content="保存" 
+                                            Style="{StaticResource SaveButtonStyle}"
+                                            MinWidth="80"
+                                            Margin="10,0"/>
+                                </Grid>
+
+                                <!-- 相机6 -->
+                                <Grid Grid.Column="0" Grid.Row="5" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="CCD6：" 
+                                               Grid.Column="0"
+                                               FontSize="14"/>
+
+                                    <Border Grid.Column="1"
+                                            Style="{StaticResource PositionBoxStyle}">
+                                        <TextBlock x:Name="Cam6PositionBox"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Center"
+                                                   Text="1234"
+                                                   Foreground="{StaticResource LightTextBrush}"/>
+                                    </Border>
+                                </Grid>
+
+                                <Grid Grid.Column="1" Grid.Row="5" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="1"
+                                            Content="移动到机位6" 
+                                            Style="{StaticResource MoveButtonStyle}"
+                                            MinWidth="100"/>
+                                    <Button Grid.Column="2"
+                                            Content="保存" 
+                                            Style="{StaticResource SaveButtonStyle}"
+                                            MinWidth="80"
+                                            Margin="10,0"/>
+                                </Grid>
+
+                                <!-- 相机7 -->
+                                <Grid Grid.Column="0" Grid.Row="6" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="CCD7：" 
+                                               Grid.Column="0"
+                                               FontSize="14"/>
+
+                                    <Border Grid.Column="1"
+                                            Style="{StaticResource PositionBoxStyle}">
+                                        <TextBlock x:Name="Cam7PositionBox"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Center"
+                                                   Text="1234"
+                                                   Foreground="{StaticResource LightTextBrush}"/>
+                                    </Border>
+                                </Grid>
+
+                                <Grid Grid.Column="1" Grid.Row="6" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="1"
+                                            Content="移动到机位7" 
+                                            Style="{StaticResource MoveButtonStyle}"
+                                            MinWidth="100"/>
+                                    <Button Grid.Column="2"
+                                            Content="保存" 
+                                            Style="{StaticResource SaveButtonStyle}"
+                                            MinWidth="80"
+                                            Margin="10,0"/>
+                                </Grid>
+
+                                <!-- 相机8 -->
+                                <Grid Grid.Column="0" Grid.Row="7" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="CCD8：" 
+                                               Grid.Column="0"
+                                               FontSize="14"/>
+
+                                    <Border Grid.Column="1"
+                                            Style="{StaticResource PositionBoxStyle}">
+                                        <TextBlock x:Name="Cam8PositionBox"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Center"
+                                                   Text="1234"
+                                                   Foreground="{StaticResource LightTextBrush}"/>
+                                    </Border>
+                                </Grid>
+
+                                <Grid Grid.Column="1" Grid.Row="7" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="1"
+                                            Content="移动到机位8" 
+                                            Style="{StaticResource MoveButtonStyle}"
+                                            MinWidth="100"/>
+                                    <Button Grid.Column="2"
+                                            Content="保存" 
+                                            Style="{StaticResource SaveButtonStyle}"
+                                            MinWidth="80"
+                                            Margin="10,0"/>
+                                </Grid>
+
+                                <!-- OK位置 -->
+                                <Grid Grid.Column="0" Grid.Row="8" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="OK位置：" 
+                                               Grid.Column="0"
+                                               FontSize="14"/>
+
+                                    <Border Grid.Column="1"
+                                            Style="{StaticResource PositionBoxStyle}">
+                                        <TextBlock x:Name="OKPositionBox"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Center"
+                                                   Text="1234"
+                                                   Foreground="{StaticResource LightTextBrush}"/>
+                                    </Border>
+                                </Grid>
+
+                                <Grid Grid.Column="1" Grid.Row="8" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="1"
+                                            Content="移动到OK位" 
+                                            Style="{StaticResource MoveButtonStyle}"
+                                            MinWidth="100"/>
+                                    <Button Grid.Column="2"
+                                            Content="保存" 
+                                            Style="{StaticResource SaveButtonStyle}"
+                                            MinWidth="80"
+                                            Margin="10,0"/>
+                                </Grid>
+
+                                <!-- NG位置 -->
+                                <Grid Grid.Column="0" Grid.Row="9" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="NG位置：" 
+                                               Grid.Column="0"
+                                               FontSize="14"/>
+
+                                    <Border Grid.Column="1"
+                                            Style="{StaticResource PositionBoxStyle}">
+                                        <TextBlock x:Name="NGPositionBox"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Center"
+                                                   Text="1234"
+                                                   Foreground="{StaticResource LightTextBrush}"/>
+                                    </Border>
+                                </Grid>
+
+                                <Grid Grid.Column="1" Grid.Row="9" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="1"
+                                            Content="移动到NG位" 
+                                            Style="{StaticResource MoveButtonStyle}"
+                                            MinWidth="100"/>
+                                    <Button Grid.Column="2"
+                                            Content="保存" 
+                                            Style="{StaticResource SaveButtonStyle}"
+                                            MinWidth="80"
+                                            Margin="10,0"/>
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+
+                    <TabItem Header="控件设置">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- 相机触发时间 -->
+                            <TextBlock Text="相机触发（毫秒）：" 
+                                       Grid.Column="0"
+                                       Grid.Row="0"
+                                       FontSize="14"/>
+                            <Border Grid.Column="1"
+                                    Grid.Row="0"
+                                    Style="{StaticResource PositionBoxStyle}">
+                                <TextBox Text="{Binding CamTriggerTime, UpdateSourceTrigger=PropertyChanged}"
+                                         Foreground="{StaticResource LightTextBrush}"
+                                         VerticalAlignment="Center"
+                                         HorizontalAlignment="Stretch"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         Style="{StaticResource NumericInputStyle}">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Command="ApplicationCommands.NotACommand"
+                                                    Key="V"
+                                                    Modifiers="Ctrl"/>
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                            </Border>
+
+                            <!-- 吹气时间 -->
+                            <TextBlock Text="吹气时间（毫秒）：" 
+                                       Grid.Column="0"
+                                       Grid.Row="1"
+                                       FontSize="14"/>
+                            <Border Grid.Column="1"
+                                    Grid.Row="1"
+                                    Style="{StaticResource PositionBoxStyle}">
+                                <TextBox x:Name="BurstTime"
+                                         Text="{Binding BurstTime, UpdateSourceTrigger=PropertyChanged}"
+                                         Foreground="{StaticResource LightTextBrush}"
+                                         VerticalAlignment="Center"
+                                         HorizontalAlignment="Stretch"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         Style="{StaticResource NumericInputStyle}">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Command="ApplicationCommands.NotACommand"
+                                                    Key="V"
+                                                    Modifiers="Ctrl"/>
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                            </Border>
+
+                            <!-- 清料时间 -->
+                            <TextBlock Text="清料时间（秒）：" 
+                                       Grid.Column="0"
+                                       Grid.Row="2"
+                                       FontSize="14"/>
+                            <Border Grid.Column="1"
+                                    Grid.Row="2"
+                                    Style="{StaticResource PositionBoxStyle}">
+                                <TextBox x:Name="CleanPanelTime"
+                                         Text="{Binding CleanPanelTime, UpdateSourceTrigger=PropertyChanged}"
+                                         Foreground="{StaticResource LightTextBrush}"
+                                         VerticalAlignment="Center"
+                                         HorizontalAlignment="Stretch"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         Style="{StaticResource NumericInputStyle}">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Command="ApplicationCommands.NotACommand"
+                                                    Key="V"
+                                                    Modifiers="Ctrl"/>
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                            </Border>
+
+                            <!-- 缺料时间 -->
+                            <TextBlock Text="缺料时间（秒）：" 
+                                       Grid.Column="0"
+                                       Grid.Row="3"
+                                       FontSize="14"/>
+                            <Border Grid.Column="1"
+                                    Grid.Row="3"
+                                    Style="{StaticResource PositionBoxStyle}">
+                                <TextBox x:Name="EmptyWarningTime"
+                                         Text="{Binding EmptyWarningTime, UpdateSourceTrigger=PropertyChanged}"
+                                         Foreground="{StaticResource LightTextBrush}"
+                                         VerticalAlignment="Center"
+                                         HorizontalAlignment="Stretch"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         Style="{StaticResource NumericInputStyle}">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Command="ApplicationCommands.NotACommand"
+                                                    Key="V"
+                                                    Modifiers="Ctrl"/>
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                            </Border>
+
+                            <!-- 缺料停机时间 -->
+                            <TextBlock Text="缺料停机时间（秒）：" 
+                                       Grid.Column="0"
+                                       Grid.Row="4"
+                                       FontSize="14"/>
+                            <Border Grid.Column="1"
+                                    Grid.Row="4"
+                                    Style="{StaticResource PositionBoxStyle}">
+                                <TextBox x:Name="EmptyHaltTime"
+                                         Text="{Binding EmptyHaltTime, UpdateSourceTrigger=PropertyChanged}"
+                                         Foreground="{StaticResource LightTextBrush}"
+                                         VerticalAlignment="Center"
+                                         HorizontalAlignment="Stretch"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         Style="{StaticResource NumericInputStyle}">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Command="ApplicationCommands.NotACommand"
+                                                    Key="V"
+                                                    Modifiers="Ctrl"/>
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                            </Border>
+
+                            <!-- 启动时间 -->
+                            <TextBlock Text="启动时间（毫秒）：" 
+                                       Grid.Column="0"
+                                       Grid.Row="5"
+                                       FontSize="14"/>
+                            <Border Grid.Column="1"
+                                    Grid.Row="5"
+                                    Style="{StaticResource PositionBoxStyle}">
+                                <TextBox x:Name="LaunchDiffTime"
+                                         Text="{Binding LaunchDiffTime, UpdateSourceTrigger=PropertyChanged}"
+                                         Foreground="{StaticResource LightTextBrush}"
+                                         VerticalAlignment="Center"
+                                         HorizontalAlignment="Stretch"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         Style="{StaticResource NumericInputStyle}">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Command="ApplicationCommands.NotACommand"
+                                                    Key="V"
+                                                    Modifiers="Ctrl"/>
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                            </Border>
+
+                            <!-- 物料最大宽度 -->
+                            <TextBlock Text="物料最大宽度（脉冲）：" 
+                                       Grid.Column="0"
+                                       Grid.Row="6"
+                                       FontSize="14"/>
+                            <Border Grid.Column="1"
+                                    Grid.Row="6"
+                                    Style="{StaticResource PositionBoxStyle}">
+                                <TextBox x:Name="ObjMaxWidth"
+                                         Text="{Binding ObjMaxWidth, UpdateSourceTrigger=PropertyChanged}"
+                                         Foreground="{StaticResource LightTextBrush}"
+                                         VerticalAlignment="Center"
+                                         HorizontalAlignment="Stretch"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         Style="{StaticResource NumericInputStyle}">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Command="ApplicationCommands.NotACommand"
+                                                    Key="V"
+                                                    Modifiers="Ctrl"/>
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                            </Border>
+
+                            <!-- 物料最小宽度 -->
+                            <TextBlock Text="物料最小宽度（脉冲）：" 
+                                       Grid.Column="0"
+                                       Grid.Row="7"
+                                       FontSize="14"/>
+                            <Border Grid.Column="1"
+                                    Grid.Row="7"
+                                    Style="{StaticResource PositionBoxStyle}">
+                                <TextBox x:Name="ObjMinWidth"
+                                         Text="{Binding ObjMinWidth, UpdateSourceTrigger=PropertyChanged}"
+                                         Foreground="{StaticResource LightTextBrush}"
+                                         VerticalAlignment="Center"
+                                         HorizontalAlignment="Stretch"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         Style="{StaticResource NumericInputStyle}">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Command="ApplicationCommands.NotACommand"
+                                                    Key="V"
+                                                    Modifiers="Ctrl"/>
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                            </Border>
+
+                            <!-- 物料最小间距 -->
+                            <TextBlock Text="物料最小间距（脉冲）：" 
+                                       Grid.Column="0"
+                                       Grid.Row="8"
+                                       FontSize="14"/>
+                            <Border Grid.Column="1"
+                                    Grid.Row="8"
+                                    Style="{StaticResource PositionBoxStyle}">
+                                <TextBox x:Name="ObjMinSpacing"
+                                         Text="{Binding ObjMinSpacing, UpdateSourceTrigger=PropertyChanged}"
+                                         Foreground="{StaticResource LightTextBrush}"
+                                         VerticalAlignment="Center"
+                                         HorizontalAlignment="Stretch"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         Style="{StaticResource NumericInputStyle}">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Command="ApplicationCommands.NotACommand"
+                                                    Key="V"
+                                                    Modifiers="Ctrl"/>
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                            </Border>
+
+                            <!-- 最小时间间隔 -->
+                            <TextBlock Text="最小时间间隔（毫秒）：" 
+                                       Grid.Column="0"
+                                       Grid.Row="9"
+                                       FontSize="14"/>
+                            <Border Grid.Column="1"
+                                    Grid.Row="9"
+                                    Style="{StaticResource PositionBoxStyle}">
+                                <TextBox x:Name="MinIntervalTime"
+                                         Text="{Binding MinIntervalTime, UpdateSourceTrigger=PropertyChanged}"
+                                         Foreground="{StaticResource LightTextBrush}"
+                                         VerticalAlignment="Center"
+                                         HorizontalAlignment="Stretch"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         Style="{StaticResource NumericInputStyle}">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Command="ApplicationCommands.NotACommand"
+                                                    Key="V"
+                                                    Modifiers="Ctrl"/>
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                            </Border>
+                        </Grid>
+                    </TabItem>
+
+                    <TabItem Header="相机设置">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <!-- 第一部分 33% -->
+                                <RowDefinition Height="*"/>
+                                <!-- 第二部分 33% -->
+                                <RowDefinition Height="*"/>
+                                <!-- 第三部分 33% -->
+                                <RowDefinition Height="10"/>
+                                <!-- 间隔 -->
+                            </Grid.RowDefinitions>
+
+                            <!-- 相机配置 -->
+                            <Border Grid.Row="0"
+                                    BorderBrush="{StaticResource BorderBrush}"
+                                    BorderThickness="0,0,0,1"
+                                    Margin="10,5">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Text="相机配置"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Margin="5,2"
+                                               Foreground="{StaticResource AccentBrush}"/>
+
+                                    <Grid Grid.Row="1"
+                                          Margin="15,5">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Grid Grid.Row="0" Grid.Column="0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Label Content="相机："
+                                                   Grid.Column="0"/>
+                                            <ComboBox Grid.Column="1"
+                                                      x:Name="RCCDSelector"
+                                                      Width="100"
+                                                      Height="30"
+                                                      SelectedIndex="0"
+                                                      HorizontalAlignment="Left"
+                                                      VerticalAlignment="Center">
+                                                <ComboBoxItem Content="CCD1"/>
+                                                <ComboBoxItem Content="CCD2"/>
+                                                <ComboBoxItem Content="CCD3"/>
+                                                <ComboBoxItem Content="CCD4"/>
+                                                <ComboBoxItem Content="CCD5"/>
+                                                <ComboBoxItem Content="CCD6"/>
+                                            </ComboBox>
+                                        </Grid>
+
+                                        <Grid Grid.Row="0" Grid.Column="1">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Label Content="曝光时间："
+                                                   Grid.Column="0"/>
+                                            <Border Grid.Column="1"
+                                                    Style="{StaticResource PositionBoxStyle}">
+                                                <TextBox x:Name="CamExposeTime"
+                                                         Text="{Binding CamExposeTime, UpdateSourceTrigger=PropertyChanged}"
+                                                         Foreground="{StaticResource LightTextBrush}"
+                                                         VerticalAlignment="Center"
+                                                         HorizontalAlignment="Stretch"
+                                                         BorderThickness="0"
+                                                         Background="Transparent"
+                                                         Style="{StaticResource NumericInputStyle}">
+                                                    <TextBox.InputBindings>
+                                                        <KeyBinding Command="ApplicationCommands.NotACommand"
+                                                                    Key="V"
+                                                                    Modifiers="Ctrl"/>
+                                                    </TextBox.InputBindings>
+                                                </TextBox>
+                                            </Border>
+                                        </Grid>
+
+                                        <Grid Grid.Row="1" Grid.Column="0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Label Content="状态："
+                                                   Grid.Column="0"/>
+                                            <ComboBox Grid.Column="1"
+                                                      x:Name="CamStatus"
+                                                      Width="100"
+                                                      Height="30"
+                                                      SelectedIndex="0"
+                                                      HorizontalAlignment="Left"
+                                                      VerticalAlignment="Center">
+                                                <ComboBoxItem Content="打开"/>
+                                                <ComboBoxItem Content="关闭"/>
+                                            </ComboBox>
+                                        </Grid>
+
+                                        <Grid Grid.Row="1" Grid.Column="1">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Label Content="自动焦距："
+                                                   Grid.Column="0"/>
+                                            <ComboBox Grid.Column="1"
+                                                      x:Name="AutoFocalLen"
+                                                      Width="100"
+                                                      Height="30"
+                                                      SelectedIndex="0"
+                                                      HorizontalAlignment="Left"
+                                                      VerticalAlignment="Center">
+                                                <ComboBoxItem Content="打开"/>
+                                                <ComboBoxItem Content="关闭"/>
+                                            </ComboBox>
+                                        </Grid>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+
+                            <!-- 裁剪设置 -->
+                            <Border Grid.Row="1"
+                                    BorderBrush="{StaticResource BorderBrush}"
+                                    BorderThickness="0,0,0,1"
+                                    Margin="10,5">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Text="裁剪设置"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Margin="5,2"
+                                               Foreground="{StaticResource AccentBrush}"/>
+
+                                    <Grid Grid.Row="1"
+                                          Margin="15,5">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- 左上角坐标 -->
+                                        <Grid Grid.Row="0" Grid.Column="0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Label Grid.Column="0"
+                                                   Content="左上角："
+                                                   HorizontalAlignment="Center"/>
+                                            <Border Grid.Column="1"
+                                                    Style="{StaticResource PositionBoxStyle}">
+                                                <TextBox x:Name="X1"
+                                                         Text="{Binding BurstTime, UpdateSourceTrigger=PropertyChanged}"
+                                                         Foreground="{StaticResource LightTextBrush}"
+                                                         VerticalAlignment="Center"
+                                                         HorizontalAlignment="Stretch"
+                                                         BorderThickness="0"
+                                                         Background="Transparent"
+                                                         Style="{StaticResource NumericInputStyle}">
+                                                    <TextBox.InputBindings>
+                                                        <KeyBinding Command="ApplicationCommands.NotACommand"
+                                                                    Key="V"
+                                                                    Modifiers="Ctrl"/>
+                                                    </TextBox.InputBindings>
+                                                </TextBox>
+                                            </Border>
+                                        </Grid>
+
+                                        <!-- 右上角坐标 -->
+                                        <Grid Grid.Row="0" Grid.Column="1">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Label Grid.Column="0"
+                                                   Content="右上角："
+                                                   HorizontalAlignment="Center"/>
+                                            <Border Grid.Column="1"
+                                                    Style="{StaticResource PositionBoxStyle}">
+                                                <TextBox x:Name="Y1"
+                                                         Text="{Binding BurstTime, UpdateSourceTrigger=PropertyChanged}"
+                                                         Foreground="{StaticResource LightTextBrush}"
+                                                         VerticalAlignment="Center"
+                                                         HorizontalAlignment="Stretch"
+                                                         BorderThickness="0"
+                                                         Background="Transparent"
+                                                         Style="{StaticResource NumericInputStyle}">
+                                                    <TextBox.InputBindings>
+                                                        <KeyBinding Command="ApplicationCommands.NotACommand"
+                                                                    Key="V"
+                                                                    Modifiers="Ctrl"/>
+                                                    </TextBox.InputBindings>
+                                                </TextBox>
+                                            </Border>
+                                        </Grid>
+
+                                        <!-- 左下角坐标 -->
+                                        <Grid Grid.Row="1" Grid.Column="0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Label Grid.Column="0"
+                                                   Content="左下角："
+                                                   HorizontalAlignment="Center"/>
+                                            <Border Grid.Column="1"
+                                                    Style="{StaticResource PositionBoxStyle}">
+                                                <TextBox x:Name="X2"
+                                                         Text="{Binding X2, UpdateSourceTrigger=PropertyChanged}"
+                                                         Foreground="{StaticResource LightTextBrush}"
+                                                         VerticalAlignment="Center"
+                                                         HorizontalAlignment="Stretch"
+                                                         BorderThickness="0"
+                                                         Background="Transparent"
+                                                         Style="{StaticResource NumericInputStyle}">
+                                                    <TextBox.InputBindings>
+                                                        <KeyBinding Command="ApplicationCommands.NotACommand"
+                                                                    Key="V"
+                                                                    Modifiers="Ctrl"/>
+                                                    </TextBox.InputBindings>
+                                                </TextBox>
+                                            </Border>
+                                        </Grid>
+
+                                        <!-- 右下角坐标 -->
+                                        <Grid Grid.Row="1" Grid.Column="1">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Label Grid.Column="0"
+                                                   Content="右下角："
+                                                   HorizontalAlignment="Center"/>
+                                            <Border Grid.Column="1"
+                                                    Style="{StaticResource PositionBoxStyle}">
+                                                <TextBox x:Name="Y2"
+                                                         Text="{Binding Y2, UpdateSourceTrigger=PropertyChanged}"
+                                                         Foreground="{StaticResource LightTextBrush}"
+                                                         VerticalAlignment="Center"
+                                                         HorizontalAlignment="Stretch"
+                                                         BorderThickness="0"
+                                                         Background="Transparent"
+                                                         Style="{StaticResource NumericInputStyle}">
+                                                    <TextBox.InputBindings>
+                                                        <KeyBinding Command="ApplicationCommands.NotACommand"
+                                                                    Key="V"
+                                                                    Modifiers="Ctrl"/>
+                                                    </TextBox.InputBindings>
+                                                </TextBox>
+                                            </Border>
+                                        </Grid>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+
+                            <!-- 图像设置 -->
+                            <Border Grid.Row="2" Margin="10,5">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Text="图像设置"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Margin="5,2"
+                                               Foreground="{StaticResource AccentBrush}"/>
+
+                                    <StackPanel Grid.Row="1"
+                                                Orientation="Vertical"
+                                                Margin="15,5">
+                                        <TextBlock Text="安全阈值配置区域"
+                                                   Foreground="#5F7E97"
+                                                   FontSize="14"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </TabItem>
+
+                    <TabItem Header="设备配置">
+                        <!-- 结构同前 -->
+                    </TabItem>
+
+                    <TabItem Header="关于">
+                        <!-- 结构同前 -->
+                    </TabItem>
+                </TabControl>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

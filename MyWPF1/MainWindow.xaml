@@ -1,0 +1,514 @@
+﻿<Window x:Class="MyWPF1.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:hc="http://schemas.mvtec.com/halcondotnet"
+        xmlns:local="clr-namespace:MyWPF1"
+        xmlns:winforms="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
+        Title="Simple Interface" Height="800" Width="1200"
+        Background="#FF0D1117">
+    <Window.Resources>
+        <!-- 深色主题颜色资源 -->
+        <SolidColorBrush x:Key="PrimaryBrush" Color="#FF1A73E8"/>
+        <SolidColorBrush x:Key="SecondaryBrush" Color="#FF34A853"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#FFF9AB00"/>
+        <SolidColorBrush x:Key="DangerBrush" Color="#FFEA4335"/>
+        <SolidColorBrush x:Key="DarkBackgroundBrush" Color="#FF0D1117"/>
+        <SolidColorBrush x:Key="CardBackgroundBrush" Color="#FF161B22"/>
+        <SolidColorBrush x:Key="LightTextBrush" Color="#FFE6EDF3"/>
+        <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="#FF1F2937"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#FF2D3748"/>
+        <SolidColorBrush x:Key="HoverBrush" Color="#30444d"/>
+
+        <!-- 渐变画笔 -->
+        <LinearGradientBrush x:Key="ToolbarGradient" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#0F1B2D" Offset="0"/>
+            <GradientStop Color="#0A1423" Offset="1"/>
+        </LinearGradientBrush>
+
+        <!-- 按钮样式模板 -->
+        <Style x:Key="IconButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource LightTextBrush}"/>
+            <Setter Property="BorderBrush" Value="#405F7E"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Margin" Value="5,0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4"
+                                SnapsToDevicePixels="True">
+                            <Grid>
+                                <Border x:Name="hoverOverlay" 
+                                        Background="{StaticResource HoverBrush}" 
+                                        Opacity="0"
+                                        CornerRadius="4"/>
+                                <ContentPresenter
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Margin="{TemplateBinding Padding}"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="hoverOverlay" Property="Opacity" Value="1"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="hoverOverlay" Property="Background" Value="#406F8F"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 特殊按钮样式 -->
+        <Style x:Key="StartButtonStyle" BasedOn="{StaticResource IconButtonStyle}" TargetType="Button">
+            <Setter Property="Background" Value="#2034A853"/>
+            <Setter Property="BorderBrush" Value="#4034A853"/>
+        </Style>
+
+        <Style x:Key="StopButtonStyle" BasedOn="{StaticResource IconButtonStyle}" TargetType="Button">
+            <Setter Property="Background" Value="#20EA4335"/>
+            <Setter Property="BorderBrush" Value="#40EA4335"/>
+        </Style>
+
+        <Style x:Key="ActionButtonStyle" BasedOn="{StaticResource IconButtonStyle}" TargetType="Button">
+            <Setter Property="Background" Value="#20F9AB00"/>
+            <Setter Property="BorderBrush" Value="#40F9AB00"/>
+        </Style>
+
+        <!-- 展开按钮样式 -->
+        <Style x:Key="ExpanderToggleStyle" TargetType="ToggleButton">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource LightTextBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border Background="{TemplateBinding Background}"
+                                Padding="10,5">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <ContentPresenter Grid.Column="0"
+                                                  VerticalAlignment="Center"/>
+
+                                <Path x:Name="Arrow"
+                                      Grid.Column="1"
+                                      Width="12" Height="12"
+                                      VerticalAlignment="Center"
+                                      HorizontalAlignment="Right"
+                                      Fill="{StaticResource LightTextBrush}">
+                                    <Path.Style>
+                                        <Style TargetType="Path">
+                                            <Setter Property="Data" Value="M0,0 L4,4 8,0 Z"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=ToggleButton}}" Value="True">
+                                                    <Setter Property="Data" Value="M0,4 L4,0 8,4 Z"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Path.Style>
+                                </Path>
+                            </Grid>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Expander 统一样式 -->
+        <Style TargetType="Expander">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource LightTextBrush}"/>
+            <Setter Property="HeaderTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" 
+                                   FontWeight="Bold"
+                                   FontSize="14"
+                                   Foreground="{StaticResource LightTextBrush}"
+                                   Padding="10,5"/>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Expander">
+                        <Border BorderBrush="{StaticResource BorderBrush}" 
+                                BorderThickness="0,0,0,1"
+                                CornerRadius="3"
+                                Margin="0,0,0,5">
+                            <DockPanel Background="Transparent">
+                                <Border DockPanel.Dock="Top"
+                                        Background="{StaticResource HeaderBackgroundBrush}"
+                                        CornerRadius="3,3,0,0">
+                                    <ToggleButton x:Name="HeaderSite"
+                                                  Content="{TemplateBinding Header}"
+                                                  ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                                  Foreground="{StaticResource LightTextBrush}"
+                                                  IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
+                                                  Style="{StaticResource ExpanderToggleStyle}"/>
+                                </Border>
+
+                                <ContentPresenter x:Name="ExpandSite"
+                                                  DockPanel.Dock="Bottom"
+                                                  Visibility="Collapsed"/>
+                            </DockPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsExpanded" Value="True">
+                                <Setter TargetName="ExpandSite" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 统计表格样式 -->
+        <Style TargetType="Border" x:Key="StatBorder">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
+        </Style>
+
+        <Style TargetType="Label" x:Key="StatLabel">
+            <Setter Property="Foreground" Value="{StaticResource LightTextBrush}"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+
+        <Style TargetType="Label" x:Key="HeaderLabel" BasedOn="{StaticResource StatLabel}">
+            <Setter Property="Background" Value="{StaticResource HeaderBackgroundBrush}"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <!-- 卡片样式 -->
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
+            <Setter Property="Margin" Value="18,18,18,18"/>
+            <Setter Property="Padding" Value="18,18"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Color="#33000000"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- 标题卡片样式 -->
+        <Style x:Key="TitleCard" TargetType="Border">
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="0,0,0,0"/>
+            <Setter Property="Margin" Value="0,0,0,18"/>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#2D8CF0" Offset="0"/>
+                        <GradientStop Color="#007ACC" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Color="#66000000"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- 标题文本样式 -->
+        <Style x:Key="TitleText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="18,0,0,0"/>
+        </Style>
+    </Window.Resources>
+    <Grid Background="{StaticResource DarkBackgroundBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- 顶部标题卡片 -->
+        <Border Style="{StaticResource TitleCard}" Grid.Row="0" Margin="30,30,30,0">
+            <TextBlock Text="主界面" Style="{StaticResource TitleText}"/>
+        </Border>
+
+        <!-- 工具栏卡片 -->
+        <Border Style="{StaticResource Card}" Grid.Row="1" Margin="30,0,30,0" Padding="0">
+            <Grid Height="80">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <!-- 开始按钮 -->
+                <Button Grid.Column="0" Name="开始" Click="StartButton_Click" Style="{StaticResource StartButtonStyle}">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="▶" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource PrimaryBrush}"/>
+                        <TextBlock Text="开始" Margin="0,3,0,0" FontSize="13" Foreground="{StaticResource LightTextBrush}"/>
+                    </StackPanel>
+                </Button>
+                <!-- 停止按钮 -->
+                <Button Grid.Column="1" Name="停止" Click="StopButton_Click" Style="{StaticResource StopButtonStyle}">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="■" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource PrimaryBrush}"/>
+                        <TextBlock Text="停止" Margin="0,3,0,0" FontSize="13" Foreground="{StaticResource LightTextBrush}"/>
+                    </StackPanel>
+                </Button>
+                <!-- 进料按钮 -->
+                <Button Grid.Column="2" Name="进料" Click="ProductStartButton_Click" Style="{StaticResource ActionButtonStyle}">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="⤵" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource PrimaryBrush}"/>
+                        <TextBlock Text="进料" Margin="0,3,0,0" FontSize="13" Foreground="{StaticResource LightTextBrush}"/>
+                    </StackPanel>
+                </Button>
+                <!-- 停止进料按钮 -->
+                <Button Grid.Column="3" Name="停止进料" Click="ProductStopButton_Click" Style="{StaticResource StopButtonStyle}">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="■" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource PrimaryBrush}"/>
+                        <TextBlock Text="停止进料" Margin="0,3,0,0" FontSize="13" Foreground="{StaticResource LightTextBrush}"/>
+                    </StackPanel>
+                </Button>
+                <!-- 清料按钮 -->
+                <Button Grid.Column="4" Name="清料" Click="ClearButton_Click" Style="{StaticResource ActionButtonStyle}">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="✕" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource PrimaryBrush}"/>
+                        <TextBlock Text="清料" Margin="0,3,0,0" FontSize="13" Foreground="{StaticResource LightTextBrush}"/>
+                    </StackPanel>
+                </Button>
+                <!-- 脚本按钮 -->
+                <Button Grid.Column="5" Name="脚本" Click="ScriptButton_Click" Style="{StaticResource ActionButtonStyle}">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="📜" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource PrimaryBrush}"/>
+                        <TextBlock Text="脚本" Margin="0,3,0,0" FontSize="13" Foreground="{StaticResource LightTextBrush}"/>
+                    </StackPanel>
+                </Button>
+                <!-- 加载配置按钮 -->
+                <Button Grid.Column="6" Name="加载配置" Style="{StaticResource ActionButtonStyle}">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="📂" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource PrimaryBrush}"/>
+                        <TextBlock Text="加载配置" Margin="0,3,0,0" FontSize="13" Foreground="{StaticResource LightTextBrush}"/>
+                    </StackPanel>
+                </Button>
+                <!-- 算法按钮（细齿小齿轮） -->
+                <Button Grid.Column="7" Name="算法" Click="AlgorithmButton_Click" Style="{StaticResource ActionButtonStyle}">
+                    <StackPanel Orientation="Vertical">
+                        <Viewbox Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Canvas Width="24" Height="24">
+                                <Path Data="M12,2 A10,10 0 1,1 11.99,2 Z M12,6 A6,6 0 1,0 12,18 A6,6 0 1,0 12,6 Z" Fill="{StaticResource PrimaryBrush}"/>
+                                <Path Data="M12,8 A4,4 0 1,1 11.99,8 Z" Fill="{StaticResource CardBackgroundBrush}"/>
+                            </Canvas>
+                        </Viewbox>
+                        <TextBlock Text="算法" Margin="0,3,0,0" FontSize="13" Foreground="{StaticResource LightTextBrush}"/>
+                    </StackPanel>
+                </Button>
+                <!-- 深度学习按钮 -->
+                <Button Grid.Column="8" Name="深度学习" Click="LaunchLabelingTool_Click" Style="{StaticResource ActionButtonStyle}">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="🧠" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource PrimaryBrush}"/>
+                        <TextBlock Text="深度学习" Margin="0,3,0,0" FontSize="13" Foreground="{StaticResource LightTextBrush}"/>
+                    </StackPanel>
+                </Button>
+                <!-- 参数按钮（粗齿大齿轮） -->
+                <Button Grid.Column="9" Name="参数" Click="SettingsButton_Click" Style="{StaticResource ActionButtonStyle}">
+                    <StackPanel Orientation="Vertical">
+                        <Viewbox Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Canvas Width="24" Height="24">
+                                <Path Data="M12,2 L14,4 L18,4 L20,6 L20,10 L22,12 L20,14 L20,18 L18,20 L14,20 L12,22 L10,20 L6,20 L4,18 L4,14 L2,12 L4,10 L4,6 L6,4 L10,4 Z" Fill="{StaticResource PrimaryBrush}"/>
+                                <Ellipse Width="8" Height="8" Canvas.Left="8" Canvas.Top="8" Fill="{StaticResource CardBackgroundBrush}"/>
+                            </Canvas>
+                        </Viewbox>
+                        <TextBlock Text="参数" Margin="0,3,0,0" FontSize="13" Foreground="{StaticResource LightTextBrush}"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- 主体内容卡片 -->
+        <Border Style="{StaticResource Card}" Grid.Row="2" Margin="30,20,30,30">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="8*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- 左侧统计面板卡片 -->
+                <Border Name="左视窗"
+                        Grid.Column="0"
+                        Style="{StaticResource Card}"
+                        MinWidth="200">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="5">
+                        <StackPanel>
+                            <StackPanel>
+                                <!-- 全部机位总计 Expander -->
+                                <Expander Header="全部机位统计" IsExpanded="True" Margin="0,0,0,10">
+                                    <Grid Background="Transparent" Margin="5">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <!-- 左侧标题列 -->
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="总数" VerticalAlignment="Center" 
+                                                   Foreground="{StaticResource LightTextBrush}" FontWeight="SemiBold" Margin="5,3"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="合格率" VerticalAlignment="Center" 
+                                                   Foreground="{StaticResource LightTextBrush}" FontWeight="SemiBold" Margin="5,3"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="OK数量" VerticalAlignment="Center" 
+                                                   Foreground="{StaticResource LightTextBrush}" FontWeight="SemiBold" Margin="5,3"/>
+                                        <TextBlock Grid.Row="3" Grid.Column="0" Text="NG数量" VerticalAlignment="Center" 
+                                                   Foreground="{StaticResource LightTextBrush}" FontWeight="SemiBold" Margin="5,3"/>
+                                        <TextBlock Grid.Row="4" Grid.Column="0" Text="回收数量" VerticalAlignment="Center" 
+                                                   Foreground="{StaticResource LightTextBrush}" FontWeight="SemiBold" Margin="5,3"/>
+
+                                        <!-- 右侧值列 -->
+                                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalStat.TotalCount}" VerticalAlignment="Center" 
+                                                   Foreground="{StaticResource PrimaryBrush}" FontWeight="Bold" Margin="5,3"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TotalStat.Accuracy, StringFormat=P1}" VerticalAlignment="Center" 
+                                                   Foreground="{StaticResource SecondaryBrush}" FontWeight="Bold" Margin="5,3"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding TotalStat.OkCount}" VerticalAlignment="Center" 
+                                                   Foreground="{StaticResource SecondaryBrush}" FontWeight="Bold" Margin="5,3"/>
+                                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding TotalStat.NgCount}" 
+                                                   Foreground="{StaticResource DangerBrush}" FontWeight="Bold" Margin="5,3"/>
+                                        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding TotalStat.ReCount}" 
+                                                   Foreground="{StaticResource AccentBrush}" FontWeight="Bold" Margin="5,3"/>
+                                    </Grid>
+                                </Expander>
+
+                                <!-- 每个机位的 Expander 列表 -->
+                                <ItemsControl ItemsSource="{Binding Stats}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Expander Header="{Binding DisplayHeader}"
+                                                              IsExpanded="False" Margin="0,0,0,10">
+                                                <Grid Background="Transparent" Margin="5">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                    </Grid.RowDefinitions>
+
+                                                    <!-- 左侧标题列 -->
+                                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="总数" 
+                                                               Foreground="{StaticResource LightTextBrush}" FontWeight="SemiBold" Margin="5,3"/>
+                                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="合格率" 
+                                                               Foreground="{StaticResource LightTextBrush}" FontWeight="SemiBold" Margin="5,3"/>
+                                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="OK数量" 
+                                                               Foreground="{StaticResource LightTextBrush}" FontWeight="SemiBold" Margin="5,3"/>
+                                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="NG数量" 
+                                                               Foreground="{StaticResource LightTextBrush}" FontWeight="SemiBold" Margin="5,3"/>
+                                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="回收数量" 
+                                                               Foreground="{StaticResource LightTextBrush}" FontWeight="SemiBold" Margin="5,3"/>
+
+                                                    <!-- 右侧值列 -->
+                                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalCount}" 
+                                                               Foreground="{StaticResource PrimaryBrush}" FontWeight="Bold" Margin="5,3"/>
+                                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Accuracy, StringFormat=P1}" 
+                                                               Foreground="{StaticResource SecondaryBrush}" FontWeight="Bold" Margin="5,3"/>
+                                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding OkCount}" 
+                                                               Foreground="{StaticResource SecondaryBrush}" FontWeight="Bold" Margin="5,3"/>
+                                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding NgCount}" 
+                                                               Foreground="{StaticResource DangerBrush}" FontWeight="Bold" Margin="5,3"/>
+                                                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ReCount}" 
+                                                               Foreground="{StaticResource AccentBrush}" FontWeight="Bold" Margin="5,3"/>
+                                                </Grid>
+                                            </Expander>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+                <Border Name="主视窗" Grid.Column="1">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <!-- Camera 1 -->
+                        <winforms:WindowsFormsHost x:Name="winFormsHost1"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Stretch" Grid.Row="0" Grid.Column="0">
+                            <local:NoMouseHWindowControl x:Name="windowControl1"/>
+                        </winforms:WindowsFormsHost>
+                        <!-- Camera 2 -->
+                        <winforms:WindowsFormsHost x:Name="winFormsHost2"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Stretch" Grid.Row="0" Grid.Column="1">
+                            <local:NoMouseHWindowControl x:Name="windowControl2"/>
+                        </winforms:WindowsFormsHost>
+                        <!-- Camera 3 -->
+                        <winforms:WindowsFormsHost x:Name="winFormsHost3"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Stretch" Grid.Row="0" Grid.Column="2">
+                            <local:NoMouseHWindowControl x:Name="windowControl3"/>
+                        </winforms:WindowsFormsHost>
+                        <!-- Camera 4 -->
+                        <winforms:WindowsFormsHost x:Name="winFormsHost4"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="0">
+                            <local:NoMouseHWindowControl x:Name="windowControl4"/>
+                        </winforms:WindowsFormsHost>
+                        <!-- Camera 5 -->
+                        <winforms:WindowsFormsHost x:Name="winFormsHost5"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="1">
+                            <local:NoMouseHWindowControl x:Name="windowControl5"/>
+                        </winforms:WindowsFormsHost>
+                        <!-- Camera 6 -->
+                        <winforms:WindowsFormsHost x:Name="winFormsHost6"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="2">
+                            <local:NoMouseHWindowControl x:Name="windowControl6"/>
+                        </winforms:WindowsFormsHost>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

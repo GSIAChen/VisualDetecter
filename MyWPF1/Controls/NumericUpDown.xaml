@@ -1,0 +1,41 @@
+﻿<UserControl x:Class="MyWPF1.Controls.NumericUpDown"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:MyWPF1.Controls"
+             Height="Auto" Width="Auto">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <!-- 文本框占多数列 -->
+            <ColumnDefinition Width="35" />
+            <!-- 按钮占固定宽度 -->
+            <ColumnDefinition Width="20" />
+        </Grid.ColumnDefinitions>
+
+        <!-- 可编辑文本框 -->
+        <TextBox x:Name="InputTextBox"
+                 Text="{Binding Value, Mode=TwoWay,
+                 RelativeSource={RelativeSource AncestorType=UserControl}, UpdateSourceTrigger=LostFocus}"
+                 LostFocus="InputBox_LostFocus"
+                 VerticalContentAlignment="Center"
+                 HorizontalContentAlignment="Right"
+                 Padding="2" Background="#66C9DF"/>
+
+        <!-- 上下箭头按钮 -->
+        <StackPanel Grid.Column="1" Orientation="Vertical" Height="25">
+            <RepeatButton x:Name="PART_ButtonUp"
+                          Content="▲"
+                          Padding="0" FontSize="10" VerticalContentAlignment="Top"
+                          Height="12.5"
+                          Click="OnUpClick"
+                          Interval="100"
+                          Delay="500"/>
+            <RepeatButton x:Name="PART_ButtonDown"
+                          Content="▼"
+                          Padding="0" FontSize="10" VerticalContentAlignment="Top"
+                          Height="12.5"
+                          Click="OnDownClick"
+                          Interval="100"
+                          Delay="500"/>
+        </StackPanel>
+    </Grid>
+</UserControl>
