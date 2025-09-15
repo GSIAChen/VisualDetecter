@@ -9,7 +9,7 @@
         Title="脚本管理" Height="600" Width="1300"
         Background="#FF0D1117">
     <Window.Resources>
-        <!-- 连接状态转换器 -->
+        <!-- 连接状态转换器111 -->
         <converters:ConnectionStatusConverter x:Key="ConnectionStatusConverter"/>
 
         <!-- 深色主题颜色资源 -->
