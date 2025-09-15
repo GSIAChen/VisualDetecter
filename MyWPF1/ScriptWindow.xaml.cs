@@ -213,10 +213,10 @@ namespace MyWPF1
                 }
 
                 // 回到 UI 线程显示提示
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    MessageBox.Show("加载并预热成功！", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
-                });
+                //Application.Current.Dispatcher.Invoke(() =>
+                //{
+                //    MessageBox.Show("加载并预热成功！", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                //});
             }
             catch (Exception ex)
             {
@@ -260,7 +260,7 @@ namespace MyWPF1
                                 {
                                     Trace.WriteLine("[ScriptWindow] Prewarm complete.");
                                     // 可选消息提示：
-                                    MessageBox.Show("脚本已加载并预热完成。");
+                                    //MessageBox.Show("脚本已加载并预热完成。");
                                 });
                             }
                             catch (Exception ex)

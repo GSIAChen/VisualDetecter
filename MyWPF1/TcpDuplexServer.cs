@@ -1,11 +1,11 @@
 ﻿using HalconDotNet;
 using OpenCvSharp;
-//using OpenCvSharp.Extensions;
-using System.Drawing;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+//using OpenCvSharp.Extensions;
+using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Net;
@@ -13,8 +13,10 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks.Dataflow;
+using System.Windows;
 using System.Windows.Threading;
 using Application = System.Windows.Application;
+using MessageBox = System.Windows.MessageBox;
 
 namespace MyWPF1
 {
@@ -319,6 +321,13 @@ namespace MyWPF1
                         // 心跳 frame == "00"
                         if (payloadLen == 1 && frameBuf[0] == 0x00)
                         {
+                            _pool.Return(frameBuf, clearArray: false);
+                            continue;
+                        }
+
+                        if (payloadLen == 1 && frameBuf[0] == 0x01)
+                        {
+                            MessageBox.Show("设备初始化成功，可以运行！");
                             _pool.Return(frameBuf, clearArray: false);
                             continue;
                         }

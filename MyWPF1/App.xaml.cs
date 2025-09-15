@@ -72,5 +72,101 @@ namespace MyWPF1
             }
             catch { }
         }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            base.OnExit(e);
+
+            // 在后台异步关闭进程（不阻塞 UI 退出）
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var terminated = ProcessHelper.CloseProcessesByName("TestEc3224l", timeoutMs: 2000);
+                    Trace.WriteLine($"(OnExit) Closed {terminated} processes");
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine("(OnExit) Close processes failed: " + ex);
+                }
+            });
+        }
+    }
+
+    public static class ProcessHelper
+    {
+        /// <summary>
+        /// 关闭所有名为 processName 的进程（不带 .exe），先尝试 CloseMainWindow（若有窗口），等待 timeoutMs 毫秒，若未退出再 Kill。
+        /// 返回被成功终止或已不存在的进程数量。
+        /// </summary>
+        public static int CloseProcessesByName(string processName, int timeoutMs = 2000)
+        {
+            if (string.IsNullOrWhiteSpace(processName)) return 0;
+
+            int count = 0;
+            var procs = Process.GetProcessesByName(processName);
+            foreach (var p in procs)
+            {
+                try
+                {
+                    // 如果进程已经退出则忽略
+                    if (p.HasExited)
+                    {
+                        p.Dispose();
+                        continue;
+                    }
+
+                    // 尝试优雅关闭（如果进程有主窗口）
+                    bool triedCloseMain = false;
+                    if (p.MainWindowHandle != IntPtr.Zero)
+                    {
+                        try
+                        {
+                            triedCloseMain = p.CloseMainWindow(); // 发送 WM_CLOSE
+                        }
+                        catch { triedCloseMain = false; }
+                    }
+
+                    if (triedCloseMain)
+                    {
+                        // 等待一段时间让其优雅退出
+                        if (p.WaitForExit(timeoutMs))
+                        {
+                            count++;
+                            p.Dispose();
+                            continue;
+                        }
+                    }
+
+                    // 如果没有主窗口或 CloseMainWindow 无效或超时，使用 Kill 强制结束
+                    try
+                    {
+                        p.Kill(true); // .NET Core 3.0+ 可传 true 递归结束子进程
+                        if (p.WaitForExit(timeoutMs))
+                        {
+                            count++;
+                        }
+                        else
+                        {
+                            // 最后再尝试标记为已结束（仍然计数）
+                            count++;
+                        }
+                    }
+                    catch (Exception exKill)
+                    {
+                        // 无法 Kill（可能权限或正在退出中），记录并继续
+                        Debug.WriteLine($"Kill failed for {processName} (PID={p.Id}): {exKill.Message}");
+                    }
+
+                    p.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error closing process {processName}: {ex.Message}");
+                }
+            }
+
+            return count;
+        }
     }
 }

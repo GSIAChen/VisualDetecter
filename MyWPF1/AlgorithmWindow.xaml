@@ -245,7 +245,8 @@
                     </ComboBox>
                 </StackPanel>
             </Border>
-            <Frame x:Name="ImageFrame" Grid.Row="1"/>
+            <Frame x:Name="ImageFrame" Grid.Row="1" MouseDoubleClick="ImageFrame_MouseDoubleClick"
+                    PreviewMouseLeftButtonDown="ImageFrame_PreviewMouseLeftButtonDown"/>
             <ItemsControl Grid.Row="2" Grid.ColumnSpan="2" ItemsSource="{Binding EItems}"/>
             <!-- 可选中文本列表 -->
             <ItemsControl Grid.Row="2">

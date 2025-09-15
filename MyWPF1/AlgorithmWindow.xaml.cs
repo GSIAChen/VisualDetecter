@@ -8,7 +8,9 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
-using Xceed.Wpf.Toolkit.Primitives;
+using Microsoft.Win32;
+using MessageBox = System.Windows.MessageBox;
+using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 
 namespace MyWPF1
 {
@@ -33,26 +35,114 @@ namespace MyWPF1
             var imgPage = new ImagePage();
             ImageFrame.Content = imgPage;
 
-            // 当窗口真正完成首次渲染后，再初始化 VM
-            this.ContentRendered += (s, e) =>
+            imgPage.hWindowControl.MouseDoubleClick += (s, ev) =>
             {
-                // Dispatcher 再次延后一个"空闲时机"，确保 HWindowControl 真正拿到尺寸
-                Dispatcher.BeginInvoke(() =>
+                // 这里是在 WinForms 线程上下文，若要操作 WPF UI，请用 Dispatcher
+                Dispatcher.Invoke(() =>
                 {
-                    // ① 初始化主图
-                    string imagePath = @"F:\钽电容\测试图像\Image_20250612170358985.bmp";
-                    _imageVM.Initialize(imgPage.hWindowControl, imagePath);
-
-                    // ② 初始化每个 CCDVM
-                    foreach (var ccd in _arrowVM.CCDs)
-                        ccd.Initialize(imgPage.hWindowControl, _imageVM._image);
-                }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+                    OpenImageAndInitialize(imgPage);
+                });
             };
+            // 当窗口真正完成首次渲染后，再初始化 VM
+            //this.ContentRendered += (s, e) =>
+            //{
+            //    // Dispatcher 再次延后一个"空闲时机"，确保 HWindowControl 真正拿到尺寸
+            //    Dispatcher.BeginInvoke(() =>
+            //    {
+            //        // ① 初始化主图
+            //        try { 
+            //            string imagePath = @"F:\钽电容\测试图像\Image_20250612170358985.bmp";
+            //            _imageVM.Initialize(imgPage.hWindowControl, imagePath);
+            //            _arrowVM.SelectedCCD.Initialize(imgPage.hWindowControl, _imageVM._image);
+            //        }
+            //        catch 
+            //        {
+            //        }
+            //    }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+            //};
             _arrowVM.PropertyChanged += (s, e) =>
             {
                 if (e.PropertyName == nameof(ArrowViewModel.SelectedCCD))
                     ShowTopPageForCurrentCCD();
             };
+        }
+
+        private void ImageFrame_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // 如果 Content 是我们期待的 ImagePage
+            if (ImageFrame.Content is ImagePage imgPage)
+            {
+                OpenImageAndInitialize(imgPage);
+                e.Handled = true; // 可选：阻止进一步处理
+            }
+        }
+
+        private void OpenImageAndInitialize(ImagePage imgPage)
+        {
+            var dlg = new OpenFileDialog
+            {
+                Title = "选择用于处理的图片",
+                Filter = "所有支持的图片 (*.bmp;*.png;*.jpg;*.jpeg;*.tiff;*.hobj)|*.bmp;*.png;*.jpg;*.jpeg;*.tiff;*.hobj|位图 (*.bmp)|*.bmp|PNG (*.png)|*.png|JPEG (*.jpg;*.jpeg)|*.jpg;*.jpeg|所有文件 (*.*)|*.*",
+                Multiselect = false,
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)
+            };
+            if (dlg.ShowDialog() == true)
+            {
+                try
+                {
+                    _imageVM.Initialize(imgPage.hWindowControl, dlg.FileName);
+                    _arrowVM.SelectedCCD.Initialize(imgPage.hWindowControl, _imageVM._image);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"加载失败：{ex.Message}");
+                }
+            }
+        }
+
+        private void ImageFrame_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            // 确保 Content 已经是我们期望的 ImagePage
+            Trace.WriteLine("DoubleClick Triggered");
+            if (!(ImageFrame.Content is ImagePage imgPage))
+                return;
+
+            var dlg = new OpenFileDialog
+            {
+                Title = "选择用于处理的图片",
+                Filter = "所有支持的图片 (*.bmp;*.png;*.jpg;*.jpeg;*.tiff;*.hobj)|*.bmp;*.png;*.jpg;*.jpeg;*.tiff;*.hobj|位图 (*.bmp)|*.bmp|PNG (*.png)|*.png|JPEG (*.jpg;*.jpeg)|*.jpg;*.jpeg|所有文件 (*.*)|*.*",
+                Multiselect = false,
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)
+            };
+
+            bool? result = dlg.ShowDialog();
+            if (result != true) return;
+
+            string selectedPath = dlg.FileName;
+            if (string.IsNullOrEmpty(selectedPath) || !File.Exists(selectedPath))
+            {
+                MessageBox.Show("所选文件无效。", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            try
+            {
+                // 如果 ImagePage/hWindowControl 尚未完全创建（极少见），使用 Dispatcher 保障在 UI 线程和正确时机执行
+                Dispatcher.Invoke(() =>
+                {
+                    // 让 ImageViewModel 以选中的文件初始化显示
+                    _imageVM.Initialize(imgPage.hWindowControl, selectedPath);
+
+                    // 如果 CCD 需要引用新的 image（你原来做法是初始化每个 CCD）
+                    _arrowVM.SelectedCCD.Initialize(imgPage.hWindowControl, _imageVM._image);
+                });
+            }
+            catch (Exception ex)
+            {
+                // 友好提示并记录日志
+                MessageBox.Show($"加载图片失败：{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                Trace.WriteLine($"[ImageFrame] Load image failed: {ex}");
+            }
         }
 
         // 文本点击选择
