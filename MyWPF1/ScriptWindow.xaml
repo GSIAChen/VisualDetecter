@@ -12,7 +12,7 @@
         <!-- 连接状态转换器 -->
         <converters:ConnectionStatusConverter x:Key="ConnectionStatusConverter"/>
 
-        <!-- 深色主题颜色资源111 -->
+        <!-- 深色主题颜色资源 -->
         <SolidColorBrush x:Key="PrimaryBrush" Color="#FF1A73E8"/>
         <SolidColorBrush x:Key="SecondaryBrush" Color="#FF34A853"/>
         <SolidColorBrush x:Key="AccentBrush" Color="#FFF9AB00"/>
