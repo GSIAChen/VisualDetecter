@@ -1170,19 +1170,493 @@
                     </TabItem>
 
                     <TabItem Header="相机设置">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- 相机选择 -->
+                                <Border Grid.Row="0"
+                                        Background="{StaticResource HeaderBackgroundBrush}"
+                                        CornerRadius="5"
+                                        Margin="10,5"
+                                        Padding="10">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="选择相机：" 
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,10,0"/>
+
+                                        <ComboBox x:Name="CameraSelector"
+                                                  Width="120"
+                                                  Height="30"
+                                                  SelectedIndex="0"
+                                                  SelectionChanged="CameraSelector_SelectionChanged">
+                                        </ComboBox>
+
+                                        <Button Content="应用配置"
+                                                Style="{StaticResource ActionButtonStyle}"
+                                                Margin="20,0,10,0"
+                                                Width="80"
+                                                Click="ApplySettings_Click"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- 基础参数配置 -->
+                                <Border Grid.Row="1"
+                                        BorderBrush="{StaticResource BorderBrush}"
+                                        BorderThickness="0,0,0,1"
+                                        Margin="10,5"
+                                        Padding="10">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Text="基础参数配置"
+                                                   FontSize="14"
+                                                   FontWeight="SemiBold"
+                                                   Margin="0,0,0,10"
+                                                   Foreground="{StaticResource AccentBrush}"/>
+
+                                        <Grid Grid.Row="1">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <!-- 曝光时间 -->
+                                            <TextBlock Text="曝光时间："
+                                                       Grid.Row="0" 
+                                                       Grid.Column="0"
+                                                       Margin="0,5,10,5"
+                                                       VerticalAlignment="Center"/>
+                                            <Slider Grid.Row="0" Grid.Column="1"
+                                                    x:Name="ExposureSlider"
+                                                    Minimum="100"
+                                                    Maximum="50000"
+                                                    Value="10"
+                                                    TickFrequency="10"
+                                                    IsSnapToTickEnabled="True"
+                                                    VerticalAlignment="Center"
+                                                    Margin="0,5"/>
+                                            <TextBox Grid.Row="0" Grid.Column="2"
+                                                     Text="{Binding Value, ElementName=ExposureSlider,UpdateSourceTrigger=PropertyChanged}"
+                                                     Width="80"
+                                                     Style="{StaticResource NumericInputStyle}"
+                                                     Margin="10,5,0,5"/>
+
+                                            <!-- 帧率 -->
+                                            <TextBlock Text="帧率："
+                                                       Grid.Row="1" Grid.Column="0"
+                                                       Margin="0,5,10,5"
+                                                       VerticalAlignment="Center"/>
+                                            <Slider Grid.Row="1" Grid.Column="1"
+                                                    x:Name="RateSlider"
+                                                    Minimum="0"
+                                                    Maximum="100"
+                                                    Value="50"
+                                                    TickFrequency="5"
+                                                    IsSnapToTickEnabled="True"
+                                                    VerticalAlignment="Center"
+                                                    Margin="0,5"/>
+                                            <TextBox Grid.Row="1" Grid.Column="2"
+                                                     Text="{Binding Value, ElementName=RateSlider,UpdateSourceTrigger=PropertyChanged}"
+                                                     Width="80"
+                                                     Style="{StaticResource NumericInputStyle}"
+                                                     Margin="10,5,0,5"/>
+                                            <!-- 伽马方式 -->
+                                            <TextBlock Text="伽马方式："
+                                                         Grid.Row="2" Grid.Column="0"
+                                                         Margin="0,5,10,5"
+                                                         VerticalAlignment="Center"/>
+                                            <ComboBox Grid.Row="2" Grid.Column="1"
+                                                      x:Name="GammaModeComboBox"
+                                                      SelectedIndex="0"
+                                                      Height="30"
+                                                      Margin="0,5"> 
+                                                <ComboBoxItem Content="sRGB"/>
+                                                <ComboBoxItem Content="user"/>
+                                            </ComboBox>
+                                            <!-- 伽马值 -->
+                                            <TextBlock Text="伽马值："
+                                                       Grid.Row="3" 
+                                                       Grid.Column="0"
+                                                       Margin="0,5,10,5"
+                                                       VerticalAlignment="Center"/>
+                                            <Slider Grid.Row="3" Grid.Column="1"
+                                                    x:Name="GammaSlider"
+                                                    Minimum="0.1"
+                                                    Maximum="3.0"
+                                                    Value="1.0"
+                                                    TickFrequency="0.1"
+                                                    IsSnapToTickEnabled="True"
+                                                    VerticalAlignment="Center"
+                                                    Margin="0,5"/>
+                                            <TextBox Grid.Row="3" Grid.Column="2"
+                                                     Text="{Binding Value, ElementName=GammaSlider, StringFormat={}{0:F1},UpdateSourceTrigger=PropertyChanged}"
+                                                     Width="80"
+                                                     Style="{StaticResource NumericInputStyle}"
+                                                     Margin="10,5,0,5"/>
+
+                                            <!-- 增益 -->
+                                            <TextBlock Text="增益："
+                                                       Grid.Row="4" 
+                                                       Grid.Column="0"
+                                                       Margin="0,5,10,5"
+                                                       VerticalAlignment="Center"/>
+                                            <Slider Grid.Row="4" Grid.Column="1"
+                                                        x:Name="GainSlider"
+                                                        Minimum="0"
+                                                        Maximum="100"
+                                                        Value="50"
+                                                        TickFrequency="5"
+                                                        IsSnapToTickEnabled="True"
+                                                        VerticalAlignment="Center"
+                                                        Margin="0,5"/>
+                                            <TextBox Grid.Row="4" 
+                                                     Grid.Column="2"
+                                                     Text="{Binding Value, ElementName=GainSlider,UpdateSourceTrigger=PropertyChanged}"
+                                                     Width="80"
+                                                     Style="{StaticResource NumericInputStyle}"
+                                                     Margin="10,5,0,5"/>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+
+                                <!-- RGB通道配置 -->
+                                <Border Grid.Row="2"
+                                        BorderBrush="{StaticResource BorderBrush}"
+                                        BorderThickness="0,0,0,1"
+                                        Margin="10,5"
+                                        Padding="10">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Text="RGB通道配置"
+                                                   FontSize="14"
+                                                   FontWeight="SemiBold"
+                                                   Margin="0,0,0,10"
+                                                   Foreground="{StaticResource AccentBrush}"/>
+
+                                        <Grid Grid.Row="1">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <!-- R通道 -->
+                                            <TextBlock Text="R通道："
+                                                       Grid.Row="0" Grid.Column="0"
+                                                       Margin="0,5,10,5"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="Red"/>
+                                            <Slider Grid.Row="0" Grid.Column="1"
+                                                    x:Name="RedChannelSlider"
+                                                    Minimum="0"
+                                                    Maximum="255"
+                                                    Value="255"
+                                                    TickFrequency="5"
+                                                    IsSnapToTickEnabled="True"
+                                                    VerticalAlignment="Center"
+                                                    Margin="0,5"/>
+                                            <TextBox Grid.Row="0" Grid.Column="2"
+                                                     Text="{Binding Value, ElementName=RedChannelSlider,UpdateSourceTrigger=PropertyChanged}"
+                                                     Width="80"
+                                                     Style="{StaticResource NumericInputStyle}"
+                                                     Margin="10,5,0,5"/>
+
+                                            <!-- G通道 -->
+                                            <TextBlock Text="G通道："
+                                                       Grid.Row="1" Grid.Column="0"
+                                                       Margin="0,5,10,5"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="Green"/>
+                                            <Slider Grid.Row="1" Grid.Column="1"
+                                                    x:Name="GreenChannelSlider"
+                                                    Minimum="0"
+                                                    Maximum="255"
+                                                    Value="255"
+                                                    TickFrequency="5"
+                                                    IsSnapToTickEnabled="True"
+                                                    VerticalAlignment="Center"
+                                                    Margin="0,5"/>
+                                            <TextBox Grid.Row="1" Grid.Column="2"
+                                                     Text="{Binding Value, ElementName=GreenChannelSlider,UpdateSourceTrigger=PropertyChanged}"
+                                                     Width="80"
+                                                     Style="{StaticResource NumericInputStyle}"
+                                                     Margin="10,5,0,5"/>
+
+                                            <!-- B通道 -->
+                                            <TextBlock Text="B通道："
+                                                       Grid.Row="2" Grid.Column="0"
+                                                       Margin="0,5,10,5"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="Purple"/>
+                                            <Slider Grid.Row="2" Grid.Column="1"
+                                                    x:Name="BlueChannelSlider"
+                                                    Minimum="0"
+                                                    Maximum="255"
+                                                    Value="255"
+                                                    TickFrequency="5"
+                                                    IsSnapToTickEnabled="True"
+                                                    VerticalAlignment="Center"
+                                                    Margin="0,5"/>
+                                            <TextBox Grid.Row="2" Grid.Column="2"
+                                                     Text="{Binding Value, ElementName=BlueChannelSlider,UpdateSourceTrigger=PropertyChanged}"
+                                                     Width="80"
+                                                     Style="{StaticResource NumericInputStyle}"
+                                                     Margin="10,5,0,5"/>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+
+                                <!-- 图像像素参数 -->
+                                <Border Grid.Row="3"
+                                         BorderBrush="{StaticResource BorderBrush}"
+                                         BorderThickness="0,0,0,1"
+                                         Margin="10,5"
+                                         Padding="10">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Text="图像像素参数配置"
+                                                        FontSize="14"
+                                                        FontWeight="SemiBold"
+                                                        Margin="0,0,0,10"
+                                                        Foreground="{StaticResource AccentBrush}"/>
+
+                                        <Grid Grid.Row="1">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <!-- 水平像素Binning模式 -->
+                                            <TextBlock Text="水平像素Binning模式："
+                                                          Grid.Row="0" Grid.Column="0"
+                                                          Margin="0,5,10,5"
+                                                          VerticalAlignment="Center"/>
+                                            <ComboBox Grid.Row="0" Grid.Column="1"
+                                                       x:Name="HorizontalBox"
+                                                       SelectedIndex="0"
+                                                       Height="30"
+                                                       Margin="0,5">
+                                                <ComboBoxItem Content="Average"/>
+                                                <ComboBoxItem Content="Sum"/>
+                                            </ComboBox>
+
+                                            <!-- 水平像素Binning值 -->
+                                            <TextBlock Text="水平像素Binning值："
+                                                        Grid.Row="1" Grid.Column="0"
+                                                        Margin="0,5,10,5"
+                                                        VerticalAlignment="Center"
+                                            />
+                                            <Slider Grid.Row="1" Grid.Column="1"
+                                                     x:Name="HorizontalSlider"
+                                                     Minimum="0"
+                                                     Maximum="255"
+                                                     Value="255"
+                                                     TickFrequency="5"
+                                                     IsSnapToTickEnabled="True"
+                                                     VerticalAlignment="Center"
+                                                     Margin="0,5"/>
+                                            <TextBox Grid.Row="1" Grid.Column="2"
+                                                      Text="{Binding Value, ElementName=HorizontalSlider,UpdateSourceTrigger=PropertyChanged}"
+                                                      Width="80"
+                                                      Style="{StaticResource NumericInputStyle}"
+                                                      Margin="10,5,0,5"/>
+
+                                            <!-- 垂直像素Binning模式 -->
+                                            <TextBlock Text="垂直像素Binning模式："
+                                                        Grid.Row="2" Grid.Column="0"
+                                                        Margin="0,5,10,5"
+                                                        VerticalAlignment="Center"/>
+                                            <ComboBox Grid.Row="2" Grid.Column="1"
+                                                       x:Name="VerticalBox"
+                                                       SelectedIndex="0"
+                                                       Height="30"
+                                                       Margin="0,5">
+                                                <ComboBoxItem Content="Average"/>
+                                                <ComboBoxItem Content="Sum"/>
+                                            </ComboBox>
+
+                                            <!--垂直像素Binning值 -->
+                                            <TextBlock Text="垂直像素Binning值："
+                                                        Grid.Row="3" Grid.Column="0"
+                                                        Margin="0,5,10,5"
+                                                        VerticalAlignment="Center"
+/>
+                                            <Slider Grid.Row="3" Grid.Column="1"
+                                                     x:Name="VerticalSlider"
+                                                     Minimum="0"
+                                                     Maximum="255"
+                                                     Value="255"
+                                                     TickFrequency="5"
+                                                     IsSnapToTickEnabled="True"
+                                                     VerticalAlignment="Center"
+                                                     Margin="0,5"/>
+                                            <TextBox Grid.Row="3" Grid.Column="2"
+                                                      Text="{Binding Value, ElementName=VerticalSlider,UpdateSourceTrigger=PropertyChanged}"
+                                                      Width="80"
+                                                      Style="{StaticResource NumericInputStyle}"
+                                                      Margin="10,5,0,5"/>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+                                
+                                <!-- 几何参数配置 -->
+                                <Border Grid.Row="4"
+                                        BorderBrush="{StaticResource BorderBrush}"
+                                        BorderThickness="0,0,0,1"
+                                        Margin="10,5"
+                                        Padding="10">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Text="几何参数配置"
+                                                   FontSize="14"
+                                                   FontWeight="SemiBold"
+                                                   Margin="0,0,0,10"
+                                                   Foreground="{StaticResource AccentBrush}"/>
+
+                                        <Grid Grid.Row="1">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <!-- 滤波 -->
+                                            <TextBlock Text="滤波："
+                                                       Grid.Row="0" Grid.Column="0"
+                                                       Margin="0,5,10,5"
+                                                       VerticalAlignment="Center"/>
+                                            <TextBox Grid.Row="0" Grid.Column="1"
+                                                     Text="0"
+                                                     Height="30"
+                                                     Style="{StaticResource NumericInputStyle}"
+                                                     Margin="0,5"/>
+                                            <TextBlock Grid.Row="0" Grid.Column="2"
+                                                       Text="级"
+                                                       Margin="10,5,0,5"
+                                                       VerticalAlignment="Center"/>
+
+                                            <!-- 点位 -->
+                                            <TextBlock Text="点位："
+                                                       Grid.Row="1" Grid.Column="0"
+                                                       Margin="0,5,10,5"
+                                                       VerticalAlignment="Center"/>
+                                            <TextBox Grid.Row="1" Grid.Column="1"
+                                                         Text="0"
+                                                         Height="30"
+                                                         Style="{StaticResource NumericInputStyle}"
+                                                         Margin="0,5"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="2"
+                                                       Text="点"
+                                                       Margin="10,5,0,5"
+                                                       VerticalAlignment="Center"/>
+
+                                            <!-- 倍率 -->
+                                            <TextBlock Text="倍率："
+                                                       Grid.Row="2" Grid.Column="0"
+                                                       Margin="0,5,10,5"
+                                                       VerticalAlignment="Center"/>
+                                                <TextBox Grid.Row="2" Grid.Column="1"
+                                                     Text="1.0"
+                                                     Height="30"
+                                                     Style="{StaticResource NumericInputStyle}"
+                                                     Margin="0,5"/>
+                                            <TextBlock Grid.Row="2" Grid.Column="2"
+                                                       Text="倍"
+                                                       Margin="10,5,0,5"
+                                                       VerticalAlignment="Center"/>
+
+                                            <!-- 单位 -->
+                                            <TextBlock Text="单位："
+                                                       Grid.Row="3" Grid.Column="0"
+                                                       Margin="0,5,10,5"
+                                                       VerticalAlignment="Center"/>
+                                            <TextBox Grid.Row="3" Grid.Column="1"
+                                                     Text="像素"
+                                                     Height="30"
+                                                     Style="{StaticResource NumericInputStyle}"
+                                                     Margin="0,5"/>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+
+                                
+                            </Grid>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <!--<TabItem Header="相机设置">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="*"/>
-                                <!-- 第一部分 33% -->
+                                -->
+                    <!-- 第一部分 33% -->
+                    <!--
                                 <RowDefinition Height="*"/>
-                                <!-- 第二部分 33% -->
+                                -->
+                    <!-- 第二部分 33% -->
+                    <!--
                                 <RowDefinition Height="*"/>
-                                <!-- 第三部分 33% -->
+                                -->
+                    <!-- 第三部分 33% -->
+                    <!--
                                 <RowDefinition Height="10"/>
-                                <!-- 间隔 -->
+                                -->
+                    <!-- 间隔 -->
+                    <!--
                             </Grid.RowDefinitions>
 
-                            <!-- 相机配置 -->
+                            -->
+                    <!-- 相机配置 -->
+                    <!--
                             <Border Grid.Row="0"
                                     BorderBrush="{StaticResource BorderBrush}"
                                     BorderThickness="0,0,0,1"
@@ -1300,7 +1774,9 @@
                                 </Grid>
                             </Border>
 
-                            <!-- 裁剪设置 -->
+                            -->
+                    <!-- 裁剪设置 -->
+                    <!--
                             <Border Grid.Row="1"
                                     BorderBrush="{StaticResource BorderBrush}"
                                     BorderThickness="0,0,0,1"
@@ -1328,7 +1804,9 @@
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
 
-                                        <!-- 左上角坐标 -->
+                                        -->
+                    <!-- 左上角坐标 -->
+                    <!--
                                         <Grid Grid.Row="0" Grid.Column="0">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
@@ -1356,7 +1834,9 @@
                                             </Border>
                                         </Grid>
 
-                                        <!-- 右上角坐标 -->
+                                        -->
+                    <!-- 右上角坐标 -->
+                    <!--
                                         <Grid Grid.Row="0" Grid.Column="1">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
@@ -1384,7 +1864,9 @@
                                             </Border>
                                         </Grid>
 
-                                        <!-- 左下角坐标 -->
+                                        -->
+                    <!-- 左下角坐标 -->
+                    <!--
                                         <Grid Grid.Row="1" Grid.Column="0">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
@@ -1412,7 +1894,9 @@
                                             </Border>
                                         </Grid>
 
-                                        <!-- 右下角坐标 -->
+                                        -->
+                    <!-- 右下角坐标 -->
+                    <!--
                                         <Grid Grid.Row="1" Grid.Column="1">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
@@ -1443,7 +1927,9 @@
                                 </Grid>
                             </Border>
 
-                            <!-- 图像设置 -->
+                            -->
+                    <!-- 图像设置 -->
+                    <!--
                             <Border Grid.Row="2" Margin="10,5">
                                 <Grid>
                                     <Grid.RowDefinitions>
@@ -1469,7 +1955,7 @@
                                 </Grid>
                             </Border>
                         </Grid>
-                    </TabItem>
+                    </TabItem>-->
 
                     <TabItem Header="设备配置">
                         <!-- 结构同前 -->

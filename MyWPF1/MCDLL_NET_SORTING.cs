@@ -13,7 +13,7 @@ namespace MCDLL_NET
                                                               1 系统设置函数  
         ********************************************************************************************************************************************************************/
         //1.0 筛选功能初始化函数 必须在 MCF_Open_Net() 前调用
-        [DllImport("MCDLL_NET.DLL", EntryPoint = "MCF_Sorting_Init_Net")]
+        [DllImport("MCDLL_NET.DLL", EntryPoint = "MCF_Sorting_Init_Net", SetLastError = false)]
         public static extern short MCF_Sorting_Init_Net(ushort StationNumber = 0);
         //1.1 控制卡打开关闭函数                              [1,100]                          [0,99]                          宏定义1.1                     
         [DllImport("MCDLL_NET.DLL", EntryPoint = "MCF_Open_Net")]
