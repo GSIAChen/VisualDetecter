@@ -4,6 +4,7 @@ using MyWPF1.ViewModels;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 public class CCDViewModel : INotifyPropertyChanged
@@ -89,6 +90,7 @@ public class CCDViewModel : INotifyPropertyChanged
         _currentImage = orig;
         OriginalSource = new ImageSourceItem(Guid.Empty, "原图", orig);
         ImageSources.Clear();
+        Trace.WriteLine("ArrowViewModel Initialized");
     }
 
     // … 从原来 ArrowVM 剥离过来的方法 …

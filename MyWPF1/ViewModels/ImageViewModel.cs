@@ -54,7 +54,6 @@ public class ImageViewModel : INotifyPropertyChanged
 
     public void Initialize(HWindowControl hwin, HTuple imagePath)
     {
-        Trace.WriteLine("ImageViewModel Initialized");
         _hWindowControl = hwin;
         HOperatorSet.ReadImage(out _image, imagePath);
         HOperatorSet.GetImageSize(_image, out HTuple width, out HTuple height);
@@ -63,6 +62,7 @@ public class ImageViewModel : INotifyPropertyChanged
         _hWindowControl.HalconWindow.SetPart(row, col, height - 1, width - 1);
         _hWindowControl.HalconWindow.DispObj(_image);
         Initialized?.Invoke(hwin, _image);
+        Trace.WriteLine("ImageViewModel Initialized");
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

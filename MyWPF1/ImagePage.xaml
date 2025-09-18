@@ -14,8 +14,6 @@
         <winforms:WindowsFormsHost x:Name="winFormsHost"
                                    HorizontalAlignment="Stretch"
                                    VerticalAlignment="Stretch">
-            <halcon:HWindowControl x:Name="hWindowControl" 
-                                   Dock="Fill"/>
         </winforms:WindowsFormsHost>
     </Grid>
 </UserControl>
