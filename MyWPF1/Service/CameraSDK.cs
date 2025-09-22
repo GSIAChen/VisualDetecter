@@ -19,32 +19,6 @@ namespace MyWPF1.Service
     {
 
         /// <summary>
-        /// 构造函数，初始化默认参数
-        /// </summary>
-     /*   public CameraSDK()
-        {
-            InitCamera();
-            GetAvailableCameras();
-            _currentParameters = new CameraParameters
-            {
-                ExposureTime = 10,
-                Brightness = 50,
-                Gamma = 1.0,
-                GammaMode = "user",
-                RedChannel = 255,
-                GreenChannel = 255,
-                BlueChannel = 255,
-                Geometry = new GeometryParams
-                {
-                    FilterLevel = 0,
-                    Points = 0,
-                    Magnification = 1.0,
-                    Unit = "像素"
-                }
-            };
-        }*/
-
-        /// <summary>
         /// 枚举网络相机设备
         /// </summary>
         public List<IGXDeviceInfo> GetAvailableCameras()
@@ -53,6 +27,7 @@ namespace MyWPF1.Service
             IGXFactory.GetInstance().UpdateAllDeviceListEx((ulong)GX_TL_TYPE_LIST.GX_TL_TYPE_GEV, 1000, lstDevInfo);
             if (lstDevInfo.Count < 1)
             {
+                System.Windows.MessageBox.Show("枚举相机失败");
                 throw new CGalaxyException((int)GX_STATUS_LIST.GX_STATUS_ERROR, "Gige device less than 1!");
             }
             return lstDevInfo;

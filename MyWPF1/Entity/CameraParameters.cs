@@ -25,6 +25,7 @@ namespace MyWPF1.Entity
         private long _horizontalValue;
         private string _verticalMode;
         private long _verticalModeValue;
+        private int _cameraPosition;
         private GeometryParams _geometry;
 
         /// <summary>
@@ -34,6 +35,15 @@ namespace MyWPF1.Entity
         {
             get { return _cameraName; }
             set { _cameraName = value; }
+        }
+
+        /// <summary>
+        /// 当前相机点位
+        /// </summary>
+        public int CameraPosition
+        {
+            get { return _cameraPosition; }
+            set { _cameraPosition = value; }
         }
 
         /// <summary>

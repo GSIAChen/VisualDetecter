@@ -332,7 +332,17 @@
                     <!-- 相机选择区（普通Border） -->
                     <Border Background="{StaticResource HeaderBackgroundBrush}" CornerRadius="8" Margin="0,0,0,18" Padding="5">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Label Content="相机："
+                            <TextBlock Text="选择相机：" 
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,10,0"/>
+
+                            <ComboBox x:Name="CameraSelector"
+                                        Width="120"
+                                        Height="30"
+                                        SelectedIndex="0"
+                                        SelectionChanged="CameraSelector_SelectionChanged">
+                            </ComboBox>
+                            <!--<Label Content="相机："
                                    Width="70"
                                    Height="30"
                                    FontSize="16"
@@ -352,7 +362,7 @@
                                 <ComboBoxItem Content="CCD6"/>
                                 <ComboBoxItem Content="CCD7"/>
                                 <ComboBoxItem Content="CCD8"/>
-                            </ComboBox>
+                            </ComboBox>-->
                         </StackPanel>
                     </Border>
                     <!-- 图片显示区（普通Border） -->
@@ -471,13 +481,13 @@
                                     <Button Grid.Column="1"
                                             Content="左移" 
                                             Style="{StaticResource MoveButtonStyle}"
-                                            MinWidth="80"/>
+                                            MinWidth="80" Click="Left_Click"/>
 
                                     <Button Grid.Column="2"
                                             Content="右移" 
                                             Style="{StaticResource MoveButtonStyle}"
                                             MinWidth="80"
-                                            Margin="10,0"/>
+                                            Margin="10,0" Click="Right_Click"/>
                                 </Grid>
 
                                 <!-- 转盘控制 -->
@@ -524,7 +534,53 @@
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
 
-                                <!-- 相机1设置 -->
+                                <Grid Grid.Column="0" Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="目标点位：" 
+                                               Grid.Column="0"
+                                               FontSize="14" HorizontalAlignment="Left" Margin="0,0,0,6" VerticalAlignment="Bottom"/>
+
+                                    <Border Grid.Column="1" 
+                                            Style="{StaticResource PositionBoxStyle}"
+                                            Background="Transparent">
+                                        <TextBox x:Name="Cam1PositionBox"
+                                                 VerticalAlignment="Center"
+                                                 HorizontalAlignment="Stretch"
+                                                 Foreground="{StaticResource LightTextBrush}"
+                                                 Background="Transparent"
+                                                 BorderThickness="0"
+                                                 Padding="5"
+                                                 TextAlignment="Center"
+                                                 IsEnabled="True"
+                                                 IsReadOnly="False"
+                                                 Focusable="True"/>
+                                    </Border>
+                                </Grid>
+
+                                <Grid Grid.Column="1" Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="1"
+                                            Click="RunToPos_Click"
+                                            Content="点击移动" 
+                                            Style="{StaticResource MoveButtonStyle}"
+                                            MinWidth="100"/>
+                                    <Button Grid.Column="2"
+                                            Content="保存" 
+                                            Style="{StaticResource SaveButtonStyle}"
+                                            MinWidth="80"
+                                            Margin="10,0" Click="SavePos_Click"/>
+                                </Grid>
+
+
+                                <!-- 相机1设置 --><!--
                                 <Grid Grid.Column="0" Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -563,8 +619,8 @@
                                             Margin="10,0"/>
                                 </Grid>
 
-                                <!-- 其他相机设置（结构相同） -->
-                                <!-- 相机2 -->
+                                --><!-- 其他相机设置（结构相同） -->
+                                <!-- 相机2 --><!--
                                 <Grid Grid.Column="0" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -602,7 +658,7 @@
                                             Margin="10,0"/>
                                 </Grid>
 
-                                <!-- 相机3 -->
+                                --><!-- 相机3 --><!--
                                 <Grid Grid.Column="0" Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -640,7 +696,7 @@
                                             Margin="10,0"/>
                                 </Grid>
 
-                                <!-- 相机4 -->
+                                --><!-- 相机4 --><!--
                                 <Grid Grid.Column="0" Grid.Row="3" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -678,7 +734,7 @@
                                             Margin="10,0"/>
                                 </Grid>
 
-                                <!-- 相机5 -->
+                                --><!-- 相机5 --><!--
                                 <Grid Grid.Column="0" Grid.Row="4" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -716,7 +772,7 @@
                                             Margin="10,0"/>
                                 </Grid>
 
-                                <!-- 相机6 -->
+                                --><!-- 相机6 --><!--
                                 <Grid Grid.Column="0" Grid.Row="5" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -754,7 +810,7 @@
                                             Margin="10,0"/>
                                 </Grid>
 
-                                <!-- 相机7 -->
+                                --><!-- 相机7 --><!--
                                 <Grid Grid.Column="0" Grid.Row="6" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -792,7 +848,7 @@
                                             Margin="10,0"/>
                                 </Grid>
 
-                                <!-- 相机8 -->
+                                --><!-- 相机8 --><!--
                                 <Grid Grid.Column="0" Grid.Row="7" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -830,7 +886,7 @@
                                             Margin="10,0"/>
                                 </Grid>
 
-                                <!-- OK位置 -->
+                                --><!-- OK位置 --><!--
                                 <Grid Grid.Column="0" Grid.Row="8" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -868,7 +924,7 @@
                                             Margin="10,0"/>
                                 </Grid>
 
-                                <!-- NG位置 -->
+                                --><!-- NG位置 --><!--
                                 <Grid Grid.Column="0" Grid.Row="9" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -904,7 +960,7 @@
                                             Style="{StaticResource SaveButtonStyle}"
                                             MinWidth="80"
                                             Margin="10,0"/>
-                                </Grid>
+                                </Grid>-->
                             </Grid>
                         </Grid>
                     </TabItem>
@@ -1188,21 +1244,9 @@
                                         Margin="10,5"
                                         Padding="10">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="选择相机：" 
-                                       VerticalAlignment="Center"
-                                       Margin="0,0,10,0"/>
-
-                                        <ComboBox x:Name="CameraSelector"
-                                                  Width="120"
-                                                  Height="30"
-                                                  SelectedIndex="0"
-                                                  SelectionChanged="CameraSelector_SelectionChanged">
-                                        </ComboBox>
-
                                         <Button Content="应用配置"
                                                 Style="{StaticResource ActionButtonStyle}"
-                                                Margin="20,0,10,0"
-                                                Width="80"
+                                                Width="313"
                                                 Click="ApplySettings_Click"/>
                                     </StackPanel>
                                 </Border>
@@ -1572,6 +1616,7 @@
                                             <!-- 滤波 -->
                                             <TextBlock Text="滤波："
                                                        Grid.Row="0" Grid.Column="0"
+                                                       
                                                        Margin="0,5,10,5"
                                                        VerticalAlignment="Center"/>
                                             <TextBox Grid.Row="0" Grid.Column="1"
