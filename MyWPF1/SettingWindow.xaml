@@ -580,7 +580,8 @@
                                 </Grid>
 
 
-                                <!-- 相机1设置 --><!--
+                                <!-- 相机1设置 -->
+                                <!--
                                 <Grid Grid.Column="0" Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -619,8 +620,10 @@
                                             Margin="10,0"/>
                                 </Grid>
 
-                                --><!-- 其他相机设置（结构相同） -->
-                                <!-- 相机2 --><!--
+                                -->
+                                <!-- 其他相机设置（结构相同） -->
+                                <!-- 相机2 -->
+                                <!--
                                 <Grid Grid.Column="0" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -658,7 +661,9 @@
                                             Margin="10,0"/>
                                 </Grid>
 
-                                --><!-- 相机3 --><!--
+                                -->
+                                <!-- 相机3 -->
+                                <!--
                                 <Grid Grid.Column="0" Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -696,7 +701,9 @@
                                             Margin="10,0"/>
                                 </Grid>
 
-                                --><!-- 相机4 --><!--
+                                -->
+                                <!-- 相机4 -->
+                                <!--
                                 <Grid Grid.Column="0" Grid.Row="3" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -734,7 +741,9 @@
                                             Margin="10,0"/>
                                 </Grid>
 
-                                --><!-- 相机5 --><!--
+                                -->
+                                <!-- 相机5 -->
+                                <!--
                                 <Grid Grid.Column="0" Grid.Row="4" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -772,7 +781,9 @@
                                             Margin="10,0"/>
                                 </Grid>
 
-                                --><!-- 相机6 --><!--
+                                -->
+                                <!-- 相机6 -->
+                                <!--
                                 <Grid Grid.Column="0" Grid.Row="5" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -810,7 +821,9 @@
                                             Margin="10,0"/>
                                 </Grid>
 
-                                --><!-- 相机7 --><!--
+                                -->
+                                <!-- 相机7 -->
+                                <!--
                                 <Grid Grid.Column="0" Grid.Row="6" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -848,7 +861,9 @@
                                             Margin="10,0"/>
                                 </Grid>
 
-                                --><!-- 相机8 --><!--
+                                -->
+                                <!-- 相机8 -->
+                                <!--
                                 <Grid Grid.Column="0" Grid.Row="7" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -886,7 +901,9 @@
                                             Margin="10,0"/>
                                 </Grid>
 
-                                --><!-- OK位置 --><!--
+                                -->
+                                <!-- OK位置 -->
+                                <!--
                                 <Grid Grid.Column="0" Grid.Row="8" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -924,7 +941,9 @@
                                             Margin="10,0"/>
                                 </Grid>
 
-                                --><!-- NG位置 --><!--
+                                -->
+                                <!-- NG位置 -->
+                                <!--
                                 <Grid Grid.Column="0" Grid.Row="9" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -1332,7 +1351,7 @@
                                                       x:Name="GammaModeComboBox"
                                                       SelectedIndex="0"
                                                       Height="30"
-                                                      Margin="0,5"> 
+                                                      Margin="0,5">
                                                 <ComboBoxItem Content="sRGB"/>
                                                 <ComboBoxItem Content="user"/>
                                             </ComboBox>
@@ -1511,14 +1530,15 @@
 
                                             <!-- 水平像素Binning模式 -->
                                             <TextBlock Text="水平像素Binning模式："
-                                                          Grid.Row="0" Grid.Column="0"
+                                                          Grid.Row="0" 
+                                                          Grid.Column="0"
                                                           Margin="0,5,10,5"
                                                           VerticalAlignment="Center"/>
-                                            <ComboBox Grid.Row="0" Grid.Column="1"
+                                            <ComboBox Grid.Row="0"
                                                        x:Name="HorizontalBox"
                                                        SelectedIndex="0"
                                                        Height="30"
-                                                       Margin="0,5">
+                                                       Margin="162,5,40,5" Grid.ColumnSpan="3">
                                                 <ComboBoxItem Content="Average"/>
                                                 <ComboBoxItem Content="Sum"/>
                                             </ComboBox>
@@ -1549,11 +1569,11 @@
                                                         Grid.Row="2" Grid.Column="0"
                                                         Margin="0,5,10,5"
                                                         VerticalAlignment="Center"/>
-                                            <ComboBox Grid.Row="2" Grid.Column="1"
+                                            <ComboBox Grid.Row="2"
                                                        x:Name="VerticalBox"
                                                        SelectedIndex="0"
                                                        Height="30"
-                                                       Margin="0,5">
+                                                       Margin="162,5,40,5" Grid.ColumnSpan="3">
                                                 <ComboBoxItem Content="Average"/>
                                                 <ComboBoxItem Content="Sum"/>
                                             </ComboBox>
@@ -1581,7 +1601,7 @@
                                         </Grid>
                                     </Grid>
                                 </Border>
-                                
+
                                 <!-- 几何参数配置 -->
                                 <Border Grid.Row="4"
                                         BorderBrush="{StaticResource BorderBrush}"
@@ -1649,7 +1669,7 @@
                                                        Grid.Row="2" Grid.Column="0"
                                                        Margin="0,5,10,5"
                                                        VerticalAlignment="Center"/>
-                                                <TextBox Grid.Row="2" Grid.Column="1"
+                                            <TextBox Grid.Row="2" Grid.Column="1"
                                                      Text="1.0"
                                                      Height="30"
                                                      Style="{StaticResource NumericInputStyle}"
@@ -1673,7 +1693,7 @@
                                     </Grid>
                                 </Border>
 
-                                
+
                             </Grid>
                         </ScrollViewer>
                     </TabItem>

@@ -786,7 +786,7 @@ namespace MyWPF1
             {
                 var lines = File.ReadAllLines(jsFilePath);
                 bool foundBlowCfg = false;
-                string currentCamera = null;
+                string currentCameraString = null;
 
                 for (int i = 0; i < lines.Length; i++)
                 {
@@ -805,24 +805,26 @@ namespace MyWPF1
                             var match = Regex.Match(line, @"cameraCfg\.name\s*=\s*""([^""]+)""");
                             if (match.Success)
                             {
-                                currentCamera = match.Groups[1].Value;
+                                currentCameraString = match.Groups[1].Value;
                             }
                         }
 
                         // 如果当前有正在处理的相机，并且行中包含cameraCfg.position，则进行替换
-                        if (currentCamera != null && line.Contains("cameraCfg.position ="))
+                        if (currentCameraString != null && line.Contains("cameraCfg.position ="))
                         {
                             // 如果当前相机名称匹配，则替换这一行的数字部分
-                            if (currentCamera == cameraName)
+                            if (currentCameraString == cameraName)
                             {
                                 lines[i] = "cameraCfg.position ="+position+";";
                             }
-                            currentCamera = null;
+                            currentCameraString = null;
                         }
                     }
                 }
 
                 File.WriteAllLines(jsFilePath, lines);
+                CurrentPositionBox.Text = position.ToString();
+                currentCamera.CameraPosition = position;
                 System.Windows.MessageBox.Show("保存"+position+"成功");
             }
             catch (Exception ex)
