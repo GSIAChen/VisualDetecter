@@ -512,22 +512,6 @@ namespace MyWPF1
             }
         }
 
-        // 更新UI图像显示
-        private void UpdateImageUI(object state)
-        {
-            if (_currentBitmapImage != null)
-            {
-                // 使用Dispatcher确保UI更新在UI线程上执行
-                Dispatcher.Invoke(() =>
-                {
-                    lock (_imageLock)
-                    {
-                        SPreviewImage.Source = _currentBitmapImage;
-                    }
-                });
-            }
-        }
-
         // 转换大恒图像到Bitmap
         private Bitmap ConvertGxImageToBitmap(IFrameData image)
         {
@@ -628,6 +612,18 @@ namespace MyWPF1
                 LoadCameraSettings(currentCamera);
                 // 开始新相机的采集
                 StartImageCapture();
+            }
+            // 读取JS文件  
+            if (File.Exists(jsFilePath))
+            {
+                string jsContent = File.ReadAllText(jsFilePath);
+                var cameraPositions = ParseCameraPositions(jsContent);
+                // 假设当前选中的是camera1  
+                if (cameraPositions.TryGetValue(currentCamera.CameraName, out int position))
+                {
+                    CurrentPositionBox.Text = position.ToString();
+                    currentCamera.CameraPosition = position;
+                }
             }
         }
 
@@ -744,7 +740,6 @@ namespace MyWPF1
                     {
                         IGXDevice device = deviceList[i];
                         device.Close();
-                        IGXFactory.GetInstance().Uninit();
                     }
                     catch (Exception ex)
                     {
@@ -824,7 +819,7 @@ namespace MyWPF1
 
                 File.WriteAllLines(jsFilePath, lines);
                 CurrentPositionBox.Text = position.ToString();
-                currentCamera.CameraPosition = position;
+                currentCamera.CameraPosition=position;
                 System.Windows.MessageBox.Show("保存"+position+"成功");
             }
             catch (Exception ex)
