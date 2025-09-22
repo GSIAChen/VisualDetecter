@@ -1291,7 +1291,7 @@
                                                        VerticalAlignment="Center"/>
                                             <Slider Grid.Row="0" Grid.Column="1"
                                                     x:Name="ExposureSlider"
-                                                    Minimum="100"
+                                                    Minimum="1"
                                                     Maximum="50000"
                                                     Value="10"
                                                     TickFrequency="10"
