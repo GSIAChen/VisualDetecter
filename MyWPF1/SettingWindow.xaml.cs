@@ -19,6 +19,7 @@ using System.Windows.Media.Imaging;
 using System.Xml;
 using System.Web.Services.Description;
 using System.Collections.Concurrent;
+using OpenCvSharp.Internal.Vectors;
 
 namespace MyWPF1
 {
@@ -750,11 +751,20 @@ namespace MyWPF1
             }
         }
 
+        private void RunToHome_Click(object sender, RoutedEventArgs e)
+        {
+            CMCDLL_NET_Sorting.MCF_Set_Pulse_Mode_Net(0, 1, 0);
+            CMCDLL_NET_Sorting.MCF_Set_EMG_Bit_Net(0, 1, 0);
+            CMCDLL_NET_Sorting.MCF_JOG_Net(0, 5000, 2000, 0);
+        }
+
         //点击移动
         private void RunToPos_Click(object sender, RoutedEventArgs e)
         {
             string value = Cam1PositionBox.Text;
-            CMCDLL_NET_Sorting.MCF_Set_Position_Net(0, int.Parse(value) - currentCamera.CameraPosition, 0);
+            CMCDLL_NET_Sorting.MCF_Set_EMG_Bit_Net(0, 0, 0);
+            CMCDLL_NET_Sorting.MCF_Set_Axis_Profile_Net(0, 0, 5000, 50000, 500000, 0, 0);
+            CMCDLL_NET_Sorting.MCF_Uniaxial_Net(0, int.Parse(value), 1);
         }
 
         //保存到js文件
@@ -810,7 +820,7 @@ namespace MyWPF1
                             // 如果当前相机名称匹配，则替换这一行的数字部分
                             if (currentCameraString == cameraName)
                             {
-                                lines[i] = "cameraCfg.position ="+position+";";
+                                lines[i] = $"    cameraCfg.position = {position};";
                             }
                             currentCameraString = null;
                         }
@@ -879,16 +889,22 @@ namespace MyWPF1
 
         private void Left_Click(object sender, RoutedEventArgs e)
         {
-            CMCDLL_NET_Sorting.MCF_Set_Position_Net(0, 5, 0);
-
+            string value = Cam1PositionBox.Text;
+            //if (value == null) return;
+            CMCDLL_NET_Sorting.MCF_Set_EMG_Bit_Net(0, 0, 0);
+            CMCDLL_NET_Sorting.MCF_Set_Axis_Profile_Net(0, 0, 5000, 50000, 500000, 0, 0);
+            CMCDLL_NET_Sorting.MCF_Uniaxial_Net(0, 5, 1);
         }
 
         private void Right_Click(object sender, RoutedEventArgs e)
         {
-            CMCDLL_NET_Sorting.MCF_Set_Position_Net(0, -5, 0);
+            string value = Cam1PositionBox.Text;
+            //if (value == null) return;
+            CMCDLL_NET_Sorting.MCF_Set_EMG_Bit_Net(0, 0, 0);
+            CMCDLL_NET_Sorting.MCF_Set_Pulse_Mode_Net(0, 0, 0);
+            CMCDLL_NET_Sorting.MCF_Set_Axis_Profile_Net(0, 0, 5000, 50000, 500000, 0, 0);
+            CMCDLL_NET_Sorting.MCF_Uniaxial_Net(0, -5, 1);
         }
-
-        
     }
 }
 

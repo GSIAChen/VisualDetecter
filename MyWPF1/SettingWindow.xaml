@@ -433,7 +433,8 @@
                                             Style="{StaticResource ActionButtonStyle}"
                                             MinWidth="80"/>
                                     <Button Grid.Column="2"
-                                            Content="开始定位" 
+                                            Content="运动到原点" 
+                                            Click="RunToHome_Click"
                                             Style="{StaticResource MoveButtonStyle}"
                                             MinWidth="80"
                                             Margin="10,0"/>
