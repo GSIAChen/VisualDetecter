@@ -24,7 +24,7 @@ namespace MyWPF1.Entity
         private string _horizontalMode;
         private long _horizontalValue;
         private string _verticalMode;
-        private long _verticalModeValue;
+        private long _verticalValue;
         private int _cameraPosition;
         private GeometryParams _geometry;
 
@@ -157,10 +157,10 @@ namespace MyWPF1.Entity
         /// <summary>
         /// 垂直模式值
         /// </summary>
-        public long VerticalModeValue
+        public long VerticalValue
         {
-            get { return _verticalModeValue; }
-            set { _verticalModeValue = value; }
+            get { return _verticalValue; }
+            set { _verticalValue = value; }
         }
     }
 }

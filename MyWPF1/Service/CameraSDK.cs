@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using GxIAPINET;
 using MyWPF1.Entity;
-using NLog.Config;
-using GxIAPINET;
-using HandyControl.Controls;
-using System.Runtime.InteropServices;
-using System.Windows;
+using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace MyWPF1.Service
 {
@@ -18,13 +11,74 @@ namespace MyWPF1.Service
     public class CameraSDK 
     {
 
-        /// <summary>
-        /// 枚举网络相机设备
-        /// </summary>
-        public List<IGXDeviceInfo> GetAvailableCameras()
+
+    public List<IGXDeviceInfo> GetAvailableCameras(bool sortBySnNumeric = true)
+    {
+        List<IGXDeviceInfo> lstDevInfo = new List<IGXDeviceInfo>();
+        IGXFactory.GetInstance().UpdateAllDeviceListEx((ulong)GX_TL_TYPE_LIST.GX_TL_TYPE_GEV, 1000, lstDevInfo);
+
+        if (lstDevInfo.Count < 1)
+        {
+            System.Windows.MessageBox.Show("枚举相机失败");
+            throw new CGalaxyException((int)GX_STATUS_LIST.GX_STATUS_ERROR, "Gige device less than 1!");
+        }
+
+        if (sortBySnNumeric)
+        {
+            // 尝试按 SN 尾部数字排序，若无法解析则回退到字符串比较
+            var rx = new Regex(@"(\d+)$", RegexOptions.Compiled);
+            lstDevInfo.Sort((a, b) =>
+            {
+                string snA = a.GetSN() ?? string.Empty;
+                string snB = b.GetSN() ?? string.Empty;
+
+                var mA = rx.Match(snA);
+                var mB = rx.Match(snB);
+
+                if (mA.Success && mB.Success)
+                {
+                    // 解析为 long 以防整数较大
+                    if (long.TryParse(mA.Groups[1].Value, out long nA) &&
+                        long.TryParse(mB.Groups[1].Value, out long nB))
+                    {
+                        int cmp = nA.CompareTo(nB);
+                        if (cmp != 0) return cmp;
+                        // 如果数字相等（极少见），再按完整 SN 比较以稳定排序
+                        return string.Compare(snA, snB, StringComparison.Ordinal);
+                    }
+                }
+
+                // 任一方不能解析数字 -> 回退到字典序（稳定）
+                return string.Compare(snA, snB, StringComparison.Ordinal);
+            });
+        }
+        else
+        {
+            // 纯字符串排序（按字典序）
+            lstDevInfo.Sort((a, b) => string.Compare(a.GetSN() ?? string.Empty, b.GetSN() ?? string.Empty, StringComparison.Ordinal));
+        }
+
+        // 输出日志（按排序后的顺序）
+        Trace.WriteLine("已发现相机（按SN排序）:");
+        foreach (var device in lstDevInfo)
+        {
+            Trace.WriteLine($"发现相机: SN={device.GetSN()}, Model={device.GetDeviceID()}, IP={device.GetIP()}");
+        }
+
+        return lstDevInfo;
+    }
+
+    /// <summary>
+    /// 枚举网络相机设备
+    /// </summary>
+    public List<IGXDeviceInfo> GetAvailableCameras()
         {
             List<IGXDeviceInfo> lstDevInfo = new List<IGXDeviceInfo>();
             IGXFactory.GetInstance().UpdateAllDeviceListEx((ulong)GX_TL_TYPE_LIST.GX_TL_TYPE_GEV, 1000, lstDevInfo);
+            foreach(var device in lstDevInfo)
+            {
+                Trace.WriteLine($"发现相机: SN={device.GetSN()}, Model={device.GetDeviceID()}, IP={device.GetIP()}");
+            }
             if (lstDevInfo.Count < 1)
             {
                 System.Windows.MessageBox.Show("枚举相机失败");
@@ -402,7 +456,17 @@ namespace MyWPF1.Service
             }
         }
 
-
+        public void SetTriggerMode(string mode, IGXFeatureControl iGXFeatureControl)
+        {
+            try
+            {
+                iGXFeatureControl.GetEnumFeature("TriggerMode").SetValue(mode);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("设置触发模式失败" + ex.Message);
+            }
+        }
 
         /// <summary>
         /// 设置几何参数

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using GxIAPINET;
+﻿using GxIAPINET;
 using MyWPF1.Entity;
 
 namespace MyWPF1.Service

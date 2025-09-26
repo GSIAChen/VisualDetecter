@@ -156,6 +156,8 @@ namespace MyWPF1
         private ConcurrentQueue<Bitmap> _bitmapQueue = new ConcurrentQueue<Bitmap>();
         private bool _isProcessingQueue = false;
         private System.Threading.Timer _uiUpdateTimer;
+        private readonly object _deviceListLock = new();
+        private readonly object _cameraParaListLock = new();
 
         public SettingWindow()
         {
@@ -169,56 +171,108 @@ namespace MyWPF1
             this.Closed += SettingWindow_Closed;
         }
 
-        private void SettingWindow_Loaded(object sender, RoutedEventArgs e)
+        private async void SettingWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            
-
             CameraSDK cameraSDK=new CameraSDK();
-            cameraSDK.InitCamera();
-            List<IGXDeviceInfo> cameraList=cameraSDK.GetAvailableCameras();
-            // 程序启动时连接所有相机
-            for (int i = 0; i < cameraList.Count; i++)
+            // 如果 InitCamera 很快可以直接调用；若有可能阻塞，放到后台
+            await Task.Run(() => cameraSDK.InitCamera());
+
+            // 获取设备列表（后台线程）
+            var cameraList = await Task.Run(() => cameraSDK.GetAvailableCameras(true));
+            int maxParallel = Math.Min(Environment.ProcessorCount, Math.Max(1, cameraList.Count));
+            using var semaphore = new SemaphoreSlim(maxParallel);
+            var connectTasks = cameraList.Select(async (devInfo, index) =>
             {
-                IGXDeviceInfo iGXDeviceInfo=cameraList[i];
-                IGXDevice device=cameraSDK.ConnectCamera(cameraList[i]);
-                IGXFeatureControl featureControrl=device.GetRemoteFeatureControl();
-                deviceList.Add(device);
-                
-                CameraParameters cameraParameter=new CameraParameters();
-                cameraParameter.CameraName = "camera"+(i+1);
-                //获取曝光时间
-                cameraParameter.ExposureTime= cameraSDK.GetExposureTime(featureControrl);
-                //获取增益
-                cameraParameter.Gain = cameraSDK.GetGain(featureControrl);
-                //获取帧率
-                cameraParameter.Rate = cameraSDK.GetRate(featureControrl);
-                //获取伽马模式
-                cameraParameter.GammaMode = cameraSDK.GetGammaMode(featureControrl);
-                //获取R的值
-                cameraParameter.RedChannel = cameraSDK.getRChannels("red", featureControrl);
-                //获取G的值
-                cameraParameter.GreenChannel = cameraSDK.getRChannels("green", featureControrl);
-                //获取B的值
-                cameraParameter.BlueChannel = cameraSDK.getRChannels("blue", featureControrl);
-                //获取水平bin模式
-                cameraParameter.HorizontalMode = cameraSDK.GetHorizontalMode(featureControrl);
-                //获取水平bin模式的值
-                cameraParameter.HorizontalValue = cameraSDK.GetBinningHorizontalValue(featureControrl);
-                //获取垂直bin模式
-                cameraParameter.VerticalMode = cameraSDK.GetVerticalMode(featureControrl);
-                //获取垂直bin模式的值
-                cameraParameter.VerticalModeValue = cameraSDK.GetVerticalValue(featureControrl);
-                if (cameraParameter.GammaMode.Equals("User"))
+                await semaphore.WaitAsync();
+                try
                 {
-                    //获取伽马值
-                    cameraParameter.Gamma = cameraSDK.GetGamma(featureControrl);
+                    // 在后台线程连接相机并读取参数（不要在此处直接操作 UI）
+                    var device = cameraSDK.ConnectCamera(devInfo);
+                    var featureControl = device.GetRemoteFeatureControl();
+                    var cameraParameter = new CameraParameters
+                    {
+                        CameraName = "camera" + (index + 1),
+                        ExposureTime = cameraSDK.GetExposureTime(featureControl),
+                        Gain = cameraSDK.GetGain(featureControl),
+                        Rate = cameraSDK.GetRate(featureControl),
+                        GammaMode = cameraSDK.GetGammaMode(featureControl),
+                        RedChannel = cameraSDK.getRChannels("red", featureControl),
+                        GreenChannel = cameraSDK.getRChannels("green", featureControl),
+                        BlueChannel = cameraSDK.getRChannels("blue", featureControl),
+                        HorizontalMode = cameraSDK.GetHorizontalMode(featureControl),
+                        HorizontalValue = cameraSDK.GetBinningHorizontalValue(featureControl),
+                        VerticalMode = cameraSDK.GetVerticalMode(featureControl),
+                        VerticalValue = cameraSDK.GetVerticalValue(featureControl)
+                    };
+                    if (cameraParameter.GammaMode == "User")
+                        cameraParameter.Gamma = cameraSDK.GetGamma(featureControl);
+
+                    // 把 device 和参数 安全地加入到共享集合
+                    lock (_deviceListLock) deviceList.Add(device);
+                    lock (_cameraParaListLock) cameraParaList.Add(cameraParameter);
                 }
+                catch (Exception ex)
+                {
+                    // 记录但不中断其他相机连接
+                    Trace.WriteLine($"Connect camera #{index + 1} failed: {ex.Message}");
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            }).ToArray();
+            // 程序启动时连接所有相机
+            //for (int i = 0; i < cameraList.Count; i++)
+            //{
+            //    IGXDeviceInfo iGXDeviceInfo=cameraList[i];
+            //    IGXDevice device=cameraSDK.ConnectCamera(cameraList[i]);
+            //    IGXFeatureControl featureControrl=device.GetRemoteFeatureControl();
+            //    deviceList.Add(device);
 
-                cameraParaList.Add(cameraParameter);
+            //    CameraParameters cameraParameter=new CameraParameters();
+            //    cameraParameter.CameraName = "camera"+(i+1);
+            //    //获取曝光时间
+            //    cameraParameter.ExposureTime= cameraSDK.GetExposureTime(featureControrl);
+            //    //获取增益
+            //    cameraParameter.Gain = cameraSDK.GetGain(featureControrl);
+            //    //获取帧率
+            //    cameraParameter.Rate = cameraSDK.GetRate(featureControrl);
+            //    //获取伽马模式
+            //    cameraParameter.GammaMode = cameraSDK.GetGammaMode(featureControrl);
+            //    //获取R的值
+            //    cameraParameter.RedChannel = cameraSDK.getRChannels("red", featureControrl);
+            //    //获取G的值
+            //    cameraParameter.GreenChannel = cameraSDK.getRChannels("green", featureControrl);
+            //    //获取B的值
+            //    cameraParameter.BlueChannel = cameraSDK.getRChannels("blue", featureControrl);
+            //    //获取水平bin模式
+            //    cameraParameter.HorizontalMode = cameraSDK.GetHorizontalMode(featureControrl);
+            //    //获取水平bin模式的值
+            //    cameraParameter.HorizontalValue = cameraSDK.GetBinningHorizontalValue(featureControrl);
+            //    //获取垂直bin模式
+            //    cameraParameter.VerticalMode = cameraSDK.GetVerticalMode(featureControrl);
+            //    //获取垂直bin模式的值
+            //    cameraParameter.VerticalModeValue = cameraSDK.GetVerticalValue(featureControrl);
+            //    if (cameraParameter.GammaMode.Equals("User"))
+            //    {
+            //        //获取伽马值
+            //        cameraParameter.Gamma = cameraSDK.GetGamma(featureControrl);
+            //    }
+
+            //    cameraParaList.Add(cameraParameter);
+            //}
+            if (deviceList.Count > 0)
+            {
+                Trace.WriteLine($"Total connected cameras: {deviceList.Count}");
+                for (int i = 0; i < deviceList.Count; i++)
+                {
+                    IGXDevice device = deviceList[i];
+                    device.GetRemoteFeatureControl().GetEnumFeature("TriggerMode").SetValue("Off");
+                }
             }
-
             // 初始化UI
-            InitializeCameraSelector();
+            await Task.WhenAll(connectTasks);
+            await InitializeCameraSelectorAsync();
             // 读取JS文件  
             if (File.Exists(jsFilePath))
             {
@@ -231,8 +285,108 @@ namespace MyWPF1
                     currentCamera.CameraPosition = position;
                 }
             }
+            // 确保 UI 的延后工作（若有）也处理完
+            await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
             // 启动图像采集
             StartImageCapture();
+        }
+
+        // 初始化相机选择下拉框
+        private void InitializeCameraSelector()
+        {
+            CameraSelector.Items.Clear();
+            foreach (CameraParameters cameraParameters in cameraParaList)
+            {
+                CameraSelector.Items.Add(cameraParameters.CameraName);
+            }
+            if (CameraSelector.Items.Count > 0)
+            {
+                CameraSelector.SelectedIndex = 0;
+                currentCamera = cameraParaList[CameraSelector.SelectedIndex];
+                currentDevice = deviceList[CameraSelector.SelectedIndex];
+                LoadCameraSettings(currentCamera);
+            }
+        }
+
+        // 将 InitializeCameraSelector 改成返回 Task 的版本，内部在 UI 线程执行
+        private Task InitializeCameraSelectorAsync()
+        {
+            return Dispatcher.InvokeAsync(() =>
+            {
+                CameraSelector.Items.Clear();
+
+                // 使用本地快照避免并发读取问题
+                List<CameraParameters> snapshot;
+                lock (_cameraParaListLock)
+                {
+                    snapshot = cameraParaList.ToList();
+                }
+
+                foreach (CameraParameters cameraParameters in snapshot)
+                {
+                    CameraSelector.Items.Add(cameraParameters.CameraName);
+                }
+
+                if (CameraSelector.Items.Count > 0)
+                {
+                    CameraSelector.SelectedIndex = 0;
+
+                    // 从受保护的集合读取当前 camera/device
+                    lock (_cameraParaListLock)
+                    {
+                        currentCamera = cameraParaList[CameraSelector.SelectedIndex];
+                    }
+                    lock (_deviceListLock)
+                    {
+                        currentDevice = deviceList[CameraSelector.SelectedIndex];
+                    }
+
+                    // LoadCameraSettings 本身操作 UI，保持在 UI 线程调用
+                    LoadCameraSettings(currentCamera);
+                }
+            }, System.Windows.Threading.DispatcherPriority.Normal).Task;
+        }
+
+        // 加载相机设置到UI
+        private void LoadCameraSettings(CameraParameters camera)
+        {
+            // 基础参数
+            ExposureSlider.Value = camera.ExposureTime;
+            RateSlider.Value = camera.Rate;
+            GammaSlider.Value = camera.Gamma;
+            GainSlider.Value = camera.Gain;
+            RedChannelSlider.Value = camera.RedChannel;
+            GreenChannelSlider.Value = camera.GreenChannel;
+            BlueChannelSlider.Value = camera.BlueChannel;
+            HorizontalSlider.Value = camera.HorizontalValue;
+            VerticalSlider.Value = camera.VerticalValue;
+            // 设置伽马模式
+            foreach (ComboBoxItem item in GammaModeComboBox.Items)
+            {
+                if (item.Content.ToString() == camera.GammaMode)
+                {
+                    GammaModeComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+            //设置水平bin模式
+            foreach (ComboBoxItem item in HorizontalBox.Items)
+            {
+                if (item.Content.ToString() == camera.HorizontalMode)
+                {
+                    HorizontalBox.SelectedItem = item;
+                    break;
+                }
+            }
+            //设置垂直bin模式
+            foreach (ComboBoxItem item in VerticalBox.Items)
+            {
+                if (item.Content.ToString() == camera.GammaMode)
+                {
+                    VerticalBox.SelectedItem = item;
+                    break;
+                }
+            }
         }
 
         private Dictionary<string, int> ParseCameraPositions(string jsContent)
@@ -275,12 +429,10 @@ namespace MyWPF1
         {
             if (_isCapturing || currentDevice == null)
             {
-                Debug.WriteLine("StartImageCapture: already capturing or currentDevice is null.");
                 return;
             }
-
-                try
-                {
+            try
+            {
                 // 创建流对象
                 _currentStream = currentDevice.OpenStream(0);
                 if (_currentStream == null)
@@ -305,7 +457,7 @@ namespace MyWPF1
                         UInt32 ui32PacketSize = _currentStream.GetOptimalPacketSize();
                         //将最优包长值设置为当前设备的流通道包长值
                         objIGXFeatureControl.GetIntFeature(
-                         "GevSCPSPacketSize").SetValue(ui32PacketSize);
+                            "GevSCPSPacketSize").SetValue(ui32PacketSize);
                     }
                 }
                 //注册采集回调函数，注意第一个参数是用户私有参数，用户可以传入任何 object 对象，也可以是 null
@@ -333,13 +485,10 @@ namespace MyWPF1
         {
             try
             {
-                Debug.WriteLine("OnFrameCallbackFun called.");
                 if (0 == objIFrameData.GetStatus())
                 {
-                    Debug.WriteLine("Frame status is good.");
                     // 转换图像为Bitmap
                     Bitmap bitmap = ConvertGxImageToBitmap(objIFrameData);
-                    Debug.WriteLine($"Bitmap created: {bitmap.Width}x{bitmap.Height}");
                     // 将Bitmap加入队列，不在此处进行UI操作
                     _bitmapQueue.Enqueue(bitmap);
 
@@ -437,7 +586,6 @@ namespace MyWPF1
                                 _currentBitmapImage.EndInit();
                                 _currentBitmapImage.Freeze();
                                 SPreviewImage.Source = _currentBitmapImage;
-                                Debug.WriteLine("Image updated on UI.");
                             }
                         }
                     }
@@ -474,7 +622,6 @@ namespace MyWPF1
                         _currentBitmapImage.EndInit();
                         _currentBitmapImage.Freeze();
                         SPreviewImage.Source = _currentBitmapImage;
-                        Debug.WriteLine("Image updated on UI.");
                     }
                 });
             }
@@ -581,26 +728,6 @@ namespace MyWPF1
             return bitmap;
         }
 
-        // 初始化相机选择下拉框
-        private void InitializeCameraSelector()
-        {
-            CameraSelector.Items.Clear();
-
-            foreach (CameraParameters cameraParameters in cameraParaList)
-            {
-                CameraSelector.Items.Add(cameraParameters.CameraName);
-            }
-
-            if (CameraSelector.Items.Count > 0)
-            {
-                CameraSelector.SelectedIndex = 0;
-                currentCamera = cameraParaList[CameraSelector.SelectedIndex];
-                currentDevice = deviceList[CameraSelector.SelectedIndex];
-                LoadCameraSettings(currentCamera);
-            }
-            
-        }
-
         // 相机选择变更事件
         private void CameraSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -628,48 +755,6 @@ namespace MyWPF1
             }
         }
 
-        // 加载相机设置到UI
-        private void LoadCameraSettings(CameraParameters camera)
-        {
-            // 基础参数
-            ExposureSlider.Value = camera.ExposureTime;
-            RateSlider.Value = camera.Rate;
-            GammaSlider.Value = camera.Gamma;
-            GainSlider.Value = camera.Gain;
-            RedChannelSlider.Value = camera.RedChannel;
-            GreenChannelSlider.Value = camera.GreenChannel;
-            BlueChannelSlider.Value = camera.BlueChannel;
-            HorizontalSlider.Value = camera.HorizontalValue;
-            VerticalSlider.Value = camera.VerticalModeValue;
-            // 设置伽马模式
-            foreach (ComboBoxItem item in GammaModeComboBox.Items)
-            {
-                if (item.Content.ToString() == camera.GammaMode)
-                {
-                    GammaModeComboBox.SelectedItem = item;
-                    break;
-                }
-            }
-            //设置水平bin模式
-            foreach (ComboBoxItem item in HorizontalBox.Items)
-            {
-                if (item.Content.ToString() == camera.HorizontalMode)
-                {
-                    HorizontalBox.SelectedItem = item;
-                    break;
-                }
-            }
-            //设置垂直bin模式
-            foreach (ComboBoxItem item in VerticalBox.Items)
-            {
-                if (item.Content.ToString() == camera.GammaMode)
-                {
-                    VerticalBox.SelectedItem = item;
-                    break;
-                }
-            }
-        }
-
         // 应用配置按钮点击事件
         private void ApplySettings_Click(object sender, RoutedEventArgs e)
         {
@@ -690,7 +775,7 @@ namespace MyWPF1
                 currentCamera.HorizontalMode = ((ComboBoxItem)HorizontalBox.SelectedItem)?.Content.ToString();
                 currentCamera.VerticalMode = ((ComboBoxItem)VerticalBox.SelectedItem)?.Content.ToString();
                 currentCamera.HorizontalValue = (long)HorizontalSlider.Value;
-                currentCamera.VerticalModeValue = (long)VerticalSlider.Value;
+                currentCamera.VerticalValue = (long)VerticalSlider.Value;
                 IGXFeatureControl featureControl =currentDevice.GetRemoteFeatureControl();
                 // 这里应该调用相机SDK应用设置
                 //设置曝光时间的值
@@ -717,7 +802,7 @@ namespace MyWPF1
                     //设置垂直bin模式
                     cameraSDK.SetVerticalMode(currentCamera.VerticalMode, featureControl);
                     //设置垂直bin模式值
-                    cameraSDK.SetVerticalValue(currentCamera.VerticalModeValue, featureControl);
+                    cameraSDK.SetVerticalValue(currentCamera.VerticalValue, featureControl);
                 }
         
                 System.Windows.MessageBox.Show("配置已应用", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -740,6 +825,7 @@ namespace MyWPF1
                     try
                     {
                         IGXDevice device = deviceList[i];
+                        device.GetRemoteFeatureControl().GetEnumFeature("TriggerMode").SetValue("On");
                         device.Close();
                     }
                     catch (Exception ex)
@@ -782,7 +868,6 @@ namespace MyWPF1
                 System.Windows.MessageBox.Show("输入点位不能为空");
 
             }
-
         }
 
         private void SaveToConfigFile(string cameraName, int position)
