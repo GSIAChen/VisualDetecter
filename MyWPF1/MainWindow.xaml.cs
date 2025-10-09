@@ -182,6 +182,7 @@ namespace MyWPF1
                 };
                 if (target == null || e == null) { return; }
 
+                string defectType = e.Type;
                 HOperatorSet.GetImageSize(e.Image, out HTuple imgWidth, out HTuple imgHeight);
                 int w = imgWidth.I;
                 int h = imgHeight.I;
@@ -193,7 +194,43 @@ namespace MyWPF1
                     w - 1
                 );
                 target.HalconWindow.DispColor(e.Image);
-                e.Image.Dispose();
+                try
+                {
+                    // 绘制背景条（高度按比例决定，例如 5% 图像高度，但至少 20 像素）
+                    int bannerHeight = Math.Max(20, h / 20); // 5% 或至少 20 px
+                    HOperatorSet.SetDraw(target.HalconWindow, "fill");
+                    HOperatorSet.SetColor(target.HalconWindow, "black");
+                    // DispRectangle1 参数 (row1, col1, row2, col2)
+                    HOperatorSet.DispRectangle1(target.HalconWindow, 0, 0, bannerHeight, w - 1);
+
+                    // 还原绘制模式为轮廓/文字模式
+                    HOperatorSet.SetDraw(target.HalconWindow, "margin");
+
+                    // 设置字体（可调整为合适大小；这里用大约 bannerHeight 的比例）
+                    // 字体字符串可以按需替换为你的系统支持字体
+                    int fontSize = Math.Max(12, bannerHeight - 6); // 一个经验值
+                                                                   // 一个常用的通配字体格式（若出现找不到字体，可改为别的或省略 SetFont）
+                    string font = $"-*-helvetica-*-r-*-*-{fontSize}-*-*-*-*-*-*-*";
+                    try { HOperatorSet.SetFont(target.HalconWindow, font); } catch { /* 忽略字体设置失败 */ }
+
+                    // 白色文字放在 banner 里稍微偏内的位置
+                    HOperatorSet.SetColor(target.HalconWindow, "white");
+                    // SetTposition 的坐标以像素为单位：(row, col)
+                    int textRow = Math.Max(2, bannerHeight / 4);    // 文字纵向位置（稍微下移）
+                    int textCol = 6;                                // 距左侧的像素偏移
+
+                    HOperatorSet.SetTposition(target.HalconWindow, textRow, textCol);
+                    HOperatorSet.WriteString(target.HalconWindow, defectType);
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine("[OnImageReceived] 显示缺陷类型失败: " + ex);
+                }
+                finally
+                {
+                    // 如果不再需要 HImage，可以释放
+                    e.Image.Dispose();
+                }
             });
         }
 

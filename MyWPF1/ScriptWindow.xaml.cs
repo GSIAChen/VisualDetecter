@@ -23,6 +23,7 @@ namespace MyWPF1
         private static readonly string AppFolder =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MyWPF1");
         private static readonly string DefaultScriptsFile = Path.Combine(AppFolder, "scripts_config.json");
+        string PrewarmImagePath = "D:/images/wer.bmp"; // 预热用的测试图像路径
         private int _cameraCount = 6;
         public int CameraCount
         {
@@ -209,7 +210,7 @@ namespace MyWPF1
                 if (_tcpServer != null)
                 {
                     // 可在 UI 上显示进度/禁用按钮等
-                    await _tcpServer.PrewarmAllScriptsAsync().ConfigureAwait(false);
+                    await _tcpServer.PrewarmAllScriptsAsync(workers: Environment.ProcessorCount, sampleImagePath: PrewarmImagePath).ConfigureAwait(false);
                 }
 
                 // 回到 UI 线程显示提示
@@ -372,12 +373,14 @@ namespace MyWPF1
         public int CameraIndex { get; }
         public HImage Image { get; }
         public int ObjectId { get; }
+        public HTuple Type { get; }
 
-        public ImageReceivedEventArgs(int cameraIndex, int objectId, HImage image)
+        public ImageReceivedEventArgs(int cameraIndex, int objectId, HImage image, HTuple type)
         {
             CameraIndex = cameraIndex;
             ObjectId = objectId;
             Image = image;
+            Type = type;
         }
     }
 

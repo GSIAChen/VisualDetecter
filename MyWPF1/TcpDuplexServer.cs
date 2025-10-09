@@ -60,7 +60,7 @@ namespace MyWPF1
         ConcurrentDictionary<string, ThreadLocal<ScriptRunner>> _runners = new();
         public event EventHandler<AllStatsEventArgs>? AllStatsReported;
         private readonly CameraStat[] _stats = Enumerable
-                                       .Range(1, MainWindow.CameraCount+1)
+                                       .Range(1, MainWindow.CameraCount + 1)
                                        .Select(_ => new CameraStat(_))
                                        .ToArray();
         // 线程引擎池（初始化）
@@ -173,79 +173,6 @@ namespace MyWPF1
             }
         }
 
-        //private async Task HandleClientAsync(TcpClient client, NetworkStream stream)
-        //{
-        //    var tmp = ArrayPool<byte>.Shared.Rent(ReadBufferSize);
-        //    try
-        //    {
-        //        while (client.Connected)
-        //        {
-        //            int n = await stream.ReadAsync(tmp);
-        //            if (n == 0) break;  // 客户端断开
-
-        //            // 1) 把新数据拷贝到 _buffer[_tail..]
-        //            Buffer.BlockCopy(tmp, 0, _buffer, _tail, n);
-        //            _tail += n;
-
-        //            // 2) 拆帧
-        //            while (true)
-        //            {
-        //                int available = _tail - _head;
-        //                if (available < 5) break; // 至少要能读到头+长度
-
-        //                // 在 _buffer[_head.._tail] 中找 0xFF
-        //                int idx = Array.IndexOf(_buffer, (byte)FrameHead, _head, available);
-        //                if (idx < 0)
-        //                {
-        //                    // 整段丢弃
-        //                    _head = _tail = 0;
-        //                    break;
-        //                }
-        //                // 丢弃头前噪声
-        //                if (idx > _head) _head = idx;
-        //                _searchStart = _head + 1;
-        //                if (_tail - _head < 5) break; // 还差长度字段
-
-        //                // 读取 payload 长度（小端）
-        //                int payloadLen = BitConverter.ToInt32(_buffer, _head + 1);
-        //                int frameLen = 1 + 4 + payloadLen;
-        //                if (payloadLen < 0 || _tail - _head < frameLen)
-        //                    break; // 不够完整
-
-        //                // 拷贝出这一帧的有效载荷
-        //                byte[] frame = _pool.Rent(payloadLen);
-        //                Buffer.BlockCopy(_buffer, _head + 5, frame, 0, payloadLen);
-
-        //                // 推进 _head
-        //                _head += frameLen;
-        //                _searchStart = _head;
-        //                // 心跳 frame == "00"
-        //                if (payloadLen == 1 && frame[0] == 0x00)
-        //                    continue;
-
-        //                // 处理图像帧
-        //                //await _frameProcessor.SendAsync(frame);
-        //                //Trace.WriteLine($"[FRAME_QUEUE] Pending: {_frameProcessor.InputCount}");
-        //                _frameProcessor.Post(frame);
-        //            }
-
-        //            // 3) 如果剩余区间很小，就搬家一次
-        //            if (_head > 0 && _tail - _head < _buffer.Length / 2)
-        //            {
-        //                int rem = _tail - _head;
-        //                Buffer.BlockCopy(_buffer, _head, _buffer, 0, rem);
-        //                _head = 0;
-        //                _tail = rem;
-        //            }
-        //        }
-        //    }
-        //    catch (IOException) { /* … */ }
-        //    finally
-        //    {
-        //        client.Close();
-        //    }
-        //}
-
         private async Task HandleClientAsync(TcpClient client, NetworkStream stream)
         {
             var tmp = ArrayPool<byte>.Shared.Rent(ReadBufferSize);
@@ -350,105 +277,6 @@ namespace MyWPF1
             }
         }
 
-
-        //private void ProcessFrame(byte[] buf)
-        //{
-        //    // 1. 解包
-        //    //Interlocked.Increment(ref _frameCount);
-        //    using var ms = new MemoryStream(buf);
-        //    using var br = new BinaryReader(ms);
-        //    br.ReadByte();               // frameHead
-        //    byte cameraNo = br.ReadByte();
-        //    int objectId = br.ReadInt32();
-        //    ushort width = br.ReadUInt16();
-        //    ushort height = br.ReadUInt16();
-        //    br.ReadByte();               // channels
-        //    ushort bpl = br.ReadUInt16();
-        //    br.ReadInt32();              // length
-        //    int imgLen = bpl * height;
-        //    byte[] imgBuf = br.ReadBytes(imgLen);
-
-        //    // 2. GenImageInterleaved → HImage rgbImage
-        //    var sw = Stopwatch.StartNew();
-        //    var handle = GCHandle.Alloc(imgBuf, GCHandleType.Pinned);
-        //    HOperatorSet.GenImageInterleaved(
-        //    out HObject imgObj,
-        //    handle.AddrOfPinnedObject(),
-        //    "rgb", width, height,
-        //    bpl, "byte",
-        //    width, height,
-        //    0, 0, 8, 0
-        //    );
-        //    var rgbImage = new HImage(imgObj);
-        //    imgObj.Dispose();
-        //    var engine = _threadEngine.Value;
-        //    bool allOk = true;
-        //    switch (cameraNo)
-        //    {
-        //        case 64:
-        //            cameraNo = 6;
-        //            break;
-        //        case 65:
-        //            cameraNo = 7;
-        //            break;
-        //        case 66:
-        //            cameraNo = 8;
-        //            break;
-        //        case 67:
-        //            cameraNo = 9;
-        //            break;
-        //        case 68:
-        //            cameraNo = 10;
-        //            break;
-        //        case 69:
-        //            cameraNo = 11;
-        //            break;
-        //        default:
-        //            break;
-        //    }
-        //    foreach (var script in scripts[cameraNo])
-        //    {
-        //        try
-        //        {
-        //            var runner = GetRunner(script);
-        //            bool IsOk = runner.Run(rgbImage);
-        //            if (!IsOk) { allOk = false; break; }
-        //        }
-        //        catch { allOk = false; }
-        //    }
-        //    if (SaveNG) { 
-        //        if (!allOk) HalconConverter.SaveImageWithDotNet(rgbImage, $@"D:\images\camera{cameraNo + 1}\{objectId}.bmp");
-        //    }
-        //    handle.Free();
-        //    int idx = cameraNo;
-        //    if (allOk) _stats[idx].OkCount++;
-        //    else _stats[idx].NgCount++;
-        //    if (cameraNo < 6)
-        //    {
-        //        Application.Current.Dispatcher.BeginInvoke(new Action(() =>
-        //        {
-        //            ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo + 1, objectId, rgbImage));
-        //        }), DispatcherPriority.Background);
-        //    }
-        //    else { rgbImage.Dispose(); }
-        //    //更新 objectStates 并在最后一个相机时发 final result
-        //    var state = objectStates.GetOrAdd(objectId, _ => new ObjectState());
-        //    bool isLast = state.SetResult(cameraNo, allOk, CameraCount);
-        //    Trace.WriteLine("Obj "+ objectId+ " got cam "+ cameraNo+ "=>"+ allOk+ "(count=)"+ state.Count+ "firstSeen="+state.SeenCameras);
-        //    if (isLast)
-        //    {
-        //        bool finalOk = state.GetFinalOk();
-        //        idx = MainWindow.CameraCount;
-        //        if (finalOk) _stats[idx].OkCount++;
-        //        else _stats[idx].NgCount++;
-        //        SendResult(objectId, finalOk);
-        //        objectStates.TryRemove(objectId, out _);
-        //    }
-        //    _pool.Return(buf, clearArray: false);
-        //    sw.Stop();
-        //    Trace.WriteLine($"Processed in {sw.ElapsedMilliseconds}ms");
-        //}
-
         private void ProcessFrame(byte[] buf, int payloadLen)
         {
             // payloadLen 是实际有效字节长度
@@ -514,6 +342,7 @@ namespace MyWPF1
                 Trace.WriteLine($"[TIMING] GenImageInterleaved: {swStep.ElapsedMilliseconds}ms");
                 // 处理脚本（示例：thread-local runner）
                 bool allOk = true;
+                HTuple type = new HTuple();
                 // 你这里可能需要一个 bounds check： cameraNo 必须是合法范围
                 if (cameraNo >= 64 && cameraNo <= 69) cameraNo = (byte)(cameraNo - 58); // 64->6 ... 69->11 (你原来是多处映射)
                 if (cameraNo >= scripts.Length)
@@ -526,10 +355,11 @@ namespace MyWPF1
                 foreach (var script in scripts[cameraNo])
                 {
                     var swScript = Stopwatch.StartNew();
+                    bool isOk;
                     try
                     {
                         var runner = GetRunner(script);
-                        bool isOk = runner.Run(rgbImage);
+                        (isOk, type) = runner.Run(rgbImage);
                         swScript.Stop();
                         Trace.WriteLine($"[TIMING] Script {Path.GetFileName(script)}: {swScript.ElapsedMilliseconds}ms");
                         if (!isOk) { allOk = false; break; }
@@ -549,6 +379,7 @@ namespace MyWPF1
                     try
                     {
                         HalconConverter.SaveImageWithDotNet(rgbImage, $@"D:\images\camera{cameraNo + 1}\{objectId}.bmp");
+                        Trace.WriteLine("Defect type is ",type);
                     }
                     catch (Exception ex) { Trace.WriteLine("[SaveNG] " + ex); }
                 }
@@ -565,7 +396,7 @@ namespace MyWPF1
                 {
                     Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo + 1, objectId, rgbImage));
+                        ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo + 1, objectId, rgbImage, type));
                     }), DispatcherPriority.Background);
                 }
                 else
@@ -697,94 +528,7 @@ namespace MyWPF1
             }));
         }
 
-        /// <summary>
-        /// 批量预热当前 scripts 中所有脚本（去重）。返回一个 Task，调用者可以 await。
-        /// </summary>
-        //public async Task PrewarmAllScriptsAsync()
-        //{
-        //    var allScripts = scripts.Where(s => s != null)
-        //                            .SelectMany(s => s)
-        //                            .Distinct()
-        //                            .ToList();
-        //    if (allScripts.Count == 0) return;
-
-        //    Trace.WriteLine($"[Prewarm] Prewarming {allScripts.Count} scripts on worker threads...");
-
-        //    int workers = Math.Max(1, Environment.ProcessorCount); // 或者你想用的并行度
-        //    var tasks = new List<Task>();
-
-        //    // 使用线程本地引擎/runner：每个 Task 都会创建并使用自己的 HDevEngine / ScriptRunner
-        //    for (int i = 0; i < workers; i++)
-        //    {
-        //        tasks.Add(Task.Run(() =>
-        //        {
-        //            try
-        //            {
-        //                // 每个 worker 建立自己的 engine（短期存在，释放后 GC）
-        //                var localEngine = new HDevEngine();
-        //                localEngine.SetEngineAttribute("execute_procedures_jit_compiled", "true");
-
-        //                // 如果需要激活 GPU/OpenCL，建议在这里为每个线程也 Query/Activate（视 HALCON 要求）
-        //                try
-        //                {
-        //                    HTuple devs; HTuple handle;
-        //                    HOperatorSet.QueryAvailableComputeDevices(out devs);
-        //                    if (devs.Length > 0)
-        //                    {
-        //                        // select first device (or choose logic)
-        //                        HOperatorSet.OpenComputeDevice(devs[0], out handle);
-        //                        HOperatorSet.ActivateComputeDevice(handle);
-        //                    }
-        //                    HOperatorSet.SetSystem("parallelize_operators", "true");
-        //                }
-        //                catch (Exception ex)
-        //                {
-        //                    Trace.WriteLine("[Prewarm] GPU init on worker failed: " + ex.Message);
-        //                }
-
-        //                // small placeholder image
-        //                HObject tmpObj; HOperatorSet.GenImageConst(out tmpObj, "byte", 4, 4);
-        //                var tmpImage = new HImage(tmpObj);
-
-        //                foreach (var path in allScripts)
-        //                {
-        //                    try
-        //                    {
-        //                        // 在本线程上下文创建并执行一次 procedure call
-        //                        var program = new HDevProgram(path);
-        //                        var procedure = new HDevProcedure(program, "Defect");
-        //                        var call = new HDevProcedureCall(procedure);
-
-        //                        // 不一定需要真正的图像数据，但传入 tmpImage 触发内部分配
-        //                        call.SetInputIconicParamObject("Image", tmpImage);
-        //                        call.Execute();
-        //                        Trace.WriteLine($"[Prewarm] {Path.GetFileName(path)} prewarmed on thread {Thread.CurrentThread.ManagedThreadId}");
-        //                        // 释放 call/proc/program (IDisposable)
-        //                        call.Dispose();
-        //                        procedure.Dispose();
-        //                        program.Dispose();
-        //                    }
-        //                    catch (Exception ex)
-        //                    {
-        //                        Trace.WriteLine($"[Prewarm] {path} failed on thread {Thread.CurrentThread.ManagedThreadId}: {ex.Message}");
-        //                    }
-        //                }
-
-        //                tmpImage.Dispose();
-        //                localEngine.Dispose();
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                Trace.WriteLine("[Prewarm] worker exception: " + ex.Message);
-        //            }
-        //        }));
-        //    }
-
-        //    await Task.WhenAll(tasks);
-        //    Trace.WriteLine("[Prewarm] All workers finished prewarming.");
-        //}
-
-        public async Task PrewarmAllScriptsAsync(int workers = 0)
+        public async Task PrewarmAllScriptsAsync(int workers = 0, string? sampleImagePath = null)
         {
             try
             {
@@ -793,36 +537,60 @@ namespace MyWPF1
 
                 Trace.WriteLine($"[Prewarm] Prewarming {all.Count} scripts on workers...");
 
-                // 选择 worker 数：外部未指定则使用处理器数量（与 ActionBlock 并行度一致）
                 if (workers <= 0) workers = Math.Max(1, Environment.ProcessorCount);
 
-                // small dummy image: 如果脚本对尺寸敏感，可以改成真实分辨率图（但耗内存较多）
-                HObject tmpObj;
-                HOperatorSet.GenImageConst(out tmpObj, "byte", 4, 4);
-                var tmpImage = new HImage(tmpObj);
-
-                // 为每个 worker 启动一个任务，在该任务的线程上访问 thread-local 值并运行所有脚本
-                var tasks = Enumerable.Range(0, workers).Select(_ => Task.Run(() =>
+                // 1) 尝试加载真实样本图（如果给定了路径）
+                HImage sampleImage = null!;
+                bool usingRealImage = false;
+                if (!string.IsNullOrEmpty(sampleImagePath) && File.Exists(sampleImagePath))
                 {
                     try
                     {
-                        // 1) 强制初始化该线程的 engine（ThreadLocal）
+                        // 使用 Halcon 读取图片（注意：ReadImage 的第二参可以是 string）
+                        HObject tmpObj;
+                        HOperatorSet.ReadImage(out tmpObj, sampleImagePath);
+                        sampleImage = new HImage(tmpObj);
+                        usingRealImage = true;
+                        Trace.WriteLine($"[Prewarm] Using real sample image: {sampleImagePath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Trace.WriteLine($"[Prewarm] Failed to read sample image '{sampleImagePath}': {ex.Message}. Falling back to tiny image.");
+                        sampleImage = null!;
+                        usingRealImage = false;
+                    }
+                }
+
+                // 2) 若没成功读取真实图，建立 4x4 占位图
+                if (!usingRealImage)
+                {
+                    HObject tmpObj;
+                    HOperatorSet.GenImageConst(out tmpObj, "byte", 4, 4);
+                    sampleImage = new HImage(tmpObj);
+                    Trace.WriteLine("[Prewarm] Using tiny 4x4 image for prewarm.");
+                }
+
+                // 3) 在每个 worker 线程上触发 thread-local 引擎 & runner 的初始化并 run 脚本一次
+                var tasks = Enumerable.Range(0, workers).Select(workerIndex => Task.Run(() =>
+                {
+                    try
+                    {
+                        // 访问 thread-local engine，确保在当前线程上创建 engine（Side-effect: engine 初始化）
                         var eng = _threadEngine?.Value ?? _engine;
 
-                        // 2) 遍历所有脚本：每个脚本在当前线程上创建/初始化其 ThreadLocal runner，并执行一次
+                        // 遍历所有脚本并在当前线程上调用 runner.Run(sampleImage)
                         foreach (var path in all)
                         {
                             try
                             {
-                                // GetRunner 返回的是当前线程对应的 ScriptRunner 实例（ThreadLocal）
+                                // GetRunner 返回当前线程的 ScriptRunner（通过 ThreadLocal wrapper）
                                 var runner = GetRunner(path);
-
-                                // Run 一次以触发 JIT / 初始化（忽略返回值）
-                                runner.Run(tmpImage);
+                                // Run once to trigger initialization/JIT; ignore return value
+                                runner.Run(sampleImage);
                             }
                             catch (Exception ex)
                             {
-                                Trace.WriteLine($"[Prewarm] script {Path.GetFileName(path)} on thread prewarm failed: {ex.Message}");
+                                Trace.WriteLine($"[Prewarm] script {Path.GetFileName(path)} on worker {Thread.CurrentThread.ManagedThreadId} failed: {ex.Message}");
                             }
                         }
 
@@ -834,10 +602,11 @@ namespace MyWPF1
                     }
                 })).ToArray();
 
-                // 等待全部完成
                 await Task.WhenAll(tasks);
 
-                tmpImage.Dispose();
+                // 4) 释放 sampleImage
+                sampleImage.Dispose();
+
                 Trace.WriteLine("[Prewarm] all workers finished prewarming.");
             }
             catch (Exception ex)
@@ -846,175 +615,188 @@ namespace MyWPF1
             }
         }
 
-        //static void OnCapture(IntPtr pData, ref SieveDll.SieveCaptureEx captureInfo, IntPtr userData)
-        //{
-        //    var img = Marshal.PtrToStructure<SieveDll.GzsiaImage>(captureInfo.image);
-        //    int len = img.height * img.bytePerLine;
-        //    var buf = new byte[len];
-        //    Marshal.Copy(pData, buf, 0, len);
-        //    Console.WriteLine($"Got image: {img.width}x{img.height} from camera {captureInfo.camerId}");
+        //    public async Task PrewarmAllScriptsAsync(int workers = 0)
+        //    {
+        //        try
+        //        {
+        //            var all = scripts.Where(s => s != null).SelectMany(s => s).Distinct().ToList();
+        //            if (all.Count == 0) return;
+
+        //            Trace.WriteLine($"[Prewarm] Prewarming {all.Count} scripts on workers...");
+
+        //            // 选择 worker 数：外部未指定则使用处理器数量（与 ActionBlock 并行度一致）
+        //            if (workers <= 0) workers = Math.Max(1, Environment.ProcessorCount);
+
+        //            // small dummy image: 如果脚本对尺寸敏感，可以改成真实分辨率图（但耗内存较多）
+        //            HObject tmpObj;
+        //            HOperatorSet.GenImageConst(out tmpObj, "byte", 4, 4);
+        //            var tmpImage = new HImage(tmpObj);
+
+        //            // 为每个 worker 启动一个任务，在该任务的线程上访问 thread-local 值并运行所有脚本
+        //            var tasks = Enumerable.Range(0, workers).Select(_ => Task.Run(() =>
+        //            {
+        //                try
+        //                {
+        //                    // 1) 强制初始化该线程的 engine（ThreadLocal）
+        //                    var eng = _threadEngine?.Value ?? _engine;
+
+        //                    // 2) 遍历所有脚本：每个脚本在当前线程上创建/初始化其 ThreadLocal runner，并执行一次
+        //                    foreach (var path in all)
+        //                    {
+        //                        try
+        //                        {
+        //                            // GetRunner 返回的是当前线程对应的 ScriptRunner 实例（ThreadLocal）
+        //                            var runner = GetRunner(path);
+
+        //                            // Run 一次以触发 JIT / 初始化（忽略返回值）
+        //                            runner.Run(tmpImage);
+        //                        }
+        //                        catch (Exception ex)
+        //                        {
+        //                            Trace.WriteLine($"[Prewarm] script {Path.GetFileName(path)} on thread prewarm failed: {ex.Message}");
+        //                        }
+        //                    }
+
+        //                    Trace.WriteLine($"[Prewarm] done on worker thread {Thread.CurrentThread.ManagedThreadId}");
+        //                }
+        //                catch (Exception ex)
+        //                {
+        //                    Trace.WriteLine($"[Prewarm] worker exception: {ex}");
+        //                }
+        //            })).ToArray();
+
+        //            // 等待全部完成
+        //            await Task.WhenAll(tasks);
+
+        //            tmpImage.Dispose();
+        //            Trace.WriteLine("[Prewarm] all workers finished prewarming.");
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            Trace.WriteLine("[Prewarm] Exception: " + ex);
+        //        }
+        //    }
         //}
-    }
 
-    class ScriptRunner
-    {
-        private readonly string _path;
-        private readonly string _procName;
-        public HDevProcedure Procedure { get; }
-        public HDevProcedureCall Call { get; private set; }
-
-
-        public ScriptRunner(string path, string procName = "Defect")
+        class ScriptRunner
         {
-            _path = path;
-            _procName = procName;
-            var program = new HDevProgram(path);
-            Procedure = new HDevProcedure(program, procName);
-            Call = new HDevProcedureCall(Procedure);
-        }
+            private readonly string _path;
+            private readonly string _procName;
+            public HDevProcedure Procedure { get; }
+            public HDevProcedureCall Call { get; private set; }
 
-        // 每次调用重新创建调用对象（稳健）
-        public bool Run(HImage input)
-        {
-            // engine 传入调用线程对应的 engine（例如 threadLocal.Value）
-            try
+
+            public ScriptRunner(string path, string procName = "Defect")
             {
-                using var call = new HDevProcedureCall(Procedure);
-                Call.SetInputIconicParamObject("Image", input);
-                Call.Execute();
-                using var result = Call.GetOutputCtrlParamTuple("IsOk");
-                return result.I == 1;
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"[ScriptRunner] Run failed for {_path}: {ex.Message}");
-                return false;
-            }
-        }
-    }
-
-    //class ScriptRunner
-    //{
-    //    public HDevProcedure Procedure { get; }
-    //    public HDevProcedureCall Call { get; private set; }
-
-    //    public ScriptRunner(string path)
-    //    {
-    //        var program = new HDevProgram(path);
-    //        Procedure = new HDevProcedure(program, "Defect");
-    //        Call = new HDevProcedureCall(Procedure);
-    //    }
-
-    //    public bool Run(HImage input)
-    //    {
-    //        Call.SetInputIconicParamObject("Image", input);
-    //        Call.Execute();
-    //        return Call.GetOutputCtrlParamTuple("IsOk");
-    //    }
-    //}
-
-    public class HalconConverter
-    {
-        /// <summary>
-        /// 将Halcon的HImage对象转换为.NET的Bitmap对象。
-        /// 支持灰度图和24位彩色图。
-        /// </summary>
-        /// <param name="ho_Image">输入的HImage对象</param>
-        /// <returns>转换后的Bitmap对象</returns>
-        public static Bitmap HImageToBitmap(HImage ho_Image)
-        {
-            if (ho_Image == null || !ho_Image.IsInitialized())
-            {
-                throw new ArgumentNullException("Halcon image is null or not initialized.");
+                _path = path;
+                _procName = procName;
+                var program = new HDevProgram(path);
+                Procedure = new HDevProcedure(program, procName);
+                Call = new HDevProcedureCall(Procedure);
             }
 
-            HOperatorSet.GetImageSize(ho_Image, out HTuple width, out HTuple height);
-            HOperatorSet.GetImageType(ho_Image, out HTuple type);
-
-            int imageWidth = width.I;
-            int imageHeight = height.I;
-            Bitmap bmp = null;
-
-            //if (type.S == "byte") // 8位灰度图
-            //{
-            //    HOperatorSet.GetImagePointer1(ho_Image, out HTuple pointer, out _, out _, out _);
-            //    IntPtr ptr = new IntPtr(pointer.L);
-
-            //    // 创建一个8位索引格式的Bitmap
-            //    bmp = new Bitmap(imageWidth, imageHeight, imageWidth, PixelFormat.Format8bppIndexed, ptr);
-
-            //    // 设置灰度调色板
-            //    ColorPalette pal = bmp.Palette;
-            //    for (int i = 0; i < 256; i++)
-            //    {
-            //        pal.Entries[i] = Color.FromArgb(i, i, i);
-            //    }
-            //    bmp.Palette = pal;
-            //}
-            //else if (type.S == "rgb" || type.S == "bgr") // 24位彩色图
-            //{
-            HOperatorSet.GetImagePointer3(ho_Image, out HTuple pointerR, out HTuple pointerG, out HTuple pointerB, out _, out _, out _);
-            IntPtr ptrR = new IntPtr(pointerR.L);
-            IntPtr ptrG = new IntPtr(pointerG.L);
-            IntPtr ptrB = new IntPtr(pointerB.L);
-
-            bmp = new Bitmap(imageWidth, imageHeight, PixelFormat.Format24bppRgb);
-
-            // 锁定Bitmap的内存区域以便快速写入
-            BitmapData bmpData = bmp.LockBits(new Rectangle(0, 0, imageWidth, imageHeight), ImageLockMode.WriteOnly, bmp.PixelFormat);
-
-            unsafe
+            // 每次调用重新创建调用对象（稳健）
+            public (bool IsOk, HTuple Type) Run(HImage input)
             {
-                byte* p = (byte*)bmpData.Scan0;
-                byte* r = (byte*)ptrR;
-                byte* g = (byte*)ptrG;
-                byte* b = (byte*)ptrB;
-
-                for (int i = 0; i < imageWidth * imageHeight; i++)
+                // engine 传入调用线程对应的 engine（例如 threadLocal.Value）
+                try
                 {
-                    // Bitmap内存布局通常是 B, G, R
-                    p[i * 3] = *b++;
-                    p[i * 3 + 1] = *g++;
-                    p[i * 3 + 2] = *r++;
+                    using var call = new HDevProcedureCall(Procedure);
+                    Call.SetInputIconicParamObject("Image", input);
+                    Call.Execute();
+                    using var result = Call.GetOutputCtrlParamTuple("IsOk");
+                    using var type = Call.GetOutputCtrlParamTuple("Type");
+                    bool ok = result.I == 1;
+                    return (ok, type);
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"[ScriptRunner] Run failed for {_path}: {ex.Message}");
+                    return (false, new HTuple());
                 }
             }
-
-            bmp.UnlockBits(bmpData);
-            //}
-            //else
-            //{
-            //    throw new NotSupportedException($"Image type '{type.S}' is not supported for conversion.");
-            //}
-
-            // 由于Bitmap是基于Halcon的内存指针创建的，我们需要克隆一份，
-            // 以免在Halcon对象被释放后Bitmap失效。
-            Bitmap finalBmp = (Bitmap)bmp.Clone();
-            bmp.Dispose();
-
-            return finalBmp;
         }
 
-        public static void SaveImageWithDotNet(HImage ho_Image, string filePath)
+        public class HalconConverter
         {
-            Bitmap bitmapToSave = null;
-            try
+            /// <summary>
+            /// 将Halcon的HImage对象转换为.NET的Bitmap对象。
+            /// 支持灰度图和24位彩色图。
+            /// </summary>
+            /// <param name="ho_Image">输入的HImage对象</param>
+            /// <returns>转换后的Bitmap对象</returns>
+            public static Bitmap HImageToBitmap(HImage ho_Image)
             {
-                string directoryPath = Path.GetDirectoryName(filePath);
-                if (!string.IsNullOrEmpty(directoryPath))
+                if (ho_Image == null || !ho_Image.IsInitialized())
                 {
-                    Directory.CreateDirectory(directoryPath);
+                    throw new ArgumentNullException("Halcon image is null or not initialized.");
                 }
-                bitmapToSave = HImageToBitmap(ho_Image);
-                // 可以选择任意格式保存
-                bitmapToSave.Save(filePath, ImageFormat.Png);
+
+                HOperatorSet.GetImageSize(ho_Image, out HTuple width, out HTuple height);
+                HOperatorSet.GetImageType(ho_Image, out HTuple type);
+
+                int imageWidth = width.I;
+                int imageHeight = height.I;
+                Bitmap bmp = null;
+
+                HOperatorSet.GetImagePointer3(ho_Image, out HTuple pointerR, out HTuple pointerG, out HTuple pointerB, out _, out _, out _);
+                IntPtr ptrR = new IntPtr(pointerR.L);
+                IntPtr ptrG = new IntPtr(pointerG.L);
+                IntPtr ptrB = new IntPtr(pointerB.L);
+
+                bmp = new Bitmap(imageWidth, imageHeight, PixelFormat.Format24bppRgb);
+
+                // 锁定Bitmap的内存区域以便快速写入
+                BitmapData bmpData = bmp.LockBits(new Rectangle(0, 0, imageWidth, imageHeight), ImageLockMode.WriteOnly, bmp.PixelFormat);
+
+                unsafe
+                {
+                    byte* p = (byte*)bmpData.Scan0;
+                    byte* r = (byte*)ptrR;
+                    byte* g = (byte*)ptrG;
+                    byte* b = (byte*)ptrB;
+
+                    for (int i = 0; i < imageWidth * imageHeight; i++)
+                    {
+                        // Bitmap内存布局通常是 B, G, R
+                        p[i * 3] = *b++;
+                        p[i * 3 + 1] = *g++;
+                        p[i * 3 + 2] = *r++;
+                    }
+                }
+
+                bmp.UnlockBits(bmpData);
+
+                // 由于Bitmap是基于Halcon的内存指针创建的，我们需要克隆一份，
+                // 以免在Halcon对象被释放后Bitmap失效。
+                Bitmap finalBmp = (Bitmap)bmp.Clone();
+                bmp.Dispose();
+
+                return finalBmp;
             }
-            catch (Exception ex)
+
+            public static void SaveImageWithDotNet(HImage ho_Image, string filePath)
             {
-                Console.WriteLine($"Error saving image: {ex.Message}");
-            }
-            finally
-            {
-                bitmapToSave?.Dispose();
+                Bitmap bitmapToSave = null;
+                try
+                {
+                    string directoryPath = Path.GetDirectoryName(filePath);
+                    if (!string.IsNullOrEmpty(directoryPath))
+                    {
+                        Directory.CreateDirectory(directoryPath);
+                    }
+                    bitmapToSave = HImageToBitmap(ho_Image);
+                    // 可以选择任意格式保存
+                    bitmapToSave.Save(filePath, ImageFormat.Png);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error saving image: {ex.Message}");
+                }
+                finally
+                {
+                    bitmapToSave?.Dispose();
+                }
             }
         }
     }
