@@ -197,7 +197,7 @@ namespace MyWPF1
                 try
                 {
                     // 绘制背景条（高度按比例决定，例如 5% 图像高度，但至少 20 像素）
-                    int bannerHeight = Math.Max(20, h / 20); // 5% 或至少 20 px
+                    int bannerHeight = h / 5;
                     HOperatorSet.SetDraw(target.HalconWindow, "fill");
                     HOperatorSet.SetColor(target.HalconWindow, "black");
                     // DispRectangle1 参数 (row1, col1, row2, col2)
@@ -208,16 +208,14 @@ namespace MyWPF1
 
                     // 设置字体（可调整为合适大小；这里用大约 bannerHeight 的比例）
                     // 字体字符串可以按需替换为你的系统支持字体
-                    int fontSize = Math.Max(12, bannerHeight - 6); // 一个经验值
-                                                                   // 一个常用的通配字体格式（若出现找不到字体，可改为别的或省略 SetFont）
-                    string font = $"-*-helvetica-*-r-*-*-{fontSize}-*-*-*-*-*-*-*";
+                    string font = "Courier-Bold-100";
                     try { HOperatorSet.SetFont(target.HalconWindow, font); } catch { /* 忽略字体设置失败 */ }
 
                     // 白色文字放在 banner 里稍微偏内的位置
-                    HOperatorSet.SetColor(target.HalconWindow, "white");
+                    HOperatorSet.SetColor(target.HalconWindow, "red");
                     // SetTposition 的坐标以像素为单位：(row, col)
-                    int textRow = Math.Max(2, bannerHeight / 4);    // 文字纵向位置（稍微下移）
-                    int textCol = 6;                                // 距左侧的像素偏移
+                    int textRow = bannerHeight/2;    // 文字纵向位置（稍微下移）
+                    int textCol = bannerHeight/2;    // 距左侧的像素偏移
 
                     HOperatorSet.SetTposition(target.HalconWindow, textRow, textCol);
                     HOperatorSet.WriteString(target.HalconWindow, defectType);

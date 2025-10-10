@@ -23,7 +23,7 @@ namespace MyWPF1
         private static readonly string AppFolder =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MyWPF1");
         private static readonly string DefaultScriptsFile = Path.Combine(AppFolder, "scripts_config.json");
-        string PrewarmImagePath = "D:/images/wer.bmp"; // 预热用的测试图像路径
+        string PrewarmImagePath = "D://images/prewarm/warm.bmp"; // 预热用的测试图像路径
         private int _cameraCount = 6;
         public int CameraCount
         {
@@ -40,7 +40,7 @@ namespace MyWPF1
                 }
             }
         }
-        private bool _saveNG = false;
+        private bool _saveNG = true;
         public bool SaveNGImage
         {
             get => _saveNG;
@@ -255,7 +255,7 @@ namespace MyWPF1
                             // 在后台开始预热并 await 完成（不会阻塞 UI，因为 this is async void）
                             try
                             {
-                                await _tcpServer.PrewarmAllScriptsAsync().ConfigureAwait(false);
+                                await _tcpServer.PrewarmAllScriptsAsync(0, PrewarmImagePath).ConfigureAwait(false);
                                 // 回到 UI 线程显示完成提示（如果需要）
                                 Application.Current.Dispatcher.Invoke(() =>
                                 {

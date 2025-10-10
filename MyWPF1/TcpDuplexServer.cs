@@ -296,7 +296,6 @@ namespace MyWPF1
                 ushort bpl = br.ReadUInt16();
                 br.ReadInt32();              // length
                 int imgLen = bpl * height;
-
                 // 保证 imgLen 不会超出 payloadLen
                 if (imgLen < 0 || imgLen > payloadLen - (int)ms.Position)
                 {
@@ -376,10 +375,10 @@ namespace MyWPF1
                 // 可选保存 NG 图
                 if (SaveNG && !allOk)
                 {
+                    string rtype = type;
                     try
                     {
-                        HalconConverter.SaveImageWithDotNet(rgbImage, $@"D:\images\camera{cameraNo + 1}\{objectId}.bmp");
-                        Trace.WriteLine("Defect type is ",type);
+                        HalconConverter.SaveImageWithDotNet(rgbImage, $@"D:\images\camera{cameraNo + 1}\{objectId}_{rtype}.bmp");
                     }
                     catch (Exception ex) { Trace.WriteLine("[SaveNG] " + ex); }
                 }

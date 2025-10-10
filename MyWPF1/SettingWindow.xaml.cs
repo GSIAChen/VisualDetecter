@@ -33,7 +33,7 @@ namespace MyWPF1
         private ushort connected = 0;
         private ushort disconnected = 1;
         private float _RotationSpeed;
-        private string jsFilePath = "D:\\TestEc3224l.js"; // 需要替换为实际路径  
+        private string jsFilePath = "E://program/TestEc3224l/TestEc3224l.js"; // 需要替换为实际路径  
 
         public float RotationSpeed
         {
