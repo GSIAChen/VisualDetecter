@@ -1,9 +1,7 @@
 ﻿using GxIAPINET;
-using HandyControl.Controls;
 using MCDLL_NET;
 using MyWPF1.Entity;
 using MyWPF1.Service;
-using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing.Imaging;
@@ -11,15 +9,11 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Xml;
-using System.Web.Services.Description;
 using System.Collections.Concurrent;
-using OpenCvSharp.Internal.Vectors;
+using System.Windows.Forms.VisualStyles;
 
 namespace MyWPF1
 {
@@ -173,7 +167,7 @@ namespace MyWPF1
 
         private async void SettingWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            CameraSDK cameraSDK=new CameraSDK();
+            CameraSDK cameraSDK = new CameraSDK();
             // 如果 InitCamera 很快可以直接调用；若有可能阻塞，放到后台
             await Task.Run(() => cameraSDK.InitCamera());
 
@@ -776,7 +770,7 @@ namespace MyWPF1
                 currentCamera.VerticalMode = ((ComboBoxItem)VerticalBox.SelectedItem)?.Content.ToString();
                 currentCamera.HorizontalValue = (long)HorizontalSlider.Value;
                 currentCamera.VerticalValue = (long)VerticalSlider.Value;
-                IGXFeatureControl featureControl =currentDevice.GetRemoteFeatureControl();
+                IGXFeatureControl featureControl = currentDevice.GetRemoteFeatureControl();
                 // 这里应该调用相机SDK应用设置
                 //设置曝光时间的值
                 cameraSDK.SetExposureTime(currentCamera.ExposureTime, featureControl);
@@ -804,7 +798,7 @@ namespace MyWPF1
                     //设置垂直bin模式值
                     cameraSDK.SetVerticalValue(currentCamera.VerticalValue, featureControl);
                 }
-        
+
                 System.Windows.MessageBox.Show("配置已应用", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
@@ -847,17 +841,20 @@ namespace MyWPF1
         //点击移动
         private void RunToPos_Click(object sender, RoutedEventArgs e)
         {
-            string value = Cam1PositionBox.Text;
+            string value = CamPositionBox.Text;
             CMCDLL_NET_Sorting.MCF_Set_EMG_Bit_Net(0, 0, 0);
             CMCDLL_NET_Sorting.MCF_Set_Axis_Profile_Net(0, 0, 5000, 50000, 500000, 0, 0);
             CMCDLL_NET_Sorting.MCF_Uniaxial_Net(0, int.Parse(value), 1);
+            int v = int.Parse(CamPositionBox.Text);
+            CurrentPositionBox.Text = v.ToString();
+
         }
 
         //保存到js文件
         private void SavePos_Click(object sender, RoutedEventArgs e)
         {
-            string value = Cam1PositionBox.Text;
-            if (Cam1PositionBox.Text != null)
+            string value = CurrentPositionBox.Text;
+            if (CurrentPositionBox.Text != null)
             {
                 currentCamera.CameraPosition = int.Parse(value);
                 // 方式1: 写入到共享的配置文件（推荐）
@@ -914,8 +911,8 @@ namespace MyWPF1
 
                 File.WriteAllLines(jsFilePath, lines);
                 CurrentPositionBox.Text = position.ToString();
-                currentCamera.CameraPosition=position;
-                System.Windows.MessageBox.Show("保存"+position+"成功");
+                currentCamera.CameraPosition = position;
+                System.Windows.MessageBox.Show("保存" + position + "成功");
             }
             catch (Exception ex)
             {
@@ -974,21 +971,25 @@ namespace MyWPF1
 
         private void Left_Click(object sender, RoutedEventArgs e)
         {
-            string value = Cam1PositionBox.Text;
-            //if (value == null) return;
+            string value = CurrentPositionBox.Text;
+            if (value == null) return;
             CMCDLL_NET_Sorting.MCF_Set_EMG_Bit_Net(0, 0, 0);
             CMCDLL_NET_Sorting.MCF_Set_Axis_Profile_Net(0, 0, 5000, 50000, 500000, 0, 0);
             CMCDLL_NET_Sorting.MCF_Uniaxial_Net(0, 5, 1);
+            int v = int.Parse(CurrentPositionBox.Text) + 5;
+            CurrentPositionBox.Text = v.ToString();
         }
 
         private void Right_Click(object sender, RoutedEventArgs e)
         {
-            string value = Cam1PositionBox.Text;
-            //if (value == null) return;
+            string value = CurrentPositionBox.Text;
+            if (value == null) return;
             CMCDLL_NET_Sorting.MCF_Set_EMG_Bit_Net(0, 0, 0);
             CMCDLL_NET_Sorting.MCF_Set_Pulse_Mode_Net(0, 0, 0);
             CMCDLL_NET_Sorting.MCF_Set_Axis_Profile_Net(0, 0, 5000, 50000, 500000, 0, 0);
             CMCDLL_NET_Sorting.MCF_Uniaxial_Net(0, -5, 1);
+            int v = int.Parse(CurrentPositionBox.Text) - 5;
+            CurrentPositionBox.Text = v.ToString();
         }
     }
 }

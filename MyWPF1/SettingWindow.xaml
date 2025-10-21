@@ -414,7 +414,6 @@
                                         <TextBlock x:Name="CurrentPositionBox"
                                                    VerticalAlignment="Center"
                                                    HorizontalAlignment="Center"
-                                                   Text="1234"
                                                    Foreground="{StaticResource LightTextBrush}"/>
                                     </Border>
                                 </Grid>
@@ -547,7 +546,7 @@
                                     <Border Grid.Column="1" 
                                             Style="{StaticResource PositionBoxStyle}"
                                             Background="Transparent">
-                                        <TextBox x:Name="Cam1PositionBox"
+                                        <TextBox x:Name="CamPositionBox"
                                                  VerticalAlignment="Center"
                                                  HorizontalAlignment="Stretch"
                                                  Foreground="{StaticResource LightTextBrush}"
