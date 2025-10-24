@@ -61,6 +61,7 @@ namespace MyWPF1
         private readonly HDevEngine _engine;
         public ObservableCollection<string>[] Scripts { get; }
         public TcpDuplexServer _tcpServer;
+        private readonly bool _ownsServer = true;
         public ICommand DeleteScriptCommand { get; }
 
         public static T? FindAncestor<T>(DependencyObject child) where T : DependencyObject
@@ -298,7 +299,19 @@ namespace MyWPF1
                 string json = JsonSerializer.Serialize(data, options);
 
                 File.WriteAllText(DefaultScriptsFile, json, Encoding.UTF8);
-                Trace.WriteLine("[ScriptWindow] Scripts config saved to " + DefaultScriptsFile);
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await _tcpServer.StopAsync().ConfigureAwait(false);
+                        var terminated = ProcessHelper.CloseProcessesByName("TestEc3224l", timeoutMs: 2000);
+                        Trace.WriteLine($"(OnExit) Closed {terminated} processes");
+                    }
+                    catch (Exception ex)
+                    {
+                        Trace.WriteLine("(OnExit) Close processes failed: " + ex);
+                    }
+                });
             }
             catch (Exception ex)
             {

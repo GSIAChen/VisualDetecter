@@ -49,6 +49,7 @@ namespace MyWPF1
         // 这里只保存单个客户端连接；如果要多个并行，可以用 ConcurrentDictionary<int, TcpClient> 等
         private TcpClient _client;
         private NetworkStream _stream;
+        private TcpListener _listener;
         private readonly int _parallelism = Environment.ProcessorCount;
         private ObservableCollection<string>[] scripts;
         private readonly ConcurrentDictionary<string, Task> _prewarmTasks = new(StringComparer.OrdinalIgnoreCase);
@@ -156,8 +157,8 @@ namespace MyWPF1
 
         public async Task StartAsync()
         {
-            var listener = new TcpListener(IPAddress.Parse("127.0.0.1"), Port);
-            listener.Start();
+            _listener = new TcpListener(IPAddress.Parse("127.0.0.1"), Port);
+            _listener.Start();
             var Ctrl = new ProcessStartInfo
             {
                 FileName = "2控制软件",
@@ -167,7 +168,7 @@ namespace MyWPF1
             Process.Start(Ctrl);
             while (true)
             {
-                _client = await listener.AcceptTcpClientAsync();
+                _client = await _listener.AcceptTcpClientAsync();
                 _stream = _client.GetStream();
                 _ = HandleClientAsync(_client, _stream);
             }
@@ -614,68 +615,16 @@ namespace MyWPF1
             }
         }
 
-        //    public async Task PrewarmAllScriptsAsync(int workers = 0)
-        //    {
-        //        try
-        //        {
-        //            var all = scripts.Where(s => s != null).SelectMany(s => s).Distinct().ToList();
-        //            if (all.Count == 0) return;
+        public Task StopAsync()
+        {
+            try
+            {
+                _listener?.Stop();
+            }
+            catch { }
 
-        //            Trace.WriteLine($"[Prewarm] Prewarming {all.Count} scripts on workers...");
-
-        //            // 选择 worker 数：外部未指定则使用处理器数量（与 ActionBlock 并行度一致）
-        //            if (workers <= 0) workers = Math.Max(1, Environment.ProcessorCount);
-
-        //            // small dummy image: 如果脚本对尺寸敏感，可以改成真实分辨率图（但耗内存较多）
-        //            HObject tmpObj;
-        //            HOperatorSet.GenImageConst(out tmpObj, "byte", 4, 4);
-        //            var tmpImage = new HImage(tmpObj);
-
-        //            // 为每个 worker 启动一个任务，在该任务的线程上访问 thread-local 值并运行所有脚本
-        //            var tasks = Enumerable.Range(0, workers).Select(_ => Task.Run(() =>
-        //            {
-        //                try
-        //                {
-        //                    // 1) 强制初始化该线程的 engine（ThreadLocal）
-        //                    var eng = _threadEngine?.Value ?? _engine;
-
-        //                    // 2) 遍历所有脚本：每个脚本在当前线程上创建/初始化其 ThreadLocal runner，并执行一次
-        //                    foreach (var path in all)
-        //                    {
-        //                        try
-        //                        {
-        //                            // GetRunner 返回的是当前线程对应的 ScriptRunner 实例（ThreadLocal）
-        //                            var runner = GetRunner(path);
-
-        //                            // Run 一次以触发 JIT / 初始化（忽略返回值）
-        //                            runner.Run(tmpImage);
-        //                        }
-        //                        catch (Exception ex)
-        //                        {
-        //                            Trace.WriteLine($"[Prewarm] script {Path.GetFileName(path)} on thread prewarm failed: {ex.Message}");
-        //                        }
-        //                    }
-
-        //                    Trace.WriteLine($"[Prewarm] done on worker thread {Thread.CurrentThread.ManagedThreadId}");
-        //                }
-        //                catch (Exception ex)
-        //                {
-        //                    Trace.WriteLine($"[Prewarm] worker exception: {ex}");
-        //                }
-        //            })).ToArray();
-
-        //            // 等待全部完成
-        //            await Task.WhenAll(tasks);
-
-        //            tmpImage.Dispose();
-        //            Trace.WriteLine("[Prewarm] all workers finished prewarming.");
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            Trace.WriteLine("[Prewarm] Exception: " + ex);
-        //        }
-        //    }
-        //}
+            return Task.CompletedTask;
+        }
 
         class ScriptRunner
         {

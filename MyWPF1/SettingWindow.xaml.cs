@@ -20,7 +20,7 @@ namespace MyWPF1
     /// <summary>
     /// SettingWindow.xaml 的交互逻辑
     /// </summary>
-    public partial class SettingWindow : System.Windows.Window, INotifyPropertyChanged
+    public partial class SettingWindow : System.Windows.Window
     {
         private ushort stationNum = 0;
         private ushort stationType = 2;
@@ -28,106 +28,6 @@ namespace MyWPF1
         private ushort disconnected = 1;
         private float _RotationSpeed;
         private string jsFilePath = "E://program/TestEc3224l/TestEc3224l.js"; // 需要替换为实际路径  
-
-        public float RotationSpeed
-        {
-            get => _RotationSpeed;
-            set
-            {
-                _RotationSpeed = value;
-                OnPropertyChanged();
-            }
-        }
-        private float _CamTriggerTime;
-        public float CamTriggerTime
-        {
-            get => _CamTriggerTime;
-            set
-            {
-                _CamTriggerTime = value;
-                OnPropertyChanged();
-            }
-        }
-        private int _CCD1Pos;
-        public int CCD1Pos
-        {
-            get => _CCD1Pos;
-            set
-            {
-                _CCD1Pos = value;
-                OnPropertyChanged();
-            }
-        }
-        private int _CCD2Pos;
-        public int CCD2Pos
-        {
-            get => _CCD2Pos;
-            set
-            {
-                _CCD2Pos = value;
-                OnPropertyChanged();
-            }
-        }
-        private int _CCD3Pos;
-        public int CCD3Pos
-        {
-            get => _CCD3Pos;
-            set
-            {
-                _CCD3Pos = value;
-                OnPropertyChanged();
-            }
-        }
-        private int _CCD4Pos;
-        public int CCD4Pos
-        {
-            get => _CCD4Pos;
-            set
-            {
-                _CCD4Pos = value;
-                OnPropertyChanged();
-            }
-        }
-        private int _CCD5Pos;
-        public int CCD5Pos
-        {
-            get => _CCD5Pos;
-            set
-            {
-                _CCD5Pos = value;
-                OnPropertyChanged();
-            }
-        }
-        private int _CCD6Pos;
-        public int CCD6Pos
-        {
-            get => _CCD6Pos;
-            set
-            {
-                _CCD6Pos = value;
-                OnPropertyChanged();
-            }
-        }
-        private int _CCD7Pos;
-        public int CCD7Pos
-        {
-            get => _CCD7Pos;
-            set
-            {
-                _CCD7Pos = value;
-                OnPropertyChanged();
-            }
-        }
-        private int _CCD8Pos;
-        public int CCD8Pos
-        {
-            get => _CCD8Pos;
-            set
-            {
-                _CCD8Pos = value;
-                OnPropertyChanged();
-            }
-        }
 
         // 枚举的相机集合
         private List<IGXDeviceInfo> cameras = new List<IGXDeviceInfo>();
@@ -275,7 +175,7 @@ namespace MyWPF1
                 // 假设当前选中的是camera1  
                 if (cameraPositions.TryGetValue(currentCamera.CameraName, out int position))
                 {
-                    CurrentPositionBox.Text = position.ToString();
+                    CamPositionBox.Text = position.ToString();
                     currentCamera.CameraPosition = position;
                 }
             }
@@ -743,7 +643,7 @@ namespace MyWPF1
                 // 假设当前选中的是camera1  
                 if (cameraPositions.TryGetValue(currentCamera.CameraName, out int position))
                 {
-                    CurrentPositionBox.Text = position.ToString();
+                    CamPositionBox.Text = position.ToString();
                     currentCamera.CameraPosition = position;
                 }
             }
@@ -836,18 +736,42 @@ namespace MyWPF1
             CMCDLL_NET_Sorting.MCF_Set_Pulse_Mode_Net(0, 1, 0);
             CMCDLL_NET_Sorting.MCF_Set_EMG_Bit_Net(0, 1, 0);
             CMCDLL_NET_Sorting.MCF_JOG_Net(0, 5000, 2000, 0);
+            CurrentPositionBox.Text = "0";
         }
 
         //点击移动
         private void RunToPos_Click(object sender, RoutedEventArgs e)
         {
-            string value = CamPositionBox.Text;
+            int target = int.Parse(CamPositionBox.Text);
+            int current = int.Parse(CurrentPositionBox.Text);
             CMCDLL_NET_Sorting.MCF_Set_EMG_Bit_Net(0, 0, 0);
             CMCDLL_NET_Sorting.MCF_Set_Axis_Profile_Net(0, 0, 5000, 50000, 500000, 0, 0);
-            CMCDLL_NET_Sorting.MCF_Uniaxial_Net(0, int.Parse(value), 1);
-            int v = int.Parse(CamPositionBox.Text);
-            CurrentPositionBox.Text = v.ToString();
+            CMCDLL_NET_Sorting.MCF_Uniaxial_Net(0, target-current, 1);
+            CurrentPositionBox.Text = target.ToString();
+        }
 
+        private void Left_Click(object sender, RoutedEventArgs e)
+        {
+            string value = CurrentPositionBox.Text;
+            if (value == null) return;
+            CMCDLL_NET_Sorting.MCF_Set_EMG_Bit_Net(0, 0, 0);
+            CMCDLL_NET_Sorting.MCF_Set_Pulse_Mode_Net(0, 1, 0);
+            CMCDLL_NET_Sorting.MCF_Set_Axis_Profile_Net(0, 0, 5000, 50000, 500000, 0, 0);
+            CMCDLL_NET_Sorting.MCF_Uniaxial_Net(0, -5, 1);
+            int v = int.Parse(CurrentPositionBox.Text) - 5;
+            CurrentPositionBox.Text = v.ToString();
+        }
+
+        private void Right_Click(object sender, RoutedEventArgs e)
+        {
+            string value = CurrentPositionBox.Text;
+            if (value == null) return;
+            CMCDLL_NET_Sorting.MCF_Set_EMG_Bit_Net(0, 0, 0);
+            CMCDLL_NET_Sorting.MCF_Set_Pulse_Mode_Net(0, 1, 0);
+            CMCDLL_NET_Sorting.MCF_Set_Axis_Profile_Net(0, 0, 5000, 50000, 500000, 0, 0);
+            CMCDLL_NET_Sorting.MCF_Uniaxial_Net(0, 5, 1);
+            int v = int.Parse(CurrentPositionBox.Text) + 5;
+            CurrentPositionBox.Text = v.ToString();
         }
 
         //保存到js文件
@@ -918,78 +842,6 @@ namespace MyWPF1
             {
                 System.Windows.MessageBox.Show($"更新失败: {ex.Message}");
             }
-        }
-
-        // 在每个点位变更后强制更新图像UpdateImageUI(null)
-
-        private void ToCCD1_Click(object sender, RoutedEventArgs e)
-        {
-            CMCDLL_NET_Sorting.MCF_Set_Position_Net(0, _CCD1Pos, 0);
-        }
-
-        private void ToCCD2_Click(object sender, RoutedEventArgs e)
-        {
-            CMCDLL_NET_Sorting.MCF_Set_Position_Net(0, _CCD2Pos, 0);
-        }
-
-        private void ToCCD3_Click(object sender, RoutedEventArgs e)
-        {
-            CMCDLL_NET_Sorting.MCF_Set_Position_Net(0, _CCD3Pos, 0);
-        }
-
-        private void ToCCD4_Click(object sender, RoutedEventArgs e)
-        {
-            CMCDLL_NET_Sorting.MCF_Set_Position_Net(0, _CCD4Pos, 0);
-        }
-
-        private void ToCCD5_Click(object sender, RoutedEventArgs e)
-        {
-            CMCDLL_NET_Sorting.MCF_Set_Position_Net(0, _CCD5Pos, 0);
-        }
-
-        private void ToCCD6_Click(object sender, RoutedEventArgs e)
-        {
-            CMCDLL_NET_Sorting.MCF_Set_Position_Net(0, _CCD6Pos, 0);
-        }
-
-        private void ToCCD7_Click(object sender, RoutedEventArgs e)
-        {
-            CMCDLL_NET_Sorting.MCF_Set_Position_Net(0, _CCD7Pos, 0);
-        }
-
-        private void ToCCD8_Click(object sender, RoutedEventArgs e)
-        {
-            CMCDLL_NET_Sorting.MCF_Set_Position_Net(0, _CCD8Pos, 0);
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        private void Left_Click(object sender, RoutedEventArgs e)
-        {
-            string value = CurrentPositionBox.Text;
-            if (value == null) return;
-            CMCDLL_NET_Sorting.MCF_Set_EMG_Bit_Net(0, 0, 0);
-            CMCDLL_NET_Sorting.MCF_Set_Axis_Profile_Net(0, 0, 5000, 50000, 500000, 0, 0);
-            CMCDLL_NET_Sorting.MCF_Uniaxial_Net(0, 5, 1);
-            int v = int.Parse(CurrentPositionBox.Text) + 5;
-            CurrentPositionBox.Text = v.ToString();
-        }
-
-        private void Right_Click(object sender, RoutedEventArgs e)
-        {
-            string value = CurrentPositionBox.Text;
-            if (value == null) return;
-            CMCDLL_NET_Sorting.MCF_Set_EMG_Bit_Net(0, 0, 0);
-            CMCDLL_NET_Sorting.MCF_Set_Pulse_Mode_Net(0, 0, 0);
-            CMCDLL_NET_Sorting.MCF_Set_Axis_Profile_Net(0, 0, 5000, 50000, 500000, 0, 0);
-            CMCDLL_NET_Sorting.MCF_Uniaxial_Net(0, -5, 1);
-            int v = int.Parse(CurrentPositionBox.Text) - 5;
-            CurrentPositionBox.Text = v.ToString();
         }
     }
 }

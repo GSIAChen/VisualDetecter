@@ -66,20 +66,19 @@ namespace MyWPF1
 
         private void ScriptButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_scriptWindow == null)
+            // 如果窗口实例存在并且仍然加载着（未被 Close）就激活它
+            if (_scriptWindow != null && _scriptWindow.IsLoaded)
             {
-                _scriptWindow = new ScriptWindow();
-                //_scriptWindow._tcpServer.CameraResultReported += OnCameraResultReported;
-                _scriptWindow._tcpServer.AllStatsReported += OnAllStatsReported;
-                _scriptWindow._tcpServer.ImageReceived += OnImageReceived;
-                _scriptWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-                _scriptWindow.ShowInTaskbar = false;
+                // 如果窗口被最小化则恢复
+                if (_scriptWindow.WindowState == WindowState.Minimized)
+                    _scriptWindow.WindowState = WindowState.Normal;
+
+                // 如果窗口被隐藏（ShowInTaskbar = false 的情况下），确保可见并激活
                 _scriptWindow.Show();
-            }
-            else
-            {
                 _scriptWindow.Activate();
+                return;
             }
+            CreateAndShowScriptWindow();
         }
 
         private void AlgorithmButton_Click(object sender, RoutedEventArgs e)
@@ -146,24 +145,46 @@ namespace MyWPF1
             // 停止按钮逻辑
         }
 
-        //private void OnCameraResultReported(object? sender, CameraResultEventArgs e)
-        //{
-        //    // Must marshal back onto UI thread
-        //    Dispatcher.Invoke(() =>
-        //    {
-        //        Trace.WriteLine($"Updating result {e.CameraIndex} Result: {(e.IsOk ? "OK" : "NG")}");
-        //        if (e.CameraIndex != 11) { 
-        //            var stat = Stats[e.CameraIndex];
-        //            if (e.IsOk) stat.OkCount++;
-        //            else stat.NgCount++;
-        //        }
-        //        else
-        //        {
-        //            if (e.IsOk) TotalStat.OkCount++;
-        //            else TotalStat.NgCount++;
-        //        }
-        //    });
-        //}
+        private void CreateAndShowScriptWindow()
+        {
+            // 创建实例
+            _scriptWindow = new ScriptWindow();
+
+            // 将事件订阅在新实例上（务必在 Closed 时取消订阅）
+            _scriptWindow._tcpServer.AllStatsReported += OnAllStatsReported;
+            _scriptWindow._tcpServer.ImageReceived += OnImageReceived;
+
+            // 可选：把主窗口当作 Owner，这样关闭主窗体时子窗体也关闭，定位也更好
+            _scriptWindow.Owner = this;
+            _scriptWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            _scriptWindow.ShowInTaskbar = false;
+
+            // 订阅 Closed 事件，窗口关闭时清理引用/取消订阅
+            _scriptWindow.Closed += ScriptWindow_Closed;
+
+            // 显示并激活
+            _scriptWindow.Show();
+            _scriptWindow.Activate();
+        }
+
+        private void ScriptWindow_Closed(object? sender, EventArgs e)
+        {
+            if (_scriptWindow == null) return;
+
+            try
+            {
+                // 取消订阅，避免重复订阅或内存泄漏
+                _scriptWindow._tcpServer.AllStatsReported -= OnAllStatsReported;
+                _scriptWindow._tcpServer.ImageReceived -= OnImageReceived;
+                _scriptWindow.Closed -= ScriptWindow_Closed;
+            }
+            catch { /* 忽略可能的异常 */ }
+            finally
+            {
+                // 置空引用，下一次点击会创建新窗口
+                _scriptWindow = null;
+            }
+        }
 
         private void OnImageReceived(object? sender, ImageReceivedEventArgs e)
         {
@@ -198,10 +219,6 @@ namespace MyWPF1
                 {
                     // 绘制背景条（高度按比例决定，例如 5% 图像高度，但至少 20 像素）
                     int bannerHeight = h / 5;
-                    HOperatorSet.SetDraw(target.HalconWindow, "fill");
-                    HOperatorSet.SetColor(target.HalconWindow, "black");
-                    // DispRectangle1 参数 (row1, col1, row2, col2)
-                    HOperatorSet.DispRectangle1(target.HalconWindow, 0, 0, bannerHeight, w - 1);
 
                     // 还原绘制模式为轮廓/文字模式
                     HOperatorSet.SetDraw(target.HalconWindow, "margin");
@@ -324,7 +341,5 @@ namespace MyWPF1
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged([CallerMemberName] string name = null!)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-
-    
     }
 }
