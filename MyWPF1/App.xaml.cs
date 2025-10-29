@@ -73,24 +73,24 @@ namespace MyWPF1
             catch { }
         }
 
-        //protected override void OnExit(ExitEventArgs e)
-        //{
-        //    base.OnExit(e);
+        protected override void OnExit(ExitEventArgs e)
+        {
+            base.OnExit(e);
 
-        //    // 在后台异步关闭进程（不阻塞 UI 退出）
-        //    _ = Task.Run(async () =>
-        //    {
-        //        try
-        //        {
-        //            var terminated = ProcessHelper.CloseProcessesByName("TestEc3224l", timeoutMs: 2000);
-        //            Trace.WriteLine($"(OnExit) Closed {terminated} processes");
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            Trace.WriteLine("(OnExit) Close processes failed: " + ex);
-        //        }
-        //    });
-        //}
+            // 在后台异步关闭进程（不阻塞 UI 退出）
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var terminated = ProcessHelper.CloseProcessesByName("TestEc3224l", timeoutMs: 2000);
+                    Trace.WriteLine($"(OnExit) Closed {terminated} processes");
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine("(OnExit) Close processes failed: " + ex);
+                }
+            });
+        }
     }
 
     public static class ProcessHelper

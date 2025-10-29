@@ -1262,12 +1262,22 @@
                                         CornerRadius="5"
                                         Margin="10,5"
                                         Padding="10">
-                                    <StackPanel Orientation="Horizontal">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
                                         <Button Content="应用配置"
                                                 Style="{StaticResource ActionButtonStyle}"
-                                                Width="313"
                                                 Click="ApplySettings_Click"/>
-                                    </StackPanel>
+                                        <Button Content="开始采集" Grid.Column="1"
+                                                Style="{StaticResource ActionButtonStyle}"
+                                                Click="StartCapturing_Click"/>
+                                        <Button Content="停止采集" Grid.Column="2"
+                                                Style="{StaticResource ActionButtonStyle}"
+                                                Click="StopCapturing_Click"/>
+                                    </Grid>
                                 </Border>
 
                                 <!-- 基础参数配置 -->
@@ -1509,7 +1519,7 @@
                                             <RowDefinition Height="*"/>
                                         </Grid.RowDefinitions>
 
-                                        <TextBlock Text="图像像素参数配置"
+                                        <TextBlock Text="图像像素参数配置（修改前需停止采集）"
                                                         FontSize="14"
                                                         FontWeight="SemiBold"
                                                         Margin="0,0,0,10"
@@ -1551,10 +1561,9 @@
                                             />
                                             <Slider Grid.Row="1" Grid.Column="1"
                                                      x:Name="HorizontalSlider"
-                                                     Minimum="0"
-                                                     Maximum="255"
-                                                     Value="255"
-                                                     TickFrequency="5"
+                                                     Minimum="1"
+                                                     Maximum="2"
+                                                     TickFrequency="0.05"
                                                      IsSnapToTickEnabled="True"
                                                      VerticalAlignment="Center"
                                                      Margin="0,5"/>
@@ -1586,10 +1595,9 @@
 />
                                             <Slider Grid.Row="3" Grid.Column="1"
                                                      x:Name="VerticalSlider"
-                                                     Minimum="0"
-                                                     Maximum="255"
-                                                     Value="255"
-                                                     TickFrequency="5"
+                                                     Minimum="1"
+                                                     Maximum="2"
+                                                     TickFrequency="0.05"
                                                      IsSnapToTickEnabled="True"
                                                      VerticalAlignment="Center"
                                                      Margin="0,5"/>
@@ -1613,83 +1621,6 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="*"/>
                                         </Grid.RowDefinitions>
-
-                                        <TextBlock Text="几何参数配置"
-                                                   FontSize="14"
-                                                   FontWeight="SemiBold"
-                                                   Margin="0,0,0,10"
-                                                   Foreground="{StaticResource AccentBrush}"/>
-
-                                        <Grid Grid.Row="1">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
-
-                                            <!-- 滤波 -->
-                                            <TextBlock Text="滤波："
-                                                       Grid.Row="0" Grid.Column="0"
-                                                       
-                                                       Margin="0,5,10,5"
-                                                       VerticalAlignment="Center"/>
-                                            <TextBox Grid.Row="0" Grid.Column="1"
-                                                     Text="0"
-                                                     Height="30"
-                                                     Style="{StaticResource NumericInputStyle}"
-                                                     Margin="0,5"/>
-                                            <TextBlock Grid.Row="0" Grid.Column="2"
-                                                       Text="级"
-                                                       Margin="10,5,0,5"
-                                                       VerticalAlignment="Center"/>
-
-                                            <!-- 点位 -->
-                                            <TextBlock Text="点位："
-                                                       Grid.Row="1" Grid.Column="0"
-                                                       Margin="0,5,10,5"
-                                                       VerticalAlignment="Center"/>
-                                            <TextBox Grid.Row="1" Grid.Column="1"
-                                                         Text="0"
-                                                         Height="30"
-                                                         Style="{StaticResource NumericInputStyle}"
-                                                         Margin="0,5"/>
-                                            <TextBlock Grid.Row="1" Grid.Column="2"
-                                                       Text="点"
-                                                       Margin="10,5,0,5"
-                                                       VerticalAlignment="Center"/>
-
-                                            <!-- 倍率 -->
-                                            <TextBlock Text="倍率："
-                                                       Grid.Row="2" Grid.Column="0"
-                                                       Margin="0,5,10,5"
-                                                       VerticalAlignment="Center"/>
-                                            <TextBox Grid.Row="2" Grid.Column="1"
-                                                     Text="1.0"
-                                                     Height="30"
-                                                     Style="{StaticResource NumericInputStyle}"
-                                                     Margin="0,5"/>
-                                            <TextBlock Grid.Row="2" Grid.Column="2"
-                                                       Text="倍"
-                                                       Margin="10,5,0,5"
-                                                       VerticalAlignment="Center"/>
-
-                                            <!-- 单位 -->
-                                            <TextBlock Text="单位："
-                                                       Grid.Row="3" Grid.Column="0"
-                                                       Margin="0,5,10,5"
-                                                       VerticalAlignment="Center"/>
-                                            <TextBox Grid.Row="3" Grid.Column="1"
-                                                     Text="像素"
-                                                     Height="30"
-                                                     Style="{StaticResource NumericInputStyle}"
-                                                     Margin="0,5"/>
-                                        </Grid>
                                     </Grid>
                                 </Border>
 

@@ -116,20 +116,20 @@ namespace MyWPF1
             // 设置Halcon引擎
             _engine = new HDevEngine();
             _engine.SetEngineAttribute("execute_procedures_jit_compiled", "true");
-            HTuple devs;
-            HTuple handle;
-            HOperatorSet.QueryAvailableComputeDevices(out devs);
-            HOperatorSet.OpenComputeDevice(devs, out handle);
-            HOperatorSet.ActivateComputeDevice(handle);
-            HTuple useInfo;
-            HOperatorSet.GetSystem("parallelize_operators", out useInfo);
-            Trace.WriteLine($"AOP on: {useInfo}");
-            HTuple cudaInfo;
-            HOperatorSet.GetSystem("cuda_devices", out cudaInfo);
-            Trace.WriteLine($"Cuda devices: {cudaInfo}");
-            HOperatorSet.SetSystem("parallelize_operators", "true");
-            HOperatorSet.SetSystem("thread_num", Environment.ProcessorCount);
-            Trace.WriteLine("CPU num = " + Environment.ProcessorCount);
+            //HTuple devs;
+            //HTuple handle;
+            //HOperatorSet.QueryAvailableComputeDevices(out devs);
+            //HOperatorSet.OpenComputeDevice(devs, out handle);
+            //HOperatorSet.ActivateComputeDevice(handle);
+            //HTuple useInfo;
+            //HOperatorSet.GetSystem("parallelize_operators", out useInfo);
+            //Trace.WriteLine($"AOP on: {useInfo}");
+            //HTuple cudaInfo;
+            //HOperatorSet.GetSystem("cuda_devices", out cudaInfo);
+            //Trace.WriteLine($"Cuda devices: {cudaInfo}");
+            //HOperatorSet.SetSystem("parallelize_operators", "true");
+            //HOperatorSet.SetSystem("thread_num", Environment.ProcessorCount);
+            //Trace.WriteLine("CPU num = " + Environment.ProcessorCount);
 
             // 设置 ActionBlock 的并行度和缓冲区
             var options = new ExecutionDataflowBlockOptions
@@ -161,8 +161,8 @@ namespace MyWPF1
             _listener.Start();
             var Ctrl = new ProcessStartInfo
             {
-                FileName = "2控制软件",
-                WorkingDirectory = @"F:/desktop",
+                FileName = "TestEc3224l.exe",
+                WorkingDirectory = @"D:/program/TestEc3224l",
                 UseShellExecute = true
             };
             Process.Start(Ctrl);

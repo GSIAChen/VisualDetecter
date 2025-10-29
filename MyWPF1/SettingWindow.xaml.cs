@@ -633,6 +633,7 @@ namespace MyWPF1
                 currentDevice = deviceList[CameraSelector.SelectedIndex];
                 LoadCameraSettings(currentCamera);
                 // 开始新相机的采集
+                _isCapturing = true;
                 StartImageCapture();
             }
             // 读取JS文件  
@@ -687,7 +688,7 @@ namespace MyWPF1
                 {
                     cameraSDK.SetGamma(currentCamera.Gamma, featureControl);
                 }
-                if (_isCapturing = false)
+                if (!_isCapturing)
                 {
                     //设置水平bin模式
                     cameraSDK.SetHorizontalMode(currentCamera.HorizontalMode, featureControl);
@@ -704,6 +705,24 @@ namespace MyWPF1
             catch (Exception ex)
             {
                 System.Windows.MessageBox.Show($"应用配置时出错: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void StartCapturing_Click(object sender, RoutedEventArgs e)
+        {
+            if (!_isCapturing) 
+            {
+                StartImageCapture();
+                _isCapturing = true;
+            }
+        }
+
+        private void StopCapturing_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isCapturing)
+            {
+                StopImageCapture();
+                _isCapturing = false;
             }
         }
 
