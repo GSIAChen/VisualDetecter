@@ -11,6 +11,7 @@
     <PlatformTarget>x64</PlatformTarget>
     <!-- 添加这一行确保所有内容都被复制 -->
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
  <!-- 在PropertyGroup之后添加 -->

@@ -660,6 +660,9 @@ namespace MyWPF1
                 catch (Exception ex)
                 {
                     Trace.WriteLine($"[ScriptRunner] Run failed for {_path}: {ex.Message}");
+                    Trace.WriteLine($"[ScriptRunner] Run failed for {_path}: {ex.Source}");
+                    Trace.WriteLine($"[ScriptRunner] Run failed for {_path}: {ex.TargetSite}");
+                    Trace.WriteLine($"[ScriptRunner] Run failed for {_path}: {ex.InnerException}");
                     return (false, new HTuple());
                 }
             }
@@ -735,7 +738,7 @@ namespace MyWPF1
                     }
                     bitmapToSave = HImageToBitmap(ho_Image);
                     // 可以选择任意格式保存
-                    bitmapToSave.Save(filePath, ImageFormat.Png);
+                    bitmapToSave.Save(filePath, ImageFormat.Bmp);
                 }
                 catch (Exception ex)
                 {

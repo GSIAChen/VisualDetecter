@@ -182,6 +182,7 @@ namespace MyWPF1
             // 确保 UI 的延后工作（若有）也处理完
             await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
             // 启动图像采集
+            _isCapturing = false;
             StartImageCapture();
         }
 
@@ -321,7 +322,7 @@ namespace MyWPF1
         // 开始图像采集
         private void StartImageCapture()
         {
-            if (_isCapturing || currentDevice == null)
+            if (currentDevice == null || _isCapturing==true)
             {
                 return;
             }
@@ -366,12 +367,12 @@ namespace MyWPF1
                 _uiUpdateTimer = new System.Threading.Timer(ProcessImageQueue, null, 0, 33);
 
                 _isCapturing = true;
-                Debug.WriteLine("Image capture started.");
+                Trace.WriteLine("Image capture started.");
             }
             catch (Exception ex)
             {
                 System.Windows.MessageBox.Show($"启动图像采集失败: {ex.Message}");
-                Debug.WriteLine($"StartImageCapture exception: {ex.Message}");
+                Trace.WriteLine($"StartImageCapture exception: {ex.Message}");
             }
         }
 
@@ -524,7 +525,7 @@ namespace MyWPF1
         // 停止图像采集
         private void StopImageCapture()
         {
-            if (currentDevice == null)
+            if (currentDevice == null || _isCapturing == false)
             {
                 return;
             }
@@ -543,13 +544,13 @@ namespace MyWPF1
                 _currentStream.Close();
                 _currentStream = null;
                 _isCapturing = false;
-                Debug.WriteLine("Image capture stopped.");
+                Trace.WriteLine("Image capture stopped.");
 
             }
             catch (Exception ex)
             {
                 System.Windows.MessageBox.Show($"停止图像采集失败: {ex.Message}");
-                Debug.WriteLine($"StopImageCapture exception: {ex.Message}");
+                Trace.WriteLine($"StopImageCapture exception: {ex.Message}");
 
             }
         }
@@ -626,14 +627,13 @@ namespace MyWPF1
         private void CameraSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             // 停止当前采集
-            StopImageCapture();
+            if(_isCapturing==true) StopImageCapture();
             if (CameraSelector.SelectedIndex >= 0 && CameraSelector.SelectedIndex < deviceList.Count)
             {
                 currentCamera = cameraParaList[CameraSelector.SelectedIndex];
                 currentDevice = deviceList[CameraSelector.SelectedIndex];
                 LoadCameraSettings(currentCamera);
                 // 开始新相机的采集
-                _isCapturing = true;
                 StartImageCapture();
             }
             // 读取JS文件  

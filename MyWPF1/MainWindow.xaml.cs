@@ -11,6 +11,10 @@ using MessageBox = System.Windows.MessageBox;
 namespace MyWPF1
 {
     // MainWindow.xaml.cs
+
+    using System;
+    using System.Runtime.InteropServices;
+
     public partial class MainWindow : Window
     {
         public string MaterialName { get; private set; }
