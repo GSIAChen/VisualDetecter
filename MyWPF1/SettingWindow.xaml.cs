@@ -2,18 +2,19 @@
 using MCDLL_NET;
 using MyWPF1.Entity;
 using MyWPF1.Service;
-using System.ComponentModel;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
-using System.Collections.Concurrent;
-using System.Windows.Forms.VisualStyles;
+using System.Windows.Threading;
+using MessageBox = System.Windows.MessageBox;
 
 namespace MyWPF1
 {
@@ -115,46 +116,6 @@ namespace MyWPF1
                     semaphore.Release();
                 }
             }).ToArray();
-            // 程序启动时连接所有相机
-            //for (int i = 0; i < cameraList.Count; i++)
-            //{
-            //    IGXDeviceInfo iGXDeviceInfo=cameraList[i];
-            //    IGXDevice device=cameraSDK.ConnectCamera(cameraList[i]);
-            //    IGXFeatureControl featureControrl=device.GetRemoteFeatureControl();
-            //    deviceList.Add(device);
-
-            //    CameraParameters cameraParameter=new CameraParameters();
-            //    cameraParameter.CameraName = "camera"+(i+1);
-            //    //获取曝光时间
-            //    cameraParameter.ExposureTime= cameraSDK.GetExposureTime(featureControrl);
-            //    //获取增益
-            //    cameraParameter.Gain = cameraSDK.GetGain(featureControrl);
-            //    //获取帧率
-            //    cameraParameter.Rate = cameraSDK.GetRate(featureControrl);
-            //    //获取伽马模式
-            //    cameraParameter.GammaMode = cameraSDK.GetGammaMode(featureControrl);
-            //    //获取R的值
-            //    cameraParameter.RedChannel = cameraSDK.getRChannels("red", featureControrl);
-            //    //获取G的值
-            //    cameraParameter.GreenChannel = cameraSDK.getRChannels("green", featureControrl);
-            //    //获取B的值
-            //    cameraParameter.BlueChannel = cameraSDK.getRChannels("blue", featureControrl);
-            //    //获取水平bin模式
-            //    cameraParameter.HorizontalMode = cameraSDK.GetHorizontalMode(featureControrl);
-            //    //获取水平bin模式的值
-            //    cameraParameter.HorizontalValue = cameraSDK.GetBinningHorizontalValue(featureControrl);
-            //    //获取垂直bin模式
-            //    cameraParameter.VerticalMode = cameraSDK.GetVerticalMode(featureControrl);
-            //    //获取垂直bin模式的值
-            //    cameraParameter.VerticalModeValue = cameraSDK.GetVerticalValue(featureControrl);
-            //    if (cameraParameter.GammaMode.Equals("User"))
-            //    {
-            //        //获取伽马值
-            //        cameraParameter.Gamma = cameraSDK.GetGamma(featureControrl);
-            //    }
-
-            //    cameraParaList.Add(cameraParameter);
-            //}
             if (deviceList.Count > 0)
             {
                 Trace.WriteLine($"Total connected cameras: {deviceList.Count}");
@@ -180,10 +141,10 @@ namespace MyWPF1
                 }
             }
             // 确保 UI 的延后工作（若有）也处理完
-            await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
-            // 启动图像采集
+            await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
             _isCapturing = false;
-            StartImageCapture();
+            await ApplyLoadedSettingsIfAny();
+            await ApplySettingsAsync();
         }
 
         // 初始化相机选择下拉框
@@ -239,7 +200,7 @@ namespace MyWPF1
                     // LoadCameraSettings 本身操作 UI，保持在 UI 线程调用
                     LoadCameraSettings(currentCamera);
                 }
-            }, System.Windows.Threading.DispatcherPriority.Normal).Task;
+            }, DispatcherPriority.Normal).Task;
         }
 
         // 加载相机设置到UI
@@ -392,26 +353,6 @@ namespace MyWPF1
                     {
                         StartQueueProcessing();
                     }
-                    // 使用Dispatcher更新UI
-                    /*  System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                      {
-                          lock (_imageLock)
-                          {
-                              using (MemoryStream memory = new MemoryStream())
-                              {
-                                  bitmap.Save(memory, ImageFormat.Bmp);
-                                  memory.Position = 0;
-                                  _currentBitmapImage = new BitmapImage();
-                                  _currentBitmapImage.BeginInit();
-                                  _currentBitmapImage.StreamSource = memory;
-                                  _currentBitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                                  _currentBitmapImage.EndInit();
-                                  _currentBitmapImage.Freeze();
-                                  SPreviewImage.Source = _currentBitmapImage;
-                                  Debug.WriteLine("Image updated on UI.");
-                              }
-                          }
-                      });*/
                 }
                 else
                 {
@@ -549,9 +490,7 @@ namespace MyWPF1
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"停止图像采集失败: {ex.Message}");
                 Trace.WriteLine($"StopImageCapture exception: {ex.Message}");
-
             }
         }
 
@@ -567,7 +506,7 @@ namespace MyWPF1
             IntPtr buffer = image.GetBuffer();
 
             // 根据像素格式创建Bitmap
-            System.Drawing.Imaging.PixelFormat pixelFormat = System.Drawing.Imaging.PixelFormat.Format8bppIndexed;
+            PixelFormat pixelFormat = PixelFormat.Format8bppIndexed;
             GX_PIXEL_FORMAT_ENTRY gxPixelFormat = image.GetPixelFormat();
 
 
@@ -576,17 +515,17 @@ namespace MyWPF1
             {
                 case GX_PIXEL_FORMAT_ENTRY.GX_PIXEL_FORMAT_BGR8:
                 case GX_PIXEL_FORMAT_ENTRY.GX_PIXEL_FORMAT_RGB8:
-                    pixelFormat = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
+                    pixelFormat = PixelFormat.Format24bppRgb;
                     break;
                 case GX_PIXEL_FORMAT_ENTRY.GX_PIXEL_FORMAT_BGRA8:
                 case GX_PIXEL_FORMAT_ENTRY.GX_PIXEL_FORMAT_RGBA8:
                 case GX_PIXEL_FORMAT_ENTRY.GX_PIXEL_FORMAT_ARGB8:
                 case GX_PIXEL_FORMAT_ENTRY.GX_PIXEL_FORMAT_ABGR8:
-                    pixelFormat = System.Drawing.Imaging.PixelFormat.Format32bppArgb;
+                    pixelFormat = PixelFormat.Format32bppArgb;
                     break;
                 default:
                     // 默认为8位灰度格式
-                    pixelFormat = System.Drawing.Imaging.PixelFormat.Format8bppIndexed;
+                    pixelFormat = PixelFormat.Format8bppIndexed;
                     break;
             }
 
@@ -611,12 +550,12 @@ namespace MyWPF1
             }
 
             // 如果是8位灰度图像，设置灰度调色板
-            if (pixelFormat == System.Drawing.Imaging.PixelFormat.Format8bppIndexed)
+            if (pixelFormat == PixelFormat.Format8bppIndexed)
             {
                 ColorPalette palette = bitmap.Palette;
                 for (int i = 0; i < 256; i++)
                 {
-                    palette.Entries[i] = System.Drawing.Color.FromArgb(i, i, i);
+                    palette.Entries[i] = Color.FromArgb(i, i, i);
                 }
                 bitmap.Palette = palette;
             }
@@ -651,60 +590,141 @@ namespace MyWPF1
         }
 
         // 应用配置按钮点击事件
-        private void ApplySettings_Click(object sender, RoutedEventArgs e)
+        private async void ApplySettings_Click(object sender, RoutedEventArgs e)
         {
-            CameraSDK cameraSDK = new CameraSDK();
-            if (currentCamera == null) return;
-
+            // 事件处理器：调用可等待的方法，并捕获异常以免抛到 UI 线程
             try
             {
-                // 更新相机对象的值
-                currentCamera.ExposureTime = ExposureSlider.Value;
-                currentCamera.Rate = (int)RateSlider.Value;
-                currentCamera.Gamma = GammaSlider.Value;
-                currentCamera.Gain = GainSlider.Value;
-                currentCamera.RedChannel = RedChannelSlider.Value;
-                currentCamera.GreenChannel = GreenChannelSlider.Value;
-                currentCamera.BlueChannel = BlueChannelSlider.Value;
-                currentCamera.GammaMode = ((ComboBoxItem)GammaModeComboBox.SelectedItem)?.Content.ToString();
-                currentCamera.HorizontalMode = ((ComboBoxItem)HorizontalBox.SelectedItem)?.Content.ToString();
-                currentCamera.VerticalMode = ((ComboBoxItem)VerticalBox.SelectedItem)?.Content.ToString();
-                currentCamera.HorizontalValue = (long)HorizontalSlider.Value;
-                currentCamera.VerticalValue = (long)VerticalSlider.Value;
-                IGXFeatureControl featureControl = currentDevice.GetRemoteFeatureControl();
-                // 这里应该调用相机SDK应用设置
-                //设置曝光时间的值
-                cameraSDK.SetExposureTime(currentCamera.ExposureTime, featureControl);
-                //设置帧率的值
-                cameraSDK.SetRate(currentCamera.Rate, featureControl);
-                //设置增益
-                cameraSDK.SetGain(currentCamera.Gain, featureControl);
-                //设置伽马方式
-                cameraSDK.SetGammaMode(currentCamera.GammaMode, featureControl);
-                //设置RGB
-                cameraSDK.SetRGBChannels(currentCamera.RedChannel, currentCamera.GreenChannel, currentCamera.BlueChannel, featureControl);
-                //设置伽马值
-                if (currentCamera.GammaMode.Equals("User"))
-                {
-                    cameraSDK.SetGamma(currentCamera.Gamma, featureControl);
-                }
-                if (!_isCapturing)
-                {
-                    //设置水平bin模式
-                    cameraSDK.SetHorizontalMode(currentCamera.HorizontalMode, featureControl);
-                    //设置水平bin模式值
-                    cameraSDK.SetBinningHorizontalValue(currentCamera.HorizontalValue, featureControl);
-                    //设置垂直bin模式
-                    cameraSDK.SetVerticalMode(currentCamera.VerticalMode, featureControl);
-                    //设置垂直bin模式值
-                    cameraSDK.SetVerticalValue(currentCamera.VerticalValue, featureControl);
-                }
-
-                System.Windows.MessageBox.Show("配置已应用", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+                await ApplySettingsAsync();
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"应用配置时出错: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"应用配置失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async Task ApplySettingsAsync()
+        {
+            // 先从 UI 读取一次值，避免在后台线程直接访问控件
+            double exposure = ExposureSlider.Value;
+            int rate = (int)RateSlider.Value;
+            double gamma = GammaSlider.Value;
+            double gain = GainSlider.Value;
+            double red = RedChannelSlider.Value;
+            double green = GreenChannelSlider.Value;
+            double blue = BlueChannelSlider.Value;
+            string gammaMode = ((ComboBoxItem)GammaModeComboBox.SelectedItem)?.Content?.ToString() ?? "";
+            string horizMode = ((ComboBoxItem)HorizontalBox.SelectedItem)?.Content?.ToString() ?? "";
+            string vertMode = ((ComboBoxItem)VerticalBox.SelectedItem)?.Content?.ToString() ?? "";
+            long horizVal = (long)HorizontalSlider.Value;
+            long vertVal = (long)VerticalSlider.Value;
+
+            // Update in-memory cameraParaList (quick, on UI thread, protected by lock)
+            lock (_cameraParaListLock)
+            {
+                foreach (var cam in cameraParaList)
+                {
+                    cam.ExposureTime = exposure;
+                    cam.Rate = rate;
+                    cam.Gamma = gamma;
+                    cam.Gain = gain;
+                    cam.RedChannel = red;
+                    cam.GreenChannel = green;
+                    cam.BlueChannel = blue;
+                    cam.GammaMode = gammaMode;
+                    // horizontal/vertical may be deferred if capturing; still write to memory
+                    cam.HorizontalMode = horizMode;
+                    cam.HorizontalValue = horizVal;
+                    cam.VerticalMode = vertMode;
+                    cam.VerticalValue = vertVal;
+                }
+            }
+
+            // Inform user we're applying settings (optional)
+            var applyDialog = MessageBoxResult.None;
+            try
+            {
+                // Run the hardware write in background to avoid blocking UI.
+                var saveResult = await Task.Run(() =>
+                {
+                    var sdk = new CameraSDK();
+                    var errors = new List<string>();
+
+                    // iterate over cameras and devices in a safe index range
+                    int count;
+                    lock (_cameraParaListLock) count = cameraParaList.Count;
+                    int deviceCount;
+                    lock (_deviceListLock) deviceCount = deviceList.Count;
+                    int n = Math.Min(count, deviceCount);
+
+                    for (int i = 0; i < n; i++)
+                    {
+                        CameraParameters cam;
+                        IGXDevice device;
+                        lock (_cameraParaListLock) cam = cameraParaList[i];
+                        lock (_deviceListLock) device = deviceList[i];
+
+                        try
+                        {
+                            // get feature control for this device
+                            var fc = device.GetRemoteFeatureControl();
+
+                            // apply common parameters
+                            sdk.SetExposureTime(cam.ExposureTime, fc);
+                            sdk.SetRate((int)cam.Rate, fc);
+                            sdk.SetGain(cam.Gain, fc);
+                            sdk.SetGammaMode(cam.GammaMode, fc);
+                            sdk.SetRGBChannels((int)cam.RedChannel, (int)cam.GreenChannel, (int)cam.BlueChannel, fc);
+                            if (string.Equals(cam.GammaMode, "User", StringComparison.OrdinalIgnoreCase))
+                            {
+                                sdk.SetGamma(cam.Gamma, fc);
+                            }
+
+                            // binning / geometry: only apply if not capturing (to avoid disrupting stream)
+                            if (!_isCapturing)
+                            {
+                                sdk.SetHorizontalMode(cam.HorizontalMode, fc);
+                                sdk.SetBinningHorizontalValue(cam.HorizontalValue, fc);
+                                sdk.SetVerticalMode(cam.VerticalMode, fc);
+                                sdk.SetVerticalValue(cam.VerticalValue, fc);
+                            }
+                            else
+                            {
+                                // 记录跳过的设备，用于提示
+                                errors.Add($"Camera {cam.CameraName}: binning deferred (capturing).");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // 每台设备独立捕获异常，不影响其它设备
+                            errors.Add($"Camera {i + 1} ({cam?.CameraName ?? "unknown"}): {ex.Message}");
+                        }
+                    }
+
+                    return errors;
+                });
+
+                // 回到 UI 线程：保存配置到文件并显示结果
+                SaveAllSettingsToJs();
+
+                if (saveResult.Count == 0)
+                {
+                    MessageBox.Show("所有相机配置已成功应用并保存。", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    // 汇总错误/警告，限制显示长度
+                    string summary = string.Join(Environment.NewLine, saveResult);
+                    if (summary.Length > 800)
+                    {
+                        summary = summary.Substring(0, 800) + Environment.NewLine + "...(truncated)";
+                    }
+                    MessageBox.Show("已应用设置，但存在以下警告/错误：" + Environment.NewLine + summary, "部分完成", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"应用配置时发生未处理异常: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -713,7 +733,6 @@ namespace MyWPF1
             if (!_isCapturing) 
             {
                 StartImageCapture();
-                _isCapturing = true;
             }
         }
 
@@ -722,7 +741,6 @@ namespace MyWPF1
             if (_isCapturing)
             {
                 StopImageCapture();
-                _isCapturing = false;
             }
         }
 
@@ -748,6 +766,7 @@ namespace MyWPF1
 
                 }
             }
+            SaveAllSettingsToJs();
         }
 
         private void RunToHome_Click(object sender, RoutedEventArgs e)
@@ -805,8 +824,7 @@ namespace MyWPF1
             }
             else
             {
-                System.Windows.MessageBox.Show("输入点位不能为空");
-
+                MessageBox.Show("输入点位不能为空");
             }
         }
 
@@ -855,14 +873,287 @@ namespace MyWPF1
                 File.WriteAllLines(jsFilePath, lines);
                 CurrentPositionBox.Text = position.ToString();
                 currentCamera.CameraPosition = position;
-                System.Windows.MessageBox.Show("保存" + position + "成功");
+                MessageBox.Show("保存" + position + "成功");
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"更新失败: {ex.Message}");
+                MessageBox.Show($"更新失败: {ex.Message}");
             }
+        }
+
+        public class CameraSettingDto
+        {
+            public string CameraName { get; set; } = "";
+            public double ExposureTime { get; set; }
+            public double Rate { get; set; }
+            public double Gain { get; set; }
+            public string? GammaMode { get; set; }
+            public double? Gamma { get; set; }
+            public double RedChannel { get; set; }
+            public double GreenChannel { get; set; }
+            public double BlueChannel { get; set; }
+            public string? HorizontalMode { get; set; }
+            public long HorizontalValue { get; set; }
+            public string? VerticalMode { get; set; }
+            public long VerticalValue { get; set; }
+            public int CameraPosition { get; set; }
+            // 如果你愿意并且 GeometryParams 可序列化，可以在此添加：
+            // public GeometryParams? Geometry { get; set; }
+        }
+
+        // -----------------------------------------------------
+        // 文件路径辅助
+        // -----------------------------------------------------
+        private string GetCameraSettingJsPath()
+        {
+            var exeDir = AppDomain.CurrentDomain.BaseDirectory;
+            return Path.Combine(exeDir, "CameraSetting.js");
+        }
+
+        // -----------------------------------------------------
+        // CameraParameters <-> DTO 转换
+        // -----------------------------------------------------
+        private CameraSettingDto ToDto(CameraParameters p)
+        {
+            return new CameraSettingDto
+            {
+                CameraName = p.CameraName,
+                ExposureTime = p.ExposureTime,
+                Rate = p.Rate,
+                Gain = p.Gain,
+                GammaMode = p.GammaMode,
+                Gamma = p.Gamma,
+                RedChannel = p.RedChannel,
+                GreenChannel = p.GreenChannel,
+                BlueChannel = p.BlueChannel,
+                HorizontalMode = p.HorizontalMode,
+                HorizontalValue = p.HorizontalValue,
+                VerticalMode = p.VerticalMode,
+                VerticalValue = p.VerticalValue,
+                CameraPosition = p.CameraPosition
+                // Geometry omitted by default
+            };
+        }
+
+        private void FromDto(CameraParameters dst, CameraSettingDto src)
+        {
+            if (dst == null || src == null) return;
+            dst.ExposureTime = src.ExposureTime;
+            dst.Rate = src.Rate;
+            dst.Gain = src.Gain;
+            if (!string.IsNullOrEmpty(src.GammaMode)) dst.GammaMode = src.GammaMode;
+            if (src.Gamma.HasValue) dst.Gamma = src.Gamma.Value;
+            dst.RedChannel = src.RedChannel;
+            dst.GreenChannel = src.GreenChannel;
+            dst.BlueChannel = src.BlueChannel;
+            if (!string.IsNullOrEmpty(src.HorizontalMode)) dst.HorizontalMode = src.HorizontalMode;
+            dst.HorizontalValue = src.HorizontalValue;
+            if (!string.IsNullOrEmpty(src.VerticalMode)) dst.VerticalMode = src.VerticalMode;
+            dst.VerticalValue = src.VerticalValue;
+            dst.CameraPosition = src.CameraPosition;
+            // Geometry 未处理，如需恢复请自行填充
+        }
+
+        // -----------------------------------------------------
+        // 读写 CameraSetting.js：保存全部 / 单个
+        // -----------------------------------------------------
+        private void SaveAllSettingsToJs()
+        {
+            string path = GetCameraSettingJsPath();
+
+            // 快照 cameraParaList（避免并发）
+            List<CameraParameters> snapshot;
+            lock (_cameraParaListLock) snapshot = cameraParaList.ToList();
+
+            var dict = snapshot.ToDictionary(
+                p => p.CameraName,
+                p => ToDto(p));
+
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            };
+
+            string json = JsonSerializer.Serialize(dict, options);
+            string jsText = "var CameraSettings = " + json + ";";
+
+            try
+            {
+                if (File.Exists(path))
+                {
+                    File.Copy(path, path + ".bak", overwrite: true);
+                }
+                File.WriteAllText(path, jsText, System.Text.Encoding.UTF8);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"保存 CameraSetting.js 失败: {ex.Message}", "保存失败", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void SaveSingleCameraToJs(CameraParameters camera)
+        {
+            if (camera == null) return;
+            string path = GetCameraSettingJsPath();
+
+            var dict = LoadSettingsFromJs() ?? new Dictionary<string, CameraSettingDto>(StringComparer.OrdinalIgnoreCase);
+
+            dict[camera.CameraName] = ToDto(camera);
+
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            };
+            string json = JsonSerializer.Serialize(dict, options);
+            string jsText = "var CameraSettings = " + json + ";";
+            try
+            {
+                if (File.Exists(path))
+                {
+                    File.Copy(path, path + ".bak", overwrite: true);
+                }
+                File.WriteAllText(path, jsText, System.Text.Encoding.UTF8);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"保存 CameraSetting.js 失败: {ex.Message}", "保存失败", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        // -----------------------------------------------------
+        // 读取 CameraSetting.js 并解析到字典
+        // -----------------------------------------------------
+        private Dictionary<string, CameraSettingDto>? LoadSettingsFromJs()
+        {
+            string path = GetCameraSettingJsPath();
+            if (!File.Exists(path)) return null;
+
+            string text = File.ReadAllText(path, System.Text.Encoding.UTF8);
+
+            // 找到最外层花括号部分
+            int idx = text.IndexOf('{');
+            int last = text.LastIndexOf('}');
+            if (idx < 0 || last < idx) return null;
+
+            string json = text.Substring(idx, last - idx + 1);
+
+            try
+            {
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var dict = JsonSerializer.Deserialize<Dictionary<string, CameraSettingDto>>(json, options);
+                return dict;
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"解析 CameraSetting.js 失败: {ex.Message}");
+                return null;
+            }
+        }
+
+        // -----------------------------------------------------
+        // 在窗口加载后调用：将文件中的配置应用到已连接相机并下发到硬件
+        // -----------------------------------------------------
+        private async Task ApplyLoadedSettingsIfAny()
+        {
+            var dict = LoadSettingsFromJs();
+            if (dict == null || dict.Count == 0) return;
+
+            // 遍历每个保存项，匹配已连接的 camera 并应用（异步下发到硬件）
+            lock (_cameraParaListLock)
+            {
+                foreach (var kv in dict)
+                {
+                    string name = kv.Key;
+                    var dto = kv.Value;
+                    var cam = cameraParaList.FirstOrDefault(c => c.CameraName == name);
+                    if (cam != null)
+                    {
+                        // 更新内存数据（UI 线程已经完成 LoadCameraSettings 等）
+                        FromDto(cam, dto);
+
+                        // 在后台把设置写入到相机硬件（避免阻塞 UI）
+                        Task.Run(() =>
+                        {
+                            try
+                            {
+                                IGXDevice device = null;
+                                lock (_deviceListLock)
+                                {
+                                    int idx = cameraParaList.IndexOf(cam);
+                                    if (idx >= 0 && idx < deviceList.Count)
+                                        device = deviceList[idx];
+                                }
+                                if (device != null)
+                                {
+                                    var fc = device.GetRemoteFeatureControl();
+                                    var sdk = new CameraSDK();
+                                    // 以下调用按你的 SDK 接口顺序进行映射
+                                    sdk.SetExposureTime(cam.ExposureTime, fc);
+                                    sdk.SetRate((int)cam.Rate, fc);
+                                    sdk.SetGain(cam.Gain, fc);
+                                    sdk.SetGammaMode(cam.GammaMode, fc);
+                                    sdk.SetRGBChannels((int)cam.RedChannel, (int)cam.GreenChannel, (int)cam.BlueChannel, fc);
+                                    if (cam.GammaMode == "User") sdk.SetGamma(cam.Gamma, fc);
+
+                                    // binning 等较大改动，若当前正在采集则延后或短暂停采
+                                    if (!_isCapturing)
+                                    {
+                                        sdk.SetHorizontalMode(cam.HorizontalMode, fc);
+                                        sdk.SetBinningHorizontalValue(cam.HorizontalValue, fc);
+                                        sdk.SetVerticalMode(cam.VerticalMode, fc);
+                                        sdk.SetVerticalValue(cam.VerticalValue, fc);
+                                    }
+                                    else
+                                    {
+                                        // 如果正在采集，按你的策略：跳过或在下次停止时应用
+                                        Trace.WriteLine($"正在采集，延迟应用 {cam.CameraName} 的 binning 设置。");
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Trace.WriteLine($"将设置应用到相机 {dto.CameraName} 失败: {ex.Message}");
+                            }
+                        });
+                    }
+                    else
+                    {
+                        Trace.WriteLine($"CameraSetting.js 包含 {name}，但当前没有已连接的同名相机。");
+                    }
+                }
+            }
+
+            // 如果当前 UI 已选择 camera，刷新 UI 显示
+            Dispatcher.Invoke(() =>
+            {
+                if (currentCamera != null) LoadCameraSettings(currentCamera);
+            });
+        }
+
+        // -----------------------------------------------------
+        // 使用场景示例：在 Loaded 事件中调用
+        // -----------------------------------------------------
+        // 在 SettingWindow_Loaded 的末尾或合适位置加：
+        // ApplyLoadedSettingsIfAny();
+
+        // -----------------------------------------------------
+        // 单个相机“保存”按钮事件演示
+        // -----------------------------------------------------
+        private void SaveCurrentCameraButton_Click(object sender, RoutedEventArgs e)
+        {
+            // 先把 UI 上的当前值应用到 currentCamera（你的 ApplySettings_Click 中已有逻辑可以复用）
+            ApplySettings_Click(sender, e); // 先执行一次应用并同步 currentCamera 的值
+            SaveSingleCameraToJs(currentCamera);
+        }
+
+        // -----------------------------------------------------
+        // 全部相机保存示例（可以绑定到“保存全部”按钮）
+        // -----------------------------------------------------
+        private void SaveAllButton_Click(object sender, RoutedEventArgs e)
+        {
+            SaveAllSettingsToJs();
         }
     }
 }
-
-

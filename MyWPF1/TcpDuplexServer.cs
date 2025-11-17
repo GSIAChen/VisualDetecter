@@ -50,6 +50,16 @@ namespace MyWPF1
         private TcpClient _client;
         private NetworkStream _stream;
         private TcpListener _listener;
+        private QtThreadRunner _qtRunner;
+        private IntPtr agentPtr;
+        private int agentHandle;
+        // keep callback delegate alive
+        private NativeCaptureCallback? _nativeCaptureCallback;
+        private GCHandle _gchUserState; // optional pin of user object
+        private object? _userState;      // optional
+        // 新的并行处理队列：处理 "raw capture" 的任务，复用已有的处理逻辑
+        private readonly ActionBlock<(byte[] Buf, int Width, int Height, int Bpl, byte CameraNo, int ObjectId)> _captureProcessor;
+
         private readonly int _parallelism = Environment.ProcessorCount;
         private ObservableCollection<string>[] scripts;
         private readonly ConcurrentDictionary<string, Task> _prewarmTasks = new(StringComparer.OrdinalIgnoreCase);
@@ -64,6 +74,7 @@ namespace MyWPF1
                                        .Range(1, MainWindow.CameraCount + 1)
                                        .Select(_ => new CameraStat(_))
                                        .ToArray();
+
         // 线程引擎池（初始化）
         private readonly ThreadLocal<HDevEngine> _threadEngine = new(() =>
         {
@@ -141,12 +152,29 @@ namespace MyWPF1
             {
                 ProcessFrame(t.Buf, t.Len);
             }, options);
-
-            //_frameProcessor = new ActionBlock<byte[]>(frame =>
+            // 放在构造函数中与 _frameProcessor 同处
+            //var captureOptions = new ExecutionDataflowBlockOptions
             //{
-            //    ProcessFrame(frame);
-            //}, options);
-            // 定时上报统计信息
+            //    MaxDegreeOfParallelism = _parallelism,
+            //    EnsureOrdered = false
+            //};
+            //_captureProcessor = new ActionBlock<(byte[] Buf, int Width, int Height, int Bpl, byte CameraNo, int ObjectId)>(t =>
+            //{
+            //    try
+            //    {
+            //        ProcessCapturedImage(t.Buf, t.Width, t.Height, t.Bpl, t.CameraNo, t.ObjectId);
+            //    }
+            //    finally
+            //    {
+            //        ArrayPool<byte>.Shared.Return(t.Buf, clearArray: false);
+            //    }
+            //}, captureOptions);
+
+            //_qtRunner.Start();
+            //agentPtr = _qtRunner.CreateAgent();
+            //agentHandle = agentPtr.ToInt32();
+            //RegisterNativeCallback(agentHandle, _qtRunner, userState: null);
+
             _reportTimer = new DispatcherTimer(
             TimeSpan.FromSeconds(5),
             DispatcherPriority.Normal,
@@ -275,6 +303,9 @@ namespace MyWPF1
             {
                 ArrayPool<byte>.Shared.Return(tmp, clearArray: false);
                 client.Close();
+                //UnregisterNativeCallback(agentHandle, _qtRunner);
+                //_qtRunner.DestroyAgent(agentPtr);
+                //_qtRunner.Stop();
             }
         }
 
@@ -323,7 +354,6 @@ namespace MyWPF1
                         (int)bpl, "byte",
                         width, height,
                         0, 0, 8, 0);
-
                     rgbImage = new HImage(imgObj);
                 }
                 catch (Exception ex)
@@ -426,7 +456,112 @@ namespace MyWPF1
                 _pool.Return(buf, clearArray: false);
             }
         }
+        private void ProcessCapturedImage(byte[] imgBuf, int width, int height, int bpl, byte cameraNo, int objectId)
+        {
+            // imgBuf length assumed >= bpl * height
+            HObject imgObj = null;
+            HImage rgbImage = null;
+            GCHandle handle = default;
+            try
+            {
+                // pin and gen Halcon image (同你现有实现)
+                handle = GCHandle.Alloc(imgBuf, GCHandleType.Pinned);
+                IntPtr ptr = handle.AddrOfPinnedObject();
 
+                HOperatorSet.GenImageInterleaved(
+                    out imgObj,
+                    ptr,
+                    "rgb", width, height,
+                    bpl, "byte",
+                    width, height,
+                    0, 0, 8, 0);
+
+                rgbImage = new HImage(imgObj);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine("[ProcessCapturedImage] GenImageInterleaved failed: " + ex);
+                if (imgObj != null) imgObj.Dispose();
+                if (rgbImage != null) rgbImage.Dispose();
+                return;
+            }
+            finally
+            {
+                if (handle.IsAllocated) handle.Free();
+            }
+
+            // run scripts (reuse your runner and engine logic)
+            bool allOk = true;
+            HTuple type = new HTuple();
+
+            // cameraNo mapping: keep your mapping logic
+            if (cameraNo >= 64 && cameraNo <= 69) cameraNo = (byte)(cameraNo - 58);
+            if (cameraNo >= scripts.Length)
+            {
+                Trace.WriteLine($"[ProcessCapturedImage] cameraNo {cameraNo} out of scripts range");
+                rgbImage.Dispose();
+                return;
+            }
+
+            foreach (var script in scripts[cameraNo])
+            {
+                try
+                {
+                    var runner = GetRunner(script);
+                    (bool isOk, HTuple ttype) = runner.Run(rgbImage);
+                    type = ttype;
+                    if (!isOk) { allOk = false; break; }
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"[ProcessCapturedImage] script {script} failed: {ex}");
+                    allOk = false;
+                    break;
+                }
+            }
+
+            // optional save NG
+            if (SaveNG && !allOk)
+            {
+                try { HalconConverter.SaveImageWithDotNet(rgbImage, $@"D:\images\camera{cameraNo + 1}\{objectId}_{type}.bmp"); }
+                catch (Exception ex) { Trace.WriteLine("[SaveNG] " + ex); }
+            }
+
+            // update stats
+            int idx = cameraNo;
+            if (idx >= 0 && idx < _stats.Length)
+            {
+                if (allOk) _stats[idx].OkCount++;
+                else _stats[idx].NgCount++;
+            }
+
+            // raise ImageReceived similar to existing behavior — do UI dispatch
+            if (cameraNo < 6 && !allOk)
+            {
+                var dispatchImage = rgbImage.Clone(); // clone if you must keep original
+                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    ImageReceived?.Invoke(this, new ImageReceivedEventArgs(cameraNo + 1, objectId, dispatchImage, type));
+                }), DispatcherPriority.Background);
+            }
+            else
+            {
+                rgbImage.Dispose();
+            }
+
+            // object state update (same logic)
+            var state = objectStates.GetOrAdd(objectId, _ => new ObjectState());
+            bool isLast = state.SetResult(cameraNo, allOk, CameraCount);
+            if (isLast)
+            {
+                bool finalOk = state.GetFinalOk();
+                int totIdx = _stats.Length - 1;
+                if (finalOk) _stats[totIdx].OkCount++;
+                else _stats[totIdx].NgCount++;
+                SendResult(objectId, finalOk);
+                objectStates.TryRemove(objectId, out _);
+            }
+        }
 
         private void SendResult(int objectId, bool isOk)
         {
@@ -626,6 +761,89 @@ namespace MyWPF1
             return Task.CompletedTask;
         }
 
+        public void RegisterNativeCallback(int agentHandle, QtThreadRunner? runner = null, object? userState = null)
+        {
+            // prepare delegate and keep reference
+            _nativeCaptureCallback = new NativeCaptureCallback(OnNativeCapture);
+
+            // keep user state pinned if you want to pass it as pUser
+            _userState = userState ?? new object();
+            _gchUserState = GCHandle.Alloc(_userState!);
+            IntPtr pUser = GCHandle.ToIntPtr(_gchUserState);
+
+            if (runner != null)
+            {
+                // register on Qt thread (recommended if native expects registration from Qt thread)
+                runner.RunOnQtThread(() =>
+                {
+                    bool ok = NativeMethods.testEc3224l_RegisterCaptrueCallBack(agentHandle, _nativeCaptureCallback, pUser);
+                    if (!ok) throw new InvalidOperationException("RegisterCaptrueCallBack failed");
+                });
+            }
+            else
+            {
+                bool ok = NativeMethods.testEc3224l_RegisterCaptrueCallBack(agentHandle, _nativeCaptureCallback, pUser);
+                if (!ok) throw new InvalidOperationException("RegisterCaptrueCallBack failed");
+            }
+        }
+
+        public void UnregisterNativeCallback(int agentHandle, QtThreadRunner? runner = null)
+        {
+            if (runner != null)
+            {
+                runner.RunOnQtThread(() => NativeMethods.testEc3224l_UnRegisterCaptrueCallBack(agentHandle));
+            }
+            else
+            {
+                NativeMethods.testEc3224l_UnRegisterCaptrueCallBack(agentHandle);
+            }
+
+            if (_gchUserState.IsAllocated) _gchUserState.Free();
+            _nativeCaptureCallback = null;
+            _userState = null;
+        }
+
+        private void OnNativeCapture(IntPtr pData, IntPtr pCaptureInfo, IntPtr pUser)
+        {
+            try
+            {
+                // parse captureInfo
+                if (pCaptureInfo == IntPtr.Zero) return;
+                SieveCaptureEx info = Marshal.PtrToStructure<SieveCaptureEx>(pCaptureInfo);
+                if (info.image == IntPtr.Zero) return;
+                GzsiaImage imgInfo = Marshal.PtrToStructure<GzsiaImage>(info.image);
+
+                int width = imgInfo.width;
+                int height = imgInfo.height;
+                int bpl = imgInfo.bytePerLine;
+                int pixelType = imgInfo.pixelType;
+                byte cameraNo = info.camerId;
+                int objectId = info.detectId;
+
+                if (width <= 0 || height <= 0 || bpl <= 0) return;
+
+                int byteCount = bpl * height;
+                // rent buffer from pool
+                byte[] buf = ArrayPool<byte>.Shared.Rent(byteCount);
+
+                // copy native bytes into managed buffer
+                Marshal.Copy(pData, buf, 0, byteCount);
+
+                // post to capture processor (it will call ProcessCapturedImage and then return buffer to pool)
+                var posted = _captureProcessor.Post((buf, width, height, bpl, cameraNo, objectId));
+                if (!posted)
+                {
+                    // queue was completed or full — return buffer and maybe log
+                    ArrayPool<byte>.Shared.Return(buf, clearArray: false);
+                    Trace.WriteLine("[OnNativeCapture] _captureProcessor.Post failed");
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine("[OnNativeCapture] Exception: " + ex);
+            }
+        }
+
         class ScriptRunner
         {
             private readonly string _path;
@@ -749,6 +967,41 @@ namespace MyWPF1
                     bitmapToSave?.Dispose();
                 }
             }
+        }
+
+        // ====== P/Invoke & struct mapping (对应你头文件) ======
+        [StructLayout(LayoutKind.Sequential)]
+        private struct GzsiaImage
+        {
+            public short width;
+            public short height;
+            public short pixelType;
+            public short bytePerLine;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct SieveCaptureEx
+        {
+            public byte camerId;   // unsigned char
+                                   // pad to 4 bytes before int
+            public int detectId;
+            public IntPtr image;   // GzsiaImage*
+        }
+
+        // 注意 header 使用 __stdcall -> CallingConvention.StdCall
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private delegate void NativeCaptureCallback(IntPtr pData, IntPtr pCaptureInfo, IntPtr pUser);
+
+        // 注册/注销导出函数（名称与 header 保持一致）
+        private static class NativeMethods
+        {
+            private const string DllName = "TestEc3224l.dll"; // 或完整路径 / 由 QtThreadRunner 加载也可以直接调用导出
+
+            [DllImport(DllName, CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+            public static extern bool testEc3224l_RegisterCaptrueCallBack(int hProjectAgent, NativeCaptureCallback func, IntPtr pUser);
+
+            [DllImport(DllName, CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+            public static extern bool testEc3224l_UnRegisterCaptrueCallBack(int hProjectAgent);
         }
     }
 }

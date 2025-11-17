@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Diagnostics;
 
-class QtThreadRunner : IDisposable
+public class QtThreadRunner : IDisposable
 {
     // kernel32
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Ansi)]

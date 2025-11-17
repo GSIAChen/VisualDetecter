@@ -17,12 +17,25 @@ namespace MyWPF1
 
     public partial class MainWindow : Window
     {
+        // 与 C++ header 对应（__stdcall + const char*）
+        [DllImport("TestEc3224l.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        private static extern int testEc3224l_CreateProjectAgent(string jsFile);
+
+        [DllImport("TestEc3224l.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        private static extern void testEc3224l_ProjectAgentCommand(int hProjectAgent, string command);
+
+        [DllImport("TestEc3224l.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        private static extern void testEc3224l_DestroyProjectAgent(int hProjectAgent);
+
+        [DllImport("TestEc3224l.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        private static extern bool testEc3224l_HandleValid(int handle);
+        string dll = @"E:\net8.0-windows\TestEc3224l.dll";
+        string jsPath = @"D:\program\TestEc3224l\TestEc3224l.js"; // 换成你实际的 js 文件全路径
         public string MaterialName { get; private set; }
         public string BatchNumber { get; private set; }
         public int BatchQuantity { get; private set; }
         public static int CameraCount { get; } = 12;
         private ScriptWindow _scriptWindow;
-
         public ObservableCollection<CameraStat> Stats { get; } =
             new ObservableCollection<CameraStat>(
                 Enumerable.Range(1, CameraCount).Select(i => new CameraStat(i))
@@ -53,9 +66,49 @@ namespace MyWPF1
             //    MaterialName = dlg.MaterialName;
             //    BatchNumber = dlg.BatchNumber;
             //    BatchQuantity = dlg.BatchQuantity;
-
-            _scriptWindow._tcpServer.SendStartSignal();
             //}
+            //var runner = new QtThreadRunner(dll); // 你已有的 QtThreadRunner
+            //try
+            //{
+            //    // 启动 Qt 线程并初始化 Qt（请选 STA 或 MTA，通常 STA）
+            //    runner.Start(System.Threading.ApartmentState.STA);
+
+            //    // 在 Qt 线程上创建 ProjectAgent 并取回 handle
+            //    int handle = runner.RunOnQtThread(() =>
+            //    {
+
+            //        int h = testEc3224l_CreateProjectAgent(jsPath);
+            //        Trace.WriteLine($"CreateProjectAgent returned handle = {h}");
+            //        return h;
+            //    });
+
+            //    if (handle == 0)
+            //    {
+            //        Console.WriteLine("CreateProjectAgent failed (handle == 0). 请检查 jsPath 路径、文件权限以及 native 端日志。");
+            //        return;
+            //    }
+
+            //    // 可选：验证句柄是否有效
+            //    bool valid = runner.RunOnQtThread(() => testEc3224l_HandleValid(handle));
+            //    Trace.WriteLine($"Handle valid? {valid}");
+
+            //    // 执行命令：让设备开始运转
+            //    runner.RunOnQtThread(() =>
+            //    {
+            //        string cmd = "mtsRunControl.start()";
+            //        Console.WriteLine($"Calling ProjectAgentCommand(handle={handle}, \"{cmd}\")");
+            //        testEc3224l_ProjectAgentCommand(handle, cmd);
+            //        return 0;
+            //    });
+
+            //    // 等一会儿观察设备、日志或 native 控制台输出
+            //    Trace.WriteLine("命令已发送，检查设备实际行为或 ProjectAgent 日志。");
+            //}
+            //catch (Exception ex)
+            //{
+            //    Trace.WriteLine("异常: " + ex);
+            //}
+            _scriptWindow._tcpServer.SendStartSignal();
         }
 
         private void StopButton_Click(object sender, RoutedEventArgs e)

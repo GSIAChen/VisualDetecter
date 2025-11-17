@@ -11,7 +11,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using static MyWPF1.SieveDll;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
@@ -81,11 +80,6 @@ namespace MyWPF1
         {
             InitializeComponent();
             DataContext = this;
-            Trace.WriteLine("Opening Project Agent!");
-            Trace.WriteLine("Process is 64-bit? " + Environment.Is64BitProcess);
-            GzsiaHandle agent =  SieveDll.testEc3224l_CreateProjectAgent(@"F:/TestEc3224l/TestEc3224l.js");
-            Trace.WriteLine("Project Agent Opened!");
-            Trace.WriteLine(SieveDll.testEc3224l_HandleValid(agent));
             Scripts = new ObservableCollection<string>[MainWindow.CameraCount];
             for (int i = 0; i < MainWindow.CameraCount; i++)
                 Scripts[i] = new ObservableCollection<string>();
